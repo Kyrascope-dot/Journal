@@ -20,6 +20,8 @@ export type Issue = {
   publishedAt: Timestamp | Date | null;
   slug: string;
   isCurrent?: boolean;
+  /** Path or URL to the full-issue PDF, if published. */
+  pdfUrl?: string;
 };
 
 export type IssueWithArticles = Issue & { articles: Article[] };

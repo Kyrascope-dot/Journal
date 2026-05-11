@@ -22,7 +22,10 @@ export default function ContactPage() {
           <div>
             <dt className="font-medium text-[var(--journal-heading)]">Email</dt>
             <dd className="mt-1">
-              <a className="text-[var(--journal-accent)] hover:underline" href={`mailto:${siteConfig.email}`}>
+              <a
+                className="text-[var(--journal-accent)] hover:underline"
+                href={`mailto:${siteConfig.email}`}
+              >
                 {siteConfig.email}
               </a>
               <span className="mt-1 block text-sm text-[var(--journal-muted)]">
@@ -30,14 +33,21 @@ export default function ContactPage() {
               </span>
             </dd>
           </div>
-          <div>
-            <dt className="font-medium text-[var(--journal-heading)]">Website</dt>
-            <dd className="mt-1">
-              <a className="text-[var(--journal-accent)] hover:underline" href={siteConfig.siteUrl}>
-                {siteConfig.siteUrl}
-              </a>
-            </dd>
-          </div>
+          {siteConfig.instagramUrl && (
+            <div>
+              <dt className="font-medium text-[var(--journal-heading)]">Instagram</dt>
+              <dd className="mt-1">
+                <a
+                  className="text-[var(--journal-accent)] hover:underline"
+                  href={siteConfig.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  @globalconfluencereview
+                </a>
+              </dd>
+            </div>
+          )}
         </dl>
 
         <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
@@ -57,26 +67,10 @@ export default function ContactPage() {
             author or reviewer.
           </li>
           <li>
-            <strong>Media or partnerships:</strong> briefly describe your organisation and
-            purpose.
+            <strong>Media or partnerships:</strong> briefly describe your organisation
+            and purpose.
           </li>
         </ul>
-
-        <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
-          Postal address
-        </h2>
-        <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          When a formal postal address is published for indexing or legal notices, it
-          will appear here. Until then, email is the primary channel for correspondence.
-        </p>
-
-        <p className="mt-8 text-sm text-[var(--journal-muted)]">
-          Social:{" "}
-          <a className="text-[var(--journal-accent)] hover:underline" href={siteConfig.facebookUrl} target="_blank" rel="noopener noreferrer">
-            Facebook
-          </a>{" "}
-          (update the link in site settings when your page is live).
-        </p>
       </div>
     </AppShell>
   );

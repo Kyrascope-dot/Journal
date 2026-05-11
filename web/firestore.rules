@@ -1,0 +1,128 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Hard-coded bootstrap: this email always has admin rights even before
+    // their Firestore role is set, so you can log in and manage the platform
+    // from day one.
+    function isBootstrapAdmin() {
+      return request.auth.token.email == 'sonam.dobriyal@athenaeducation.co.in';
+    }
+
+    // Read the caller's role from their Firestore user profile.
+    // Falls back to 'scholar' if the document doesn't exist yet.
+    function getUserRole() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : 'scholar';
+    }
+
+    function getAssignedCategories() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.assignedCategories
+        : [];
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (isBootstrapAdmin() || getUserRole() == 'admin');
+    }
+
+    function isEditor() {
+      return isSignedIn() && getUserRole() == 'editor';
+    }
+
+
+    // ── Journal issues & articles (public read) ─────────────────────────────
+
+    match /issues/{issueId} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /articles/{articleId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+
+
+    // ── User profiles ───────────────────────────────────────────────────────
+
+    match /users/{uid} {
+      // Anyone signed in can read their own profile; admins can read all.
+      allow get: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+
+      // Admins can list all users (needed for the admin dashboard).
+      allow list: if isAdmin();
+
+      // A user can create their own profile document on first sign-in.
+      allow create: if isSignedIn() && request.auth.uid == uid;
+
+      // Users can update their own profile EXCEPT role & assignedCategories.
+      // Only admins may change those fields.
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        request.auth.uid == uid &&
+        !('role' in request.resource.data.diff(resource.data).affectedKeys()) &&
+        !('assignedCategories' in request.resource.data.diff(resource.data).affectedKeys())
+      );
+
+      // Nobody can delete a user profile through the client SDK.
+      allow delete: if isAdmin();
+    }
+
+
+    // ── Submissions ─────────────────────────────────────────────────────────
+
+    match /submissions/{submissionId} {
+
+      // Scholars can read their own submissions.
+      // Editors can read submissions in their assigned categories.
+      // Admins can read everything.
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.authorId == request.auth.uid)
+        || (isEditor() && resource.data.category in getAssignedCategories());
+
+      // Any signed-in user can submit, provided the authorId matches their UID.
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+
+      // Editors can update submissions in their categories; admins can update all.
+      allow update: if isAdmin()
+        || (isEditor() && resource.data.category in getAssignedCategories());
+
+      allow delete: if isAdmin();
+
+
+      // ── Comments (sub-collection) ────────────────────────────────────────
+
+      match /comments/{commentId} {
+
+        // Scholars can read comments on their own submissions.
+        // Editors can read comments on submissions in their categories.
+        // Admins can read everything.
+        allow read: if isAdmin()
+          || (isSignedIn() &&
+              get(/databases/$(database)/documents/submissions/$(submissionId)).data.authorId
+              == request.auth.uid)
+          || (isEditor() &&
+              get(/databases/$(database)/documents/submissions/$(submissionId)).data.category
+              in getAssignedCategories());
+
+        // Editors and admins may post comments.
+        allow create: if (isEditor() || isAdmin())
+          && request.resource.data.authorId == request.auth.uid;
+
+        // Comments are immutable once posted.
+        allow update, delete: if isAdmin();
+      }
+    }
+
+  }
+}

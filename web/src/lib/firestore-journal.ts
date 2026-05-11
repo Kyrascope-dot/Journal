@@ -1,7 +1,8 @@
 /**
  * Firestore layout (public reads):
  * - issues/{issueId}: volume, issueNumber, year, monthLabel, title, publishedAt (Timestamp),
- *   slug (string, unique), isCurrent (boolean, optional)
+ *   slug (string, unique), isCurrent (boolean, optional),
+ *   pdfUrl (optional string — path like "/GCR_Vol1_Issue1_FINAL.pdf" or a full HTTPS URL)
  * - issues/{issueId}/articles/{articleId}: title, authors (string[]), pageStart, pageEnd,
  *   pdfUrl (optional, HTTPS to Storage or external), orderIndex (number)
  */
@@ -29,6 +30,7 @@ function mapIssue(id: string, data: Record<string, unknown>): Issue {
     publishedAt: data.publishedAt as Issue["publishedAt"],
     slug: String(data.slug ?? id),
     isCurrent: Boolean(data.isCurrent),
+    pdfUrl: data.pdfUrl ? String(data.pdfUrl) : undefined,
   };
 }
 

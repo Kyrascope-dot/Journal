@@ -7,8 +7,7 @@ import { fetchCurrentIssue } from "@/lib/firestore-journal";
 import { demoCurrentIssue } from "@/lib/demo-data";
 import type { IssueWithArticles } from "@/types/journal";
 import { siteConfig } from "@/lib/site-config";
-import { ArticleList } from "@/components/journal/ArticleList";
-import { formatIssueLabel, formatPublished } from "@/lib/format-dates";
+import { formatPublished } from "@/lib/format-dates";
 
 export function JournalHomeClient() {
   const [issue, setIssue] = useState<IssueWithArticles | null>(null);
@@ -53,12 +52,15 @@ export function JournalHomeClient() {
         ) : (
           <>
             <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[var(--journal-heading)] sm:text-4xl">
-              Vol {data.volume} No {data.issueNumber} ({data.year}):{" "}
               {data.title}
             </h1>
             <p className="mt-2 text-sm text-[var(--journal-muted)]">
-              {siteConfig.shortName} · {formatIssueLabel(data)} · Published:{" "}
-              {formatPublished(data.publishedAt)}
+              {siteConfig.shortName} · Volume {data.volume}, Issue {data.issueNumber}
+              {data.publishedAt ? (
+                <> · Published: {formatPublished(data.publishedAt)}</>
+              ) : (
+                <> · Forthcoming {data.year}</>
+              )}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
@@ -67,6 +69,19 @@ export function JournalHomeClient() {
               >
                 View full issue
               </Link>
+              {data.pdfUrl && (
+                <a
+                  href={data.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded border border-[var(--journal-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--journal-heading)] transition hover:bg-zinc-50"
+                >
+                  <svg className="h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                  Download PDF
+                </a>
+              )}
               <Link
                 href="/issues"
                 className="inline-flex items-center rounded border border-[var(--journal-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--journal-heading)] transition hover:bg-zinc-50"
@@ -78,44 +93,48 @@ export function JournalHomeClient() {
         )}
       </header>
 
-      <section className="mt-10">
-        <h2 className="font-serif text-xl font-semibold text-[var(--journal-heading)]">
-          Main Articles
-        </h2>
-        {!loading && (
-          <ArticleList articles={data.articles} issueSlug={data.slug} />
-        )}
-        {loading && (
-          <ul className="mt-4 space-y-4">
-            {[1, 2, 3].map((i) => (
-              <li
-                key={i}
-                className="h-24 animate-pulse rounded-lg bg-zinc-100"
-              />
-            ))}
-          </ul>
-        )}
-      </section>
-
       <section className="mt-14 border-t border-[var(--journal-border)] pt-10">
         <h2 className="font-serif text-xl font-semibold text-[var(--journal-heading)]">
           About this journal
         </h2>
-        <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-[var(--journal-body)]">
-          <strong>{siteConfig.name}</strong>
-          {siteConfig.issn ? <> (ISSN {siteConfig.issn})</> : null} is an international,
-          peer-reviewed, open-access academic journal dedicated to bringing diverse
-          research streams into dialogue. The journal uses a double-blind peer-review
-          process and publishes original research, reviews, and scholarly discussions.
-          Interdisciplinary work is welcome.
-        </p>
-        <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+        <div className="mt-4 space-y-4 max-w-3xl text-[15px] leading-relaxed text-[var(--journal-body)]">
+          <p>
+            <strong>{siteConfig.name}</strong>
+            {siteConfig.issn ? <> (ISSN {siteConfig.issn})</> : null} is an
+            international, peer-reviewed, open-access academic journal committed to
+            fostering intellectual exchange across diverse disciplines. The journal serves
+            as a platform for scholars, researchers, and practitioners to present
+            high-quality research that bridges traditional academic boundaries and
+            encourages interdisciplinary dialogue.
+          </p>
+          <p>
+            With a strong emphasis on academic rigour and integrity, the journal follows
+            a double-blind peer-review process, ensuring unbiased evaluation and the
+            publication of original, impactful research. It welcomes a wide range of
+            scholarly contributions, including empirical studies, theoretical papers,
+            review articles, and critical discussions.
+          </p>
+          <p>
+            By integrating perspectives from both qualitative and quantitative domains,{" "}
+            <strong>{siteConfig.name}</strong> aims to create a true confluence of ideas
+            that address complex global challenges and contribute meaningfully to academic,
+            technological, and policy advancements. The journal is dedicated to promoting
+            accessibility and knowledge dissemination through its open-access model,
+            ensuring that research is available to a global audience without barriers.
+          </p>
+        </div>
+
+        <h3 className="mt-8 font-serif text-lg font-semibold text-[var(--journal-heading)]">
+          Multidisciplinary scope
+        </h3>
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
           {[
             "Anthropology & Sociology",
             "Psychology & Education",
             "Economics & Management",
             "Law, History & Cultural Studies",
             "Communication & Peace Studies",
+            "Science, Technology, Engineering & Mathematics (STEM)",
           ].map((item) => (
             <li
               key={item}

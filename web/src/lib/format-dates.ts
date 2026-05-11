@@ -22,5 +22,5 @@ export function formatPublished(publishedAt: Issue["publishedAt"]): string {
 }
 
 export function formatIssueLabel(issue: Pick<Issue, "volume" | "issueNumber" | "year" | "monthLabel">): string {
-  return `Vol ${issue.volume} No ${issue.issueNumber} ${issue.year} ${issue.monthLabel}`;
+  return `Volume ${issue.volume} No ${issue.issueNumber} ${issue.year} ${issue.monthLabel}`.trim();
 }

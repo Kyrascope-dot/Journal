@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { siteConfig } from "@/lib/site-config";
 
@@ -23,8 +24,15 @@ export function SiteHeader() {
         Skip to main content
       </a>
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/" className="min-w-0 font-serif text-lg font-semibold leading-tight text-[var(--journal-heading)] sm:text-xl">
-          {siteConfig.shortName}
+        <Link href="/" className="flex shrink-0 items-center" aria-label={siteConfig.name}>
+          <Image
+            src="/GCR_logo.jpg"
+            alt={siteConfig.name}
+            width={160}
+            height={56}
+            className="h-10 w-auto object-contain"
+            priority
+          />
         </Link>
         <button
           type="button"

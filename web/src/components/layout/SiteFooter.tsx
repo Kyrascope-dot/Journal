@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { siteConfig } from "@/lib/site-config";
+import { TermsModal } from "@/components/layout/TermsModal";
+import { PrivacyModal } from "@/components/layout/PrivacyModal";
 
 export function SiteFooter() {
   return (
@@ -15,11 +17,6 @@ export function SiteFooter() {
                 ISSN {siteConfig.issn}
               </p>
             ) : null}
-            <p className="mt-1 text-xs text-[var(--journal-muted)]">
-              <a className="underline hover:text-[var(--journal-heading)]" href={siteConfig.siteUrl}>
-                {siteConfig.siteUrl.replace(/^https?:\/\//, "")}
-              </a>
-            </p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -33,16 +30,18 @@ export function SiteFooter() {
                 {siteConfig.email}
               </a>
             </p>
-            <p className="mt-2 text-sm">
-              <a
-                className="text-[var(--journal-accent)] hover:underline"
-                href={siteConfig.facebookUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Facebook
-              </a>
-            </p>
+            {siteConfig.instagramUrl && (
+              <p className="mt-2 text-sm">
+                <a
+                  className="text-[var(--journal-accent)] hover:underline"
+                  href={siteConfig.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Instagram
+                </a>
+              </p>
+            )}
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
@@ -79,18 +78,24 @@ export function SiteFooter() {
             </ul>
           </div>
         </div>
-        <p className="mt-10 border-t border-[var(--journal-border)] pt-6 text-center text-xs text-[var(--journal-muted)]">
-          Copyright © {siteConfig.yearRange} {siteConfig.publisher}. Licensed under{" "}
-          <a
-            className="underline hover:text-[var(--journal-heading)]"
-            href={siteConfig.licenseUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Creative Commons {siteConfig.license}
-          </a>
-          .
-        </p>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-[var(--journal-border)] pt-6 text-center text-xs text-[var(--journal-muted)]">
+          <span>
+            Copyright © {siteConfig.yearRange} {siteConfig.publisher}. Licensed under{" "}
+            <a
+              className="underline hover:text-[var(--journal-heading)]"
+              href={siteConfig.licenseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Creative Commons {siteConfig.license}
+            </a>
+            .
+          </span>
+          <span aria-hidden>·</span>
+          <TermsModal />
+          <span aria-hidden>·</span>
+          <PrivacyModal />
+        </div>
       </div>
     </footer>
   );
