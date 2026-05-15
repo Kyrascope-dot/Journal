@@ -1,10 +1,12 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { contentProse, contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
 
 export default function OpenAccessPage() {
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className={`${contentShell} py-12`}>
+        <div className={contentProse}>
         <h1 className="font-serif text-3xl font-semibold text-[var(--journal-heading)]">
           Open access policy
         </h1>
@@ -46,15 +48,17 @@ export default function OpenAccessPage() {
           Article processing charges (APCs)
         </h2>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          {siteConfig.name} may apply article processing charges to cover editorial
-          management, peer review coordination, copy-editing, and online dissemination.
-          Any applicable fees, waivers for authors in lower-income contexts, and payment
-          timing are published on the{" "}
+          <strong>Article processing charges (APCs) are waived for the initial volumes or
+          issues</strong> while the journal establishes its operations. After that launch
+          period, the journal <strong>may introduce APCs</strong>; any fees, waivers for
+          authors in lower-income contexts, and payment timing will be published on the{" "}
           <a className="text-[var(--journal-accent)] hover:underline" href="/submissions">
             Submissions
           </a>{" "}
-          page and confirmed before acceptance. Authors are never asked to pay simply to
-          submit or to guarantee acceptance.
+          page and confirmed with authors before acceptance. When charged, APCs help cover
+          editorial management, peer review coordination, copy-editing, and online
+          dissemination. Authors are never asked to pay simply to submit or to guarantee
+          acceptance.
         </p>
 
         <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
@@ -65,6 +69,7 @@ export default function OpenAccessPage() {
           participation in trusted archiving services so that scholarship remains
           discoverable over time.
         </p>
+        </div>
       </div>
     </AppShell>
   );

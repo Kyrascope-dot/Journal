@@ -24,3 +24,20 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* Justified body copy in page content; headings keep default alignment */
+#main-content p {
+  text-align: justify;
+  text-wrap: pretty;
+}
+
+#main-content dd {
+  text-align: justify;
+  text-wrap: pretty;
+}
+
+#main-content .text-center p,
+#main-content p.text-center {
+  text-align: center;
+  text-wrap: balance;
+}

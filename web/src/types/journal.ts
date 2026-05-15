@@ -17,6 +17,8 @@ export type Issue = {
   year: number;
   monthLabel: string;
   title: string;
+  /** Shown on the archives page, e.g. Issue1-Vol1[Apr-June2026] */
+  archiveDisplayName?: string;
   publishedAt: Timestamp | Date | null;
   slug: string;
   isCurrent?: boolean;

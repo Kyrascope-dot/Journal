@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        // Google profile photos (used by Firebase Auth / Google sign-in)
+        // Profile photo URLs for accounts that may have used Google sign-in previously
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
         pathname: "/**",

@@ -5,9 +5,11 @@ import Link from "next/link";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { fetchIssueBySlug } from "@/lib/firestore-journal";
 import { demoArchiveIssues } from "@/lib/demo-data";
+import { mergeIssueWithLocalPapers } from "@/lib/local-issue-assets";
 import type { IssueWithArticles } from "@/types/journal";
 import { siteConfig } from "@/lib/site-config";
 import { ArticleList } from "@/components/journal/ArticleList";
+import { contentProse, contentShell } from "@/lib/content-layout";
 import { formatPublished } from "@/lib/format-dates";
 
 type Props = { slug: string };
@@ -23,7 +25,7 @@ export function JournalIssueClient({ slug }: Props) {
       const fallback = demoArchiveIssues.find((i) => i.slug === slug) ?? null;
       if (!isFirebaseConfigured()) {
         if (!cancelled) {
-          setIssue(fallback);
+          setIssue(fallback ? mergeIssueWithLocalPapers(fallback) : null);
           setNotFound(!fallback);
           setLoading(false);
         }
@@ -33,16 +35,20 @@ export function JournalIssueClient({ slug }: Props) {
         const data = await fetchIssueBySlug(slug);
         if (!cancelled) {
           if (data) {
-            setIssue(data);
+            setIssue(mergeIssueWithLocalPapers(data));
             setNotFound(false);
           } else {
-            setIssue(fallback);
+            setIssue(
+              fallback ? mergeIssueWithLocalPapers(fallback) : null
+            );
             setNotFound(!fallback);
           }
         }
       } catch {
         if (!cancelled) {
-          setIssue(fallback);
+          setIssue(
+            fallback ? mergeIssueWithLocalPapers(fallback) : null
+          );
           setNotFound(!fallback);
         }
       } finally {
@@ -56,7 +62,7 @@ export function JournalIssueClient({ slug }: Props) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className={`${contentShell} py-16`}>
         <div className="h-10 max-w-lg animate-pulse rounded bg-zinc-200" />
         <div className="mt-8 h-32 animate-pulse rounded bg-zinc-100" />
       </div>
@@ -65,7 +71,8 @@ export function JournalIssueClient({ slug }: Props) {
 
   if (notFound || !issue) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
+      <div className={`${contentShell} py-16 text-center`}>
+        <div className={`${contentProse} mx-auto`}>
         <h1 className="font-serif text-2xl font-semibold text-[var(--journal-heading)]">
           Issue not found
         </h1>
@@ -78,12 +85,13 @@ export function JournalIssueClient({ slug }: Props) {
         >
           ← All issues
         </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className={`${contentShell} py-10`}>
       <nav className="text-sm text-[var(--journal-muted)]">
         <Link href="/" className="hover:underline">
           Home
@@ -110,6 +118,11 @@ export function JournalIssueClient({ slug }: Props) {
         <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[var(--journal-heading)] sm:text-4xl">
           {issue.title}
         </h1>
+        {issue.archiveDisplayName ? (
+          <p className="mt-2 font-medium text-[var(--journal-accent)] sm:text-lg">
+            {issue.archiveDisplayName}
+          </p>
+        ) : null}
         <p className="mt-2 text-sm text-[var(--journal-muted)]">
           {siteConfig.shortName} · Volume {issue.volume}
           {issue.publishedAt ? (

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
+import { contentProse, contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
 
 export default function AllArticlesPage() {
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className={`${contentShell} py-12`}>
+        <div className={contentProse}>
         <h1 className="font-serif text-3xl font-semibold text-[var(--journal-heading)]">
           All articles
         </h1>
@@ -56,6 +58,7 @@ export default function AllArticlesPage() {
         >
           View all issues
         </Link>
+        </div>
       </div>
     </AppShell>
   );

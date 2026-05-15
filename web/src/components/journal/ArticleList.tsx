@@ -31,9 +31,11 @@ export function ArticleList({ articles, issueSlug }: Props) {
                 {article.title}
               </Link>
             </h3>
-            <p className="mt-1.5 text-sm text-[var(--journal-muted)]">
-              {article.authors.join(", ")}
-            </p>
+            {article.authors.length > 0 ? (
+              <p className="mt-1.5 text-sm text-[var(--journal-muted)]">
+                {article.authors.join(", ")}
+              </p>
+            ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
             <span className="text-sm tabular-nums text-[var(--journal-muted)]">

@@ -1,10 +1,50 @@
+import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/AppShell";
+import { contentProse, contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
+
+const generalRows: { label: string; value: ReactNode }[] = [
+  { label: "Title", value: siteConfig.name },
+  { label: "Frequency", value: siteConfig.frequency },
+  {
+    label: "ISSN",
+    value: siteConfig.issn.trim() ? siteConfig.issn : "—",
+  },
+  { label: "Publisher Name", value: siteConfig.publisherOrganisation },
+  { label: "Publisher Address", value: siteConfig.publisherAddress },
+  { label: "Starting Year", value: siteConfig.startingYear },
+  { label: "Subject", value: siteConfig.subject },
+  { label: "Language", value: siteConfig.language },
+  { label: "Publication format", value: siteConfig.publicationFormat },
+  {
+    label: "Email ID",
+    value: (
+      <a
+        className="text-[var(--journal-accent)] hover:underline break-all"
+        href={`mailto:${siteConfig.email}`}
+      >
+        {siteConfig.email}
+      </a>
+    ),
+  },
+  {
+    label: "Mobile No.",
+    value: (
+      <a
+        className="text-[var(--journal-accent)] hover:underline"
+        href={`tel:${siteConfig.publisherMobileTel}`}
+      >
+        {siteConfig.publisherMobileDisplay}
+      </a>
+    ),
+  },
+];
 
 export default function AboutJournalPage() {
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className={`${contentShell} py-12`}>
+        <div className={contentProse}>
         <h1 className="font-serif text-3xl font-semibold text-[var(--journal-heading)]">
           About the journal
         </h1>
@@ -33,6 +73,25 @@ export default function AboutJournalPage() {
             that address complex global challenges and contribute meaningfully to academic,
             technological, and policy advancements.
           </p>
+        </div>
+
+        <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
+          General
+        </h2>
+        <div className="mt-4 rounded-lg border border-[var(--journal-border)] bg-zinc-50/80 p-5 sm:p-6">
+          <dl className="divide-y divide-[var(--journal-border)]/60 text-sm">
+            {generalRows.map((row) => (
+              <div
+                key={row.label}
+                className="grid gap-1 py-3.5 first:pt-0 last:pb-0 sm:grid-cols-[minmax(160px,auto)_1fr] sm:gap-6 sm:py-3"
+              >
+                <dt className="font-medium text-[var(--journal-heading)]">
+                  {row.label}
+                </dt>
+                <dd className="min-w-0 text-[var(--journal-body)]">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
         <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
@@ -91,6 +150,7 @@ export default function AboutJournalPage() {
           on trustworthy, citable research. Our editorial team and reviewers work to
           maintain constructive feedback and timely decisions wherever possible.
         </p>
+        </div>
       </div>
     </AppShell>
   );

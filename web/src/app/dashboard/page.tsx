@@ -5,9 +5,10 @@ import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { AppShell } from "@/components/layout/AppShell";
-import { ScholarDashboard } from "@/components/dashboard/ScholarDashboard";
-import { EditorDashboard } from "@/components/dashboard/EditorDashboard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
+import { EditorDashboard } from "@/components/dashboard/EditorDashboard";
+import { ScholarDashboard } from "@/components/dashboard/ScholarDashboard";
+import { contentShell } from "@/lib/content-layout";
 
 const ROLE_TITLES = {
   scholar: "Scholar Dashboard",
@@ -30,7 +31,7 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      <div className={`${contentShell} py-10`}>
         {loading ? (
           <div className="space-y-4">
             <div className="h-8 w-48 animate-pulse rounded bg-zinc-100" />

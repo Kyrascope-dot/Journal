@@ -1,10 +1,12 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { contentProse, contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
 
 export default function SubmissionsPage() {
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className={`${contentShell} py-12`}>
+        <div className={contentProse}>
         <h1 className="font-serif text-3xl font-semibold text-[var(--journal-heading)]">
           Submissions
         </h1>
@@ -48,12 +50,18 @@ export default function SubmissionsPage() {
           Manuscript format
         </h2>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          Unless otherwise specified by the editorial office, use a standard academic
-          style: <strong>APA (7th edition)</strong> is acceptable for social science and
-          management fields. Manuscripts should be in English (or the language agreed with
-          the editor), double-spaced, with numbered pages, 12-point font, and clear
-          headings. Figures and tables should be high resolution and placed where referred
-          to in the text.
+          Submissions are <strong>format-free</strong> for layout beyond usual scholarly
+          sections (no fixed journal template), but the manuscript should use{" "}
+          <strong>Times New Roman, 11 pt</strong> for the main text. Use double-spacing,
+          numbered pages, and clear headings unless the editorial office specifies
+          otherwise. Figures and tables should be high resolution and placed where referred
+          to in the text. Manuscripts should be in English (or the language agreed with
+          the editor).
+        </p>
+        <p className="mt-3 text-[15px] leading-relaxed text-[var(--journal-body)]">
+          <strong>References</strong> must follow{" "}
+          <strong>APA 7th edition</strong> throughout (in-text citations and reference
+          list).
         </p>
 
         <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
@@ -62,7 +70,10 @@ export default function SubmissionsPage() {
         <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-[var(--journal-body)]">
           <li>Abstract (typically 200–250 words) and 4–6 keywords.</li>
           <li>Clear research question, methods, findings, and discussion of limitations.</li>
-          <li>References in a consistent style, complete and up to date.</li>
+          <li>
+            References in <strong>APA 7th&nbsp;edition</strong> (in-text and list), complete
+            and up to date.
+          </li>
           <li>Funding statements and conflict-of-interest disclosures on the title page.</li>
           <li>Ethics approval or participant consent details where human subjects are involved.</li>
         </ul>
@@ -97,6 +108,7 @@ export default function SubmissionsPage() {
             {siteConfig.email}
           </a>
         </p>
+        </div>
       </div>
     </AppShell>
   );

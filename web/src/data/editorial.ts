@@ -5,6 +5,16 @@ export type EditorialMember = {
   headline: string;
   /** Short educational line for the card */
   qualification: string;
+  /** Optional role / institution / address; use \\n for line breaks */
+  designation?: string;
+  /** Optional contact emails (shown as mailto links on the card) */
+  emails?: string[];
+  /** Optional Google Scholar profile URL */
+  scholarUrl?: string;
+  /** Optional institutional / faculty page URL */
+  facultyUrl?: string;
+  /** Label for the faculty / institutional link (e.g. “Great Lakes faculty page”) */
+  facultyUrlLabel?: string;
   /** Path under /public; use null to always show placeholder */
   imageSrc: string | null;
   bioParagraphs: string[];
@@ -23,6 +33,12 @@ export const editorialTeam: EditorialMember[] = [
     name: "Dr. Japji Kaur",
     headline: "Editor in Chief",
     qualification: "Ph.D. in Economics, Delhi Technological University",
+    designation:
+      "Guest Faculty (Economics), Delhi Technological University\nShahbad Daulatpur, Main Bawana Road, Rohini, New Delhi – 110042, India\n\nFormer Guest Faculty (Management), BML Munjal University.",
+    emails: [
+      "japjikaur_2k20phdhueco01@dtu.ac.in",
+      "editorglobalconfluencereview@gmail.com",
+    ],
     imageSrc: "/editorial/japji-kaur.jpg",
     bioParagraphs: [
       "Dr. Japji Kaur is a data-driven research and analytics professional with a Ph.D. in Economics from Delhi Technological University. She specializes in empirical data analysis, quantitative research, and insight generation to support strategic decision-making across business and technology environments.",
@@ -32,21 +48,12 @@ export const editorialTeam: EditorialMember[] = [
     ],
   },
   {
-    id: "neha-dawar",
-    name: "Neha Dawar",
-    headline: "Managing Editor",
-    qualification: "Ph.D. in Finance (Corporate Governance)",
-    imageSrc: null,
-    bioParagraphs: [
-      "Neha Dawar is a detail-oriented Finance & Audit Professional with 8+ years of experience in financial reporting, R2R processes, and audit support within global service environments. She has strong expertise in balance sheet reconciliations, month-end close (WD+1 to WD+3), and internal controls, with hands-on experience in BlackLine, SAP, Oracle, and OneStream. She has a proven track record of enhancing control frameworks, preparing SOPs, and ensuring compliance with regulatory and audit requirements including SOX-aligned processes.",
-      "She brings strong exposure to risk assessment, audit documentation, and process standardization, with the ability to work in high-pressure close cycles and collaborate effectively with global stakeholders. She holds a PhD in Finance (Corporate Governance), adding a strong foundation in governance, risk, and compliance. She is passionate about driving process improvements, strengthening internal controls, and delivering high-quality work.",
-    ],
-  },
-  {
     id: "praveen-kumar",
     name: "Dr. Praveen Kumar",
     headline: "Associate Editor",
     qualification: "Ph.D. in Economics, Kurukshetra University",
+    designation:
+      "Guest Faculty (Economics), National Institute of Technology Kurukshetra\nKurukshetra, Haryana, India — Pin Code 136119",
     imageSrc: "/editorial/DrPraveen.jpeg",
     bioParagraphs: [
       "Dr. Praveen Kumar is a faculty member in Economics (Contract) at the National Institute of Technology Kurukshetra. He holds a Ph.D. in Economics from Kurukshetra University, with a research focus on regional growth and inequalities in India, particularly examining pre- and post-economic reform periods.",
@@ -60,7 +67,14 @@ export const editorialTeam: EditorialMember[] = [
     name: "Dr. Vishal Dagar",
     headline: "Associate Editor",
     qualification:
-      "Economist; listed among global top 2% scientists (Elsevier–Stanford, 2023–2025)",
+      "Economist and researcher; listed among the global top 2% of scientists (Elsevier–Stanford, 2023–2025)",
+    designation:
+      "Associate Professor, Great Lakes Institute of Management\nBilaspur-Tauru Road, Near Bilaspur Chowk, NH-8, Gurugram, Haryana 122413, India\n\nListed among the global top 2% of scientists (Elsevier–Stanford composite score, 2023–2025).\n75+ SSCI/SCI publications in 25+ journals; 1,500+ peer reviews for 250+ journals (FT 50; ABDC A*, A, B).",
+    emails: ["vishal.d@greatlakes.edu.in"],
+    facultyUrl: "https://www.greatlakes.edu.in/gurgaon/faculty/vishal-dagar",
+    facultyUrlLabel: "Great Lakes faculty page",
+    scholarUrl:
+      "https://scholar.google.com/citations?user=oSyUY9txtr0C&hl=en",
     imageSrc: "/editorial/vishal-dagar.jpg",
     bioParagraphs: [
       "Dr. Vishal Dagar is an economist and researcher with more than five years of teaching and research experience across academia, policy, and industry. He is listed among the top 2% of scientists globally (Elsevier–Stanford composite score, 2023, 2024, and 2025).",
@@ -72,6 +86,12 @@ export const editorialTeam: EditorialMember[] = [
     name: "Dr. Tayyaba Rani",
     headline: "Associate Editor",
     qualification: "Ph.D., Xi’an Jiaotong University, China",
+    designation:
+      "Xi'an Jiaotong University\nNo. 28, Xianning West Road, Beilin District, Xi'an City, Shaanxi Province, P.R. China 710049",
+    emails: ["tayyabarani@stu.xjtu.edu.cn"],
+    facultyUrl: "https://www.xjtu.edu.cn/en",
+    facultyUrlLabel: "Xi'an Jiaotong University",
+    scholarUrl: "https://scholar.google.com/citations?user=CpvcUiIAAAAJ&hl=en",
     imageSrc: "/editorial/tayyaba-rani.jpg",
     bioParagraphs: [
       "Dr. Tayyaba Rani is an applied economics researcher with a Ph.D. from Xi’an Jiaotong University, China, specializing in energy economics, environmental sustainability, and financial development. Her research focuses on the dynamic interplay between digitalization, green investment, financial inclusion, and sustainable economic growth, with a particular emphasis on South Asian and emerging economies.",
@@ -85,6 +105,9 @@ export const editorialTeam: EditorialMember[] = [
     name: "Dr. Diksha Arora",
     headline: "Associate Editor",
     qualification: "Ph.D., Delhi Technological University",
+    designation:
+      "Guest Faculty (Economics), Delhi Technological University\nBawana Rd, Delhi Technological University, Shahbad Daulatpur Village, Rohini, New Delhi, Delhi 110042, India",
+    emails: ["dikshaarora_2k21phdhueco02@dtu.ac.in"],
     imageSrc: "/editorial/diksha-arora.jpg",
     bioParagraphs: [
       "Dr. Diksha Arora is an accomplished Economics educator and researcher who holds a Ph.D. from Delhi Technological University, with a focus on tech startups in the Delhi-NCR region. She has served as faculty at DTU and the University of Delhi, demonstrating strong teaching capability across diverse domains of economics. With top-tier academic achievements including a Junior Research Fellowship (AIR 4) and multiple research publications, Dr. Arora combines deep subject knowledge with practical experience. She is also certified in UGC-NET and CTET, proficient in digital teaching tools, and actively engaged in academic development through workshops, internships, and extracurricular activities. Known for her collaborative spirit and interdisciplinary outlook, she contributes effectively to diverse academic and research initiatives.",

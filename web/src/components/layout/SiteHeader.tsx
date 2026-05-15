@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
 
 const aboutLinks = [
@@ -23,14 +24,14 @@ export function SiteHeader() {
       >
         Skip to main content
       </a>
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      <div className={`${contentShell} flex items-center justify-between gap-4 py-3`}>
         <Link href="/" className="flex shrink-0 items-center" aria-label={siteConfig.name}>
           <Image
             src="/GCR_logo.jpg"
             alt={siteConfig.name}
-            width={160}
-            height={56}
-            className="h-10 w-auto object-contain"
+            width={220}
+            height={77}
+            className="h-14 w-auto object-contain sm:h-16"
             priority
           />
         </Link>

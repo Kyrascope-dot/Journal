@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { AppShell } from "@/components/layout/AppShell";
+import { contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
 import { isFirebaseConfigured, getFirebaseAuth } from "@/lib/firebase";
 
@@ -38,7 +39,8 @@ export default function ForgotPasswordPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
+      <div className={`${contentShell} py-16`}>
+        <div className="mx-auto w-full max-w-md">
         <h1 className="font-serif text-2xl font-semibold text-[var(--journal-heading)]">
           Reset your password
         </h1>
@@ -112,6 +114,7 @@ export default function ForgotPasswordPage() {
             </p>
           </>
         )}
+      </div>
       </div>
     </AppShell>
   );

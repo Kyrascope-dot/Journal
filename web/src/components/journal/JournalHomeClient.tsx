@@ -6,8 +6,10 @@ import { isFirebaseConfigured } from "@/lib/firebase";
 import { fetchCurrentIssue } from "@/lib/firestore-journal";
 import { demoCurrentIssue } from "@/lib/demo-data";
 import type { IssueWithArticles } from "@/types/journal";
-import { siteConfig } from "@/lib/site-config";
+import { contentProse, contentShell } from "@/lib/content-layout";
 import { formatPublished } from "@/lib/format-dates";
+import { mergeIssueWithLocalPapers } from "@/lib/local-issue-assets";
+import { siteConfig } from "@/lib/site-config";
 
 export function JournalHomeClient() {
   const [issue, setIssue] = useState<IssueWithArticles | null>(null);
@@ -39,10 +41,10 @@ export function JournalHomeClient() {
     };
   }, []);
 
-  const data = issue ?? demoCurrentIssue;
+  const data = mergeIssueWithLocalPapers(issue ?? demoCurrentIssue);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className={`${contentShell} py-10`}>
       <header className="border-b border-[var(--journal-border)] pb-8">
         <p className="text-sm font-medium uppercase tracking-wider text-[var(--journal-muted)]">
           Current Issue
@@ -93,11 +95,13 @@ export function JournalHomeClient() {
         )}
       </header>
 
-      <section className="mt-14 border-t border-[var(--journal-border)] pt-10">
+      <section
+        className={`mt-14 border-t border-[var(--journal-border)] pt-10 ${contentProse}`}
+      >
         <h2 className="font-serif text-xl font-semibold text-[var(--journal-heading)]">
           About this journal
         </h2>
-        <div className="mt-4 space-y-4 max-w-3xl text-[15px] leading-relaxed text-[var(--journal-body)]">
+        <div className="mt-4 space-y-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
           <p>
             <strong>{siteConfig.name}</strong>
             {siteConfig.issn ? <> (ISSN {siteConfig.issn})</> : null} is an
