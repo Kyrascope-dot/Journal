@@ -54,7 +54,7 @@ export const editorialTeam: EditorialMember[] = [
     qualification:
       "Ph.D. in Finance, Swiss School of Business and Management, Geneva, Switzerland",
     emails: ["ndawar.dawar@gmail.com"],
-    imageSrc: null,
+    imageSrc: "/editorial/neha-dawar.jpeg",
     bioParagraphs: [
       "Dr. Neha Dawar is the Managing Editor of Global Confluence Review. She holds a Ph.D. in Finance from the Swiss School of Business and Management in Geneva, Switzerland.",
     ],
@@ -70,7 +70,7 @@ export const editorialTeam: EditorialMember[] = [
     emails: ["nandkumar@dce.ac.in", "nanddce@gmail.com"],
     facultyUrl: "https://dtu.ac.in/Web/Departments/Humanities/about/",
     facultyUrlLabel: "Department of Humanities | Delhi Technological University",
-    imageSrc: null,
+    imageSrc: "/editorial/nand-kumar.jpeg",
     bioParagraphs: [
       "Prof. Nand Kumar is a Professor of Economics in the Department of Humanities at Delhi Technological University, Delhi, and is presently heading the department. He earned his M.A. in Economics from Jawaharlal Nehru University (JNU), Delhi, and his Ph.D. from Delhi Technological University (DTU), Delhi.",
       "He has published a number of seminal research papers in economics in international journals of repute. Currently there are 10 research scholars registered for Ph.D. under his supervision. Prior to joining DTU, Delhi, Prof. Kumar served as a probation officer in the Department of Home Jail in the province of Bihar.",
