@@ -28,6 +28,7 @@ function enrichIssue(issue: Issue): IssueRow {
     articles: getLocalArticlesForIssueSlug(issue),
   };
 }
+// The client component fetches the list of issues and their metadata, but article-level PDFs are only linked for a few issues (currently just Vol. 1) due to the manual effort required to upload and link each paper. For most issues, only the full issue PDF is available.
 
 export function JournalArchivesClient() {
   const [issues, setIssues] = useState<Issue[]>([]);
