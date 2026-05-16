@@ -48,15 +48,45 @@ export const editorialTeam: EditorialMember[] = [
     ],
   },
   {
-    id: "praveen-kumar",
-    name: "Dr. Praveen Kumar",
+    id: "neha-dawar",
+    name: "Dr. Neha Dawar",
+    headline: "Managing Editor",
+    qualification:
+      "Ph.D. in Finance, Swiss School of Business and Management, Geneva, Switzerland",
+    emails: ["ndawar.dawar@gmail.com"],
+    imageSrc: null,
+    bioParagraphs: [
+      "Dr. Neha Dawar is the Managing Editor of Global Confluence Review. She holds a Ph.D. in Finance from the Swiss School of Business and Management in Geneva, Switzerland.",
+    ],
+  },
+  {
+    id: "nand-kumar",
+    name: "Prof. Nand Kumar",
+    headline: "Editorial Board",
+    qualification:
+      "M.A. (JNU), Ph.D. (DTU). Specialization: Economics.",
+    designation:
+      "Professor and Head, Department of Humanities, Delhi Technological University\nDelhi, India",
+    emails: ["nandkumar@dce.ac.in", "nanddce@gmail.com"],
+    facultyUrl: "https://dtu.ac.in/Web/Departments/Humanities/about/",
+    facultyUrlLabel: "Department of Humanities | Delhi Technological University",
+    imageSrc: null,
+    bioParagraphs: [
+      "Prof. Nand Kumar is a Professor of Economics in the Department of Humanities at Delhi Technological University, Delhi, and is presently heading the department. He earned his M.A. in Economics from Jawaharlal Nehru University (JNU), Delhi, and his Ph.D. from Delhi Technological University (DTU), Delhi.",
+      "He has published a number of seminal research papers in economics in international journals of repute. Currently there are 10 research scholars registered for Ph.D. under his supervision. Prior to joining DTU, Delhi, Prof. Kumar served as a probation officer in the Department of Home Jail in the province of Bihar.",
+    ],
+  },
+  {
+    id: "parveen-kumar",
+    name: "Dr. Parveen Kumar",
     headline: "Associate Editor",
     qualification: "Ph.D. in Economics, Kurukshetra University",
     designation:
       "Guest Faculty (Economics), National Institute of Technology Kurukshetra\nKurukshetra, Haryana, India — Pin Code 136119",
+    emails: ["pkbhatt9@gmail.com"],
     imageSrc: "/editorial/DrPraveen.jpeg",
     bioParagraphs: [
-      "Dr. Praveen Kumar is a faculty member in Economics (Contract) at the National Institute of Technology Kurukshetra. He holds a Ph.D. in Economics from Kurukshetra University, with a research focus on regional growth and inequalities in India, particularly examining pre- and post-economic reform periods.",
+      "Dr. Parveen Kumar is a faculty member in Economics (Contract) at the National Institute of Technology Kurukshetra. He holds a Ph.D. in Economics from Kurukshetra University, with a research focus on regional growth and inequalities in India, particularly examining pre- and post-economic reform periods.",
       "Dr. Kumar qualified the UGC National Eligibility Test in 2012 and has a strong academic background in economics. His research expertise spans environmental economics, sustainable development, energy transition, economic growth, and inequality, with a particular focus on emerging economies including BRICS and the European Union.",
       "He has an impressive publication record in high-impact, peer-reviewed international journals such as Springer Nature, MDPI, and Frontiers. His work extensively explores themes like CO₂ emissions, environmental sustainability, FDI, and policy dynamics using advanced econometric techniques.",
       "Dr. Kumar is actively engaged in interdisciplinary research and has contributed significantly to the literature on climate change economics and development policy. His scholarly contributions are indexed in Scopus, reflecting his growing impact in the academic community.",
