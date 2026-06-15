@@ -147,7 +147,7 @@ export default function AboutJournalPage() {
         </h2>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
           We serve researchers, doctoral students, educators, and professionals who rely
-          on trustworthy, citable research. Our editorial team and reviewers work to
+          on trustworthy, citable research. Our editorial board and reviewers work to
           maintain constructive feedback and timely decisions wherever possible.
         </p>
         </div>

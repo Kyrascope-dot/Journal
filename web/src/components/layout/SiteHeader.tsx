@@ -82,7 +82,7 @@ export function SiteHeader() {
             </li>
             <li>
               <Link className="rounded px-2 py-1 text-[var(--journal-body)] hover:bg-zinc-100" href="/editorial">
-                Editorial Team
+          Editorial Board
               </Link>
             </li>
             <li>
@@ -130,7 +130,7 @@ export function SiteHeader() {
               </li>
             ))}
             {[
-              ["/editorial", "Editorial Team"],
+              ["/editorial", "Editorial Board"],
               ["/articles", "All Articles"],
               ["/", "Current Issue"],
               ["/issues", "Archives"],

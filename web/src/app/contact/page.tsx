@@ -43,7 +43,7 @@ export default function ContactPage() {
           Contact
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          The editorial team of <strong>{siteConfig.name}</strong> ({siteConfig.shortName})
+          The editorial board of <strong>{siteConfig.name}</strong> ({siteConfig.shortName})
           handles manuscript inquiries, submissions, and general questions about the
           journal. We aim to respond to routine messages within{" "}
           <strong>5 business days</strong>, though complex issues may take longer.

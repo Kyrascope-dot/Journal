@@ -36,7 +36,14 @@ function MetaBlock({ member }: { member: EditorialMember }) {
           </ul>
         </div>
       ) : null}
-      {(member.facultyUrl || member.scholarUrl) ? (
+      {(member.facultyUrl ||
+        member.scholarUrl ||
+        member.scopusUrl ||
+        member.orcidUrl ||
+        member.researchGateUrl ||
+        member.rocketReachUrl ||
+        member.phdAwardedUrl ||
+        member.linkedinUrl) ? (
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--journal-heading)]">
             Profiles
@@ -52,6 +59,108 @@ function MetaBlock({ member }: { member: EditorialMember }) {
                 >
                   {member.facultyUrlLabel ?? "Institutional page"}
                   <span className="text-xs font-normal text-[var(--journal-muted)]">(new tab)</span>
+                  <svg className="h-3.5 w-3.5 shrink-0 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path d="M11 3a1 1 0 100 2h2.586L8.293 10.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                </a>
+              </li>
+            ) : null}
+            {member.linkedinUrl ? (
+              <li>
+                <a
+                  href={member.linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex flex-wrap items-center gap-1.5 text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/30 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                >
+                  LinkedIn
+                  <span className="text-xs font-normal text-[var(--journal-muted)]">(new tab)</span>
+                  <svg className="h-3.5 w-3.5 shrink-0 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path d="M11 3a1 1 0 100 2h2.586L8.293 10.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                </a>
+              </li>
+            ) : null}
+            {member.scopusUrl ? (
+              <li>
+                <a
+                  href={member.scopusUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex flex-wrap items-center gap-1.5 text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/30 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                >
+                  Scopus profile
+                  <span className="text-xs font-normal text-[var(--journal-muted)]">(new tab)</span>
+                  <svg className="h-3.5 w-3.5 shrink-0 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path d="M11 3a1 1 0 100 2h2.586L8.293 10.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                </a>
+              </li>
+            ) : null}
+            {member.orcidUrl ? (
+              <li>
+                <a
+                  href={member.orcidUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex flex-wrap items-center gap-1.5 text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/30 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                >
+                  ORCID
+                  <span className="text-xs font-normal text-[var(--journal-muted)]">(new tab)</span>
+                  <svg className="h-3.5 w-3.5 shrink-0 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path d="M11 3a1 1 0 100 2h2.586L8.293 10.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                </a>
+              </li>
+            ) : null}
+            {member.researchGateUrl ? (
+              <li>
+                <a
+                  href={member.researchGateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex flex-wrap items-center gap-1.5 text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/30 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                >
+                  ResearchGate
+                  <span className="text-xs font-normal text-[var(--journal-muted)]">(new tab)</span>
+                  <svg className="h-3.5 w-3.5 shrink-0 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path d="M11 3a1 1 0 100 2h2.586L8.293 10.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                </a>
+              </li>
+            ) : null}
+            {member.rocketReachUrl ? (
+              <li>
+                <a
+                  href={member.rocketReachUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex flex-wrap items-center gap-1.5 text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/30 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                >
+                  RocketReach
+                  <span className="text-xs font-normal text-[var(--journal-muted)]">(new tab)</span>
+                  <svg className="h-3.5 w-3.5 shrink-0 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                    <path d="M11 3a1 1 0 100 2h2.586L8.293 10.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                </a>
+              </li>
+            ) : null}
+            {member.phdAwardedUrl ? (
+              <li>
+                <a
+                  href={member.phdAwardedUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex flex-wrap items-center gap-1.5 text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/30 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                >
+                  {member.phdAwardedUrlLabel ?? "PhD awarded"}
+                  <span className="text-xs font-normal text-[var(--journal-muted)]">(PDF)</span>
                   <svg className="h-3.5 w-3.5 shrink-0 opacity-60" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path d="M11 3a1 1 0 100 2h2.586L8.293 10.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                     <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />

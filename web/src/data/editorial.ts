@@ -11,6 +11,20 @@ export type EditorialMember = {
   emails?: string[];
   /** Optional Google Scholar profile URL */
   scholarUrl?: string;
+  /** Optional Scopus author profile URL */
+  scopusUrl?: string;
+  /** Optional ORCID profile URL */
+  orcidUrl?: string;
+  /** Optional LinkedIn profile URL */
+  linkedinUrl?: string;
+  /** Optional ResearchGate profile URL */
+  researchGateUrl?: string;
+  /** Optional RocketReach profile URL */
+  rocketReachUrl?: string;
+  /** Optional link to PhD awarded record (e.g. institutional PDF) */
+  phdAwardedUrl?: string;
+  /** Label for PhD awarded link */
+  phdAwardedUrlLabel?: string;
   /** Optional institutional / faculty page URL */
   facultyUrl?: string;
   /** Label for the faculty / institutional link (e.g. “Great Lakes faculty page”) */
@@ -21,6 +35,9 @@ export type EditorialMember = {
 };
 
 const PLACEHOLDER = "/editorial/placeholder-avatar.svg";
+
+const DTU_HUMANITIES_PHD_AWARDED_URL =
+  "https://dtu.ac.in/Web/Departments/Humanities/phd_awarded.pdf";
 
 /**
  * Image files: add photos as /public/editorial/<filename>.
@@ -35,10 +52,13 @@ export const editorialTeam: EditorialMember[] = [
     qualification: "Ph.D. in Economics, Delhi Technological University",
     designation:
       "Guest Faculty (Economics), Delhi Technological University\nShahbad Daulatpur, Main Bawana Road, Rohini, New Delhi – 110042, India\n\nFormer Guest Faculty (Management), BML Munjal University.",
-    emails: [
-      "japjikaur_2k20phdhueco01@dtu.ac.in",
-      "editorglobalconfluencereview@gmail.com",
-    ],
+    emails: ["japjikaur_2k20phdhueco01@dtu.ac.in"],
+    scholarUrl:
+      "https://scholar.google.com/citations?user=r7M3fQgAAAAJ&hl=en",
+    linkedinUrl: "https://in.linkedin.com/in/dr-japji-kaur-4b4aa2128",
+    rocketReachUrl: "https://rocketreach.co/japji-kaur-email_860322276",
+    phdAwardedUrl: DTU_HUMANITIES_PHD_AWARDED_URL,
+    phdAwardedUrlLabel: "PhD awarded — DTU Humanities",
     imageSrc: "/editorial/japji-kaur.jpg",
     bioParagraphs: [
       "Dr. Japji Kaur is a data-driven research and analytics professional with a Ph.D. in Economics from Delhi Technological University. She specializes in empirical data analysis, quantitative research, and insight generation to support strategic decision-making across business and technology environments.",
@@ -53,7 +73,6 @@ export const editorialTeam: EditorialMember[] = [
     headline: "Managing Editor",
     qualification:
       "Ph.D. in Finance, Swiss School of Business and Management, Geneva, Switzerland",
-    emails: ["ndawar.dawar@gmail.com"],
     imageSrc: "/editorial/neha-dawar.jpeg",
     bioParagraphs: [
       "Dr. Neha Dawar is the Managing Editor of Global Confluence Review. She holds a Ph.D. in Finance from the Swiss School of Business and Management in Geneva, Switzerland.",
@@ -67,7 +86,7 @@ export const editorialTeam: EditorialMember[] = [
       "M.A. (JNU), Ph.D. (DTU). Specialization: Economics.",
     designation:
       "Professor and Head, Department of Humanities, Delhi Technological University\nDelhi, India",
-    emails: ["nandkumar@dce.ac.in", "nanddce@gmail.com"],
+    emails: ["nandkumar@dce.ac.in"],
     facultyUrl: "https://dtu.ac.in/Web/Departments/Humanities/about/",
     facultyUrlLabel: "Department of Humanities | Delhi Technological University",
     imageSrc: "/editorial/nand-kumar.jpeg",
@@ -81,15 +100,35 @@ export const editorialTeam: EditorialMember[] = [
     name: "Dr. Parveen Kumar",
     headline: "Associate Editor",
     qualification: "Ph.D. in Economics, Kurukshetra University",
-    designation:
-      "Guest Faculty (Economics), National Institute of Technology Kurukshetra\nKurukshetra, Haryana, India — Pin Code 136119",
-    emails: ["pkbhatt9@gmail.com"],
+    designation: "Guest Faculty, Shri Vishwakarma Skill University\nHaryana, India",
+    emails: ["facultyofash4@svsu.ac.in"],
+    linkedinUrl: "https://www.linkedin.com/in/parveen-kumar-bhatt-a2432690",
+    scopusUrl:
+      "https://www.scopus.com/authid/detail.uri?authorId=58825793300",
+    orcidUrl: "https://orcid.org/0000-0003-2333-9376",
     imageSrc: "/editorial/DrPraveen.jpeg",
     bioParagraphs: [
-      "Dr. Parveen Kumar is a faculty member in Economics (Contract) at the National Institute of Technology Kurukshetra. He holds a Ph.D. in Economics from Kurukshetra University, with a research focus on regional growth and inequalities in India, particularly examining pre- and post-economic reform periods.",
+      "Dr. Parveen Kumar is Guest Faculty at Shri Vishwakarma Skill University. He holds a Ph.D. in Economics from Kurukshetra University, with a research focus on regional growth and inequalities in India, particularly examining pre- and post-economic reform periods.",
       "Dr. Kumar qualified the UGC National Eligibility Test in 2012 and has a strong academic background in economics. His research expertise spans environmental economics, sustainable development, energy transition, economic growth, and inequality, with a particular focus on emerging economies including BRICS and the European Union.",
       "He has an impressive publication record in high-impact, peer-reviewed international journals such as Springer Nature, MDPI, and Frontiers. His work extensively explores themes like CO₂ emissions, environmental sustainability, FDI, and policy dynamics using advanced econometric techniques.",
       "Dr. Kumar is actively engaged in interdisciplinary research and has contributed significantly to the literature on climate change economics and development policy. His scholarly contributions are indexed in Scopus, reflecting his growing impact in the academic community.",
+    ],
+  },
+  {
+    id: "mariam-aloulou",
+    name: "Dr. Mariam Aloulou",
+    headline: "Associate Editor",
+    qualification: "Assistant Professor, College of Business Administration",
+    designation: "American University in the Emirates (AUE)",
+    emails: ["Mariem.aloulou@aue.ae"],
+    facultyUrl: "https://aue.ae/dr-mariem-aloulou/",
+    facultyUrlLabel: "Institutional profile",
+    scopusUrl:
+      "https://www.scopus.com/authid/detail.uri?authorId=57734007200",
+    imageSrc: "/editorial/mariam-aloulou.png",
+    bioParagraphs: [
+      "Dr. Mariam Aloulou is an Assistant Professor in the College of Business Administration at the American University in the Emirates (AUE).",
+      "Dr. Aloulou holds several prestigious professional certifications, including a certification in FinTech from Harvard's VPAL and in Circular Economy and Sustainability Strategies from Cambridge Judge Business School. She is an active member of the academic community, serving as a reviewer for multiple journals and conferences. Her work has garnered recognition, and she has received multiple grants and awards for her research contributions, including research funding for projects on circular economy and sustainability.",
     ],
   },
   {
@@ -117,16 +156,19 @@ export const editorialTeam: EditorialMember[] = [
     headline: "Associate Editor",
     qualification: "Ph.D., Xi’an Jiaotong University, China",
     designation:
-      "Xi'an Jiaotong University\nNo. 28, Xianning West Road, Beilin District, Xi'an City, Shaanxi Province, P.R. China 710049",
+      "Xi'an Jiaotong University\nNo. 28, Xianning West Road, Beilin District, Xi'an City, Shaanxi Province, P.R. China 710049\n\nFormer employment:\nCommerce Lecturer (Commerce), Government College University Faisalabad\nFaisalabad, Punjab, Pakistan · August 2014 – January 2018",
     emails: ["tayyabarani@stu.xjtu.edu.cn"],
     facultyUrl: "https://www.xjtu.edu.cn/en",
     facultyUrlLabel: "Xi'an Jiaotong University",
     scholarUrl: "https://scholar.google.com/citations?user=CpvcUiIAAAAJ&hl=en",
+    researchGateUrl:
+      "https://www.researchgate.net/profile/Tayyaba-Rani-2?ev=hdr_xprf",
+    orcidUrl: "https://orcid.org/0000-0002-4094-6808",
     imageSrc: "/editorial/tayyaba-rani.jpg",
     bioParagraphs: [
       "Dr. Tayyaba Rani is an applied economics researcher with a Ph.D. from Xi’an Jiaotong University, China, specializing in energy economics, environmental sustainability, and financial development. Her research focuses on the dynamic interplay between digitalization, green investment, financial inclusion, and sustainable economic growth, with a particular emphasis on South Asian and emerging economies.",
       "With extensive expertise in empirical and quantitative research, Dr. Rani is proficient in advanced econometric techniques and statistical tools, including R, Stata, and EViews, enabling robust data analysis and policy-relevant insights. She has authored more than 19 publications in high-impact international journals such as Technology in Society, Energy Policy, Resources Policy, and Environmental Progress & Sustainable Energy.",
-      "Dr. Rani also brings valuable academic experience, having taught finance, accounting, and economics courses at both undergraduate and graduate levels. Her research contributions aim to inform evidence-based policymaking and promote sustainable development through interdisciplinary and data-driven approaches.",
+      "Dr. Rani also brings valuable academic experience, having taught finance, accounting, and economics courses at both undergraduate and graduate levels. She previously served as Commerce Lecturer at Government College University Faisalabad, Punjab, Pakistan (August 2014 – January 2018). Her research contributions aim to inform evidence-based policymaking and promote sustainable development through interdisciplinary and data-driven approaches.",
       "Her editorial and research interests lie at the intersection of energy economics, environmental policy, digital transformation, and sustainable development, where she seeks to contribute to advancing high-quality academic scholarship and impactful research dissemination.",
     ],
   },
@@ -138,6 +180,10 @@ export const editorialTeam: EditorialMember[] = [
     designation:
       "Guest Faculty (Economics), Delhi Technological University\nBawana Rd, Delhi Technological University, Shahbad Daulatpur Village, Rohini, New Delhi, Delhi 110042, India",
     emails: ["dikshaarora_2k21phdhueco02@dtu.ac.in"],
+    linkedinUrl: "https://www.linkedin.com/in/dr-diksha-arora-a31661146",
+    researchGateUrl: "https://www.researchgate.net/profile/Diksha-Arora-4",
+    phdAwardedUrl: DTU_HUMANITIES_PHD_AWARDED_URL,
+    phdAwardedUrlLabel: "PhD awarded — DTU Humanities",
     imageSrc: "/editorial/diksha-arora.jpg",
     bioParagraphs: [
       "Dr. Diksha Arora is an accomplished Economics educator and researcher who holds a Ph.D. from Delhi Technological University, with a focus on tech startups in the Delhi-NCR region. She has served as faculty at DTU and the University of Delhi, demonstrating strong teaching capability across diverse domains of economics. With top-tier academic achievements including a Junior Research Fellowship (AIR 4) and multiple research publications, Dr. Arora combines deep subject knowledge with practical experience. She is also certified in UGC-NET and CTET, proficient in digital teaching tools, and actively engaged in academic development through workshops, internships, and extracurricular activities. Known for her collaborative spirit and interdisciplinary outlook, she contributes effectively to diverse academic and research initiatives.",

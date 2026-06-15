@@ -9,10 +9,10 @@ export default function EditorialPage() {
       <div className={`${contentShell} py-12`}>
         <div className={contentProse}>
         <h1 className="font-serif text-3xl font-semibold text-[var(--journal-heading)]">
-          Editorial team
+          Editorial board
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          The editorial team brings together scholars and professionals committed to
+          The editorial board brings together scholars and professionals committed to
           rigorous peer review and the dissemination of high-quality research.
         </p>
         </div>
