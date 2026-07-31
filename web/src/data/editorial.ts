@@ -99,7 +99,7 @@ export const editorialTeam: EditorialMember[] = [
     id: "parveen-kumar",
     name: "Dr. Parveen Kumar",
     headline: "Associate Editor",
-    qualification: "Ph.D. in Economics, Kurukshetra University",
+    qualification: "Ph.D. in Economics, NIT, Kurukshetra University",
     designation:
       "Guest Faculty, Shri Vishwakarma Skill University\nHaryana, India\n\nGuest Faculty, National Institute of Technology (NIT) Kurukshetra\nKurukshetra, Haryana, India",
     emails: ["facultyofash4@svsu.ac.in"],
