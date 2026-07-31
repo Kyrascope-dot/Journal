@@ -100,7 +100,8 @@ export const editorialTeam: EditorialMember[] = [
     name: "Dr. Parveen Kumar",
     headline: "Associate Editor",
     qualification: "Ph.D. in Economics, Kurukshetra University",
-    designation: "Guest Faculty, Shri Vishwakarma Skill University\nHaryana, India",
+    designation:
+      "Guest Faculty, Shri Vishwakarma Skill University\nHaryana, India\n\nGuest Faculty, National Institute of Technology (NIT) Kurukshetra\nKurukshetra, Haryana, India",
     emails: ["facultyofash4@svsu.ac.in"],
     linkedinUrl: "https://www.linkedin.com/in/parveen-kumar-bhatt-a2432690",
     scopusUrl:
@@ -108,7 +109,7 @@ export const editorialTeam: EditorialMember[] = [
     orcidUrl: "https://orcid.org/0000-0003-2333-9376",
     imageSrc: "/editorial/DrPraveen.jpeg",
     bioParagraphs: [
-      "Dr. Parveen Kumar is Guest Faculty at Shri Vishwakarma Skill University. He holds a Ph.D. in Economics from Kurukshetra University, with a research focus on regional growth and inequalities in India, particularly examining pre- and post-economic reform periods.",
+      "Dr. Parveen Kumar is Guest Faculty at Shri Vishwakarma Skill University and at the National Institute of Technology (NIT) Kurukshetra. He holds a Ph.D. in Economics from Kurukshetra University, with a research focus on regional growth and inequalities in India, particularly examining pre- and post-economic reform periods.",
       "Dr. Kumar qualified the UGC National Eligibility Test in 2012 and has a strong academic background in economics. His research expertise spans environmental economics, sustainable development, energy transition, economic growth, and inequality, with a particular focus on emerging economies including BRICS and the European Union.",
       "He has an impressive publication record in high-impact, peer-reviewed international journals such as Springer Nature, MDPI, and Frontiers. His work extensively explores themes like CO₂ emissions, environmental sustainability, FDI, and policy dynamics using advanced econometric techniques.",
       "Dr. Kumar is actively engaged in interdisciplinary research and has contributed significantly to the literature on climate change economics and development policy. His scholarly contributions are indexed in Scopus, reflecting his growing impact in the academic community.",
