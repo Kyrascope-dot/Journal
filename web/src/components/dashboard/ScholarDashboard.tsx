@@ -29,6 +29,15 @@ import { siteConfig } from "@/lib/site-config";
 
 const ABSTRACT_SUCCESS_HEADING = "Abstract received";
 
+const BEST_PAPER_GCR_PUBLICATION_NOTE =
+  "Winners of the Best Paper Award in their track will be offered a publication opportunity in an upcoming issue of Global Confluence Review (GCR), subject to rigorous journal peer review. After winning, you must submit the full paper using the GCR journal manuscript template; it will then receive full consideration for publication in the upcoming GCR issue.";
+
+function conferenceShowsPaperSubmission(
+  award: ConferenceAwardIntent | ""
+): award is "best_paper" | "both" {
+  return award === "best_paper" || award === "both";
+}
+
 function formatDate(value: Submission["submittedAt"]): string {
   if (!value) return "—";
   const d = value instanceof Date ? value : (value as { toDate(): Date }).toDate();
@@ -246,7 +255,7 @@ export function ScholarDashboard({
                   onClick={() => setTab("submit")}
                   className="mt-4 rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95"
                 >
-                  Submit your first paper
+                  Submit
                 </button>
               </div>
             ) : (
@@ -431,6 +440,26 @@ export function ScholarDashboard({
                             </label>
                           ))}
                         </div>
+                        {conferenceShowsPaperSubmission(conferenceAwardIntent) && (
+                          <div className="mt-4 rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3">
+                            <p className="text-sm leading-relaxed text-[var(--journal-body)]">
+                              {BEST_PAPER_GCR_PUBLICATION_NOTE}{" "}
+                              <Link
+                                href="/for-authors/manuscript-templates"
+                                className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                              >
+                                Journal manuscript templates
+                              </Link>
+                              .
+                            </p>
+                            <Link
+                              href="/conferences/submit-paper"
+                              className="mt-3 inline-flex rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95"
+                            >
+                              Submission for paper
+                            </Link>
+                          </div>
+                        )}
                       </fieldset>
                     </div>
                   )}
