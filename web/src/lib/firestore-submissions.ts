@@ -38,6 +38,12 @@ function mapSubmission(
     assignedEditorName: data.assignedEditorName
       ? String(data.assignedEditorName)
       : null,
+    assignedReviewerId: data.assignedReviewerId
+      ? String(data.assignedReviewerId)
+      : null,
+    assignedReviewerName: data.assignedReviewerName
+      ? String(data.assignedReviewerName)
+      : null,
     statusNote: data.statusNote ? String(data.statusNote) : null,
   };
 }
@@ -69,6 +75,8 @@ export async function createSubmission(payload: {
     status: "pending" as SubmissionStatus,
     assignedEditorId: null,
     assignedEditorName: null,
+    assignedReviewerId: null,
+    assignedReviewerName: null,
     statusNote: null,
     submittedAt: serverTimestamp(),
     lastUpdatedAt: serverTimestamp(),
@@ -101,6 +109,53 @@ export async function getSubmissionsByAuthor(
     mapSubmission(d.id, d.data() as Record<string, unknown>)
   );
   return sortByDate(results);
+}
+
+/** Editor: papers explicitly assigned to this editor. */
+export async function getSubmissionsByAssignedEditor(
+  editorId: string
+): Promise<Submission[]> {
+  const db = getDb();
+  const snap = await getDocs(
+    query(collection(db, "submissions"), where("assignedEditorId", "==", editorId))
+  );
+  const results = snap.docs.map((d) =>
+    mapSubmission(d.id, d.data() as Record<string, unknown>)
+  );
+  return sortByDate(results);
+}
+
+/** Reviewer: papers assigned to this reviewer. */
+export async function getSubmissionsByAssignedReviewer(
+  reviewerId: string
+): Promise<Submission[]> {
+  const db = getDb();
+  const snap = await getDocs(
+    query(
+      collection(db, "submissions"),
+      where("assignedReviewerId", "==", reviewerId)
+    )
+  );
+  const results = snap.docs.map((d) =>
+    mapSubmission(d.id, d.data() as Record<string, unknown>)
+  );
+  return sortByDate(results);
+}
+
+/** Editor: assigned papers plus category queue (deduplicated). */
+export async function getSubmissionsForEditor(
+  editorId: string,
+  categories: string[]
+): Promise<Submission[]> {
+  const [assigned, byCategory] = await Promise.all([
+    getSubmissionsByAssignedEditor(editorId),
+    categories.length > 0 ? getSubmissionsByCategories(categories) : Promise.resolve([]),
+  ]);
+  const byId = new Map<string, Submission>();
+  for (const s of [...assigned, ...byCategory]) {
+    byId.set(s.id, s);
+  }
+  return sortByDate([...byId.values()]);
 }
 
 /** Editor: get all submissions for a set of categories. */
@@ -167,6 +222,20 @@ export async function assignEditor(
     assignedEditorId: editorId,
     assignedEditorName: editorName,
     status: "under_review" as SubmissionStatus,
+    lastUpdatedAt: serverTimestamp(),
+  });
+}
+
+/** Admin: assign a peer reviewer (identity visible only to admin and that reviewer). */
+export async function assignReviewer(
+  submissionId: string,
+  reviewerId: string | null,
+  reviewerName: string | null
+): Promise<void> {
+  const db = getDb();
+  await updateDoc(doc(db, "submissions", submissionId), {
+    assignedReviewerId: reviewerId,
+    assignedReviewerName: reviewerName,
     lastUpdatedAt: serverTimestamp(),
   });
 }

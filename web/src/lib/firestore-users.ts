@@ -104,6 +104,17 @@ export async function getAllUsers(): Promise<UserProfile[]> {
   );
 }
 
+/** Fetch all reviewers (users with role = 'reviewer'). */
+export async function getAllReviewers(): Promise<UserProfile[]> {
+  const db = getDb();
+  const snap = await getDocs(
+    query(collection(db, "users"), where("role", "==", "reviewer"))
+  );
+  return snap.docs.map((d) =>
+    mapProfile(d.id, d.data() as Record<string, unknown>)
+  );
+}
+
 /** Fetch all editors (users with role = 'editor'). */
 export async function getAllEditors(): Promise<UserProfile[]> {
   const db = getDb();

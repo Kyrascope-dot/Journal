@@ -76,9 +76,7 @@ export const topLevelNavLinks: NavLink[] = [
 ];
 
 export const accountNavLinks: NavLink[] = [
-  { href: "/dashboard", label: "Author Dashboard" },
-  { href: "/dashboard?role=reviewer", label: "Reviewer Dashboard" },
-  { href: "/dashboard?role=editor", label: "Editor Dashboard" },
+  { href: "/dashboard?view=author", label: "Author dashboard" },
 ];
 
 export const footerNavColumns: { title: string; links: NavLink[] }[] = [

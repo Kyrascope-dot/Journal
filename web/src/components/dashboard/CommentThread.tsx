@@ -13,6 +13,7 @@ function formatDate(value: Comment["createdAt"]): string {
 const rolePill: Record<UserRole, string> = {
   scholar: "bg-zinc-100 text-zinc-600",
   editor: "bg-blue-50 text-blue-700",
+  reviewer: "bg-teal-50 text-teal-700",
   admin: "bg-purple-50 text-purple-700",
 };
 

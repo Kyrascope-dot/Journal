@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import {
   getAllSubmissions,
   assignEditor,
+  assignReviewer,
   updateSubmissionStatus,
 } from "@/lib/firestore-submissions";
 import {
   getAllUsers,
   getAllEditors,
+  getAllReviewers,
   setUserRole,
   findUserByEmail,
 } from "@/lib/firestore-users";
@@ -42,6 +44,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [editors, setEditors] = useState<UserProfile[]>([]);
+  const [reviewers, setReviewers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedSubId, setExpandedSubId] = useState<string | null>(null);
 
@@ -50,25 +53,32 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
   const [filterStatus, setFilterStatus] = useState<SubmissionStatus | "all">("all");
 
   useEffect(() => {
-    Promise.all([getAllSubmissions(), getAllUsers(), getAllEditors()]).then(
-      ([subs, us, eds]) => {
+    Promise.all([
+      getAllSubmissions(),
+      getAllUsers(),
+      getAllEditors(),
+      getAllReviewers(),
+    ]).then(([subs, us, eds, revs]) => {
         setSubmissions(subs);
         setUsers(us);
         setEditors(eds);
+        setReviewers(revs);
         setLoading(false);
       }
     );
   }, []);
 
   const refreshAll = async () => {
-    const [subs, us, eds] = await Promise.all([
+    const [subs, us, eds, revs] = await Promise.all([
       getAllSubmissions(),
       getAllUsers(),
       getAllEditors(),
+      getAllReviewers(),
     ]);
     setSubmissions(subs);
     setUsers(us);
     setEditors(eds);
+    setReviewers(revs);
   };
 
   const filteredSubs = submissions.filter((s) => {
@@ -215,6 +225,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                       <p className="text-xs text-[var(--journal-muted)]">
                         {sub.category} · Submitted {formatDate(sub.submittedAt)}
                         {sub.assignedEditorName && ` · Editor: ${sub.assignedEditorName}`}
+                        {sub.assignedReviewerName && ` · Reviewer: ${sub.assignedReviewerName}`}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -236,6 +247,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                     <SubmissionPanel
                       submission={sub}
                       editors={editors}
+                      reviewers={reviewers}
                       adminProfile={profile}
                       onUpdate={refreshAll}
                     />
@@ -266,16 +278,21 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
 function SubmissionPanel({
   submission,
   editors,
+  reviewers,
   adminProfile,
   onUpdate,
 }: {
   submission: Submission;
   editors: UserProfile[];
+  reviewers: UserProfile[];
   adminProfile: UserProfile;
   onUpdate: () => void;
 }) {
   const [selectedEditorId, setSelectedEditorId] = useState(
     submission.assignedEditorId ?? ""
+  );
+  const [selectedReviewerId, setSelectedReviewerId] = useState(
+    submission.assignedReviewerId ?? ""
   );
   const [status, setStatus] = useState<SubmissionStatus>(submission.status);
   const [statusNote, setStatusNote] = useState(submission.statusNote ?? "");
@@ -288,6 +305,20 @@ function SubmissionPanel({
         const editor = editors.find((e) => e.uid === selectedEditorId);
         if (editor) {
           await assignEditor(submission.id, editor.uid, editor.displayName || editor.email);
+        }
+      }
+      if (selectedReviewerId !== (submission.assignedReviewerId ?? "")) {
+        if (selectedReviewerId) {
+          const reviewer = reviewers.find((r) => r.uid === selectedReviewerId);
+          if (reviewer) {
+            await assignReviewer(
+              submission.id,
+              reviewer.uid,
+              reviewer.displayName || reviewer.email
+            );
+          }
+        } else {
+          await assignReviewer(submission.id, null, null);
         }
       }
       if (status !== submission.status || statusNote !== submission.statusNote) {
@@ -328,6 +359,26 @@ function SubmissionPanel({
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[var(--journal-muted)]">
+            Assign peer reviewer
+          </label>
+          <select
+            value={selectedReviewerId}
+            onChange={(e) => setSelectedReviewerId(e.target.value)}
+            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+          >
+            <option value="">— Unassigned —</option>
+            {reviewers.map((rev) => (
+              <option key={rev.uid} value={rev.uid}>
+                {rev.displayName || rev.email}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-[var(--journal-muted)]">
+            Visible only to you and the assigned reviewer.
+          </p>
         </div>
         <div>
           <label className="block text-xs font-medium text-[var(--journal-muted)]">
@@ -384,7 +435,7 @@ function UsersPanel({
   onUpdate: () => void;
 }) {
   const [editingUid, setEditingUid] = useState<string | null>(null);
-  const [newRole, setNewRole] = useState<"scholar" | "editor" | "admin">("scholar");
+  const [newRole, setNewRole] = useState<UserProfile["role"]>("scholar");
   const [saving, setSaving] = useState(false);
 
   async function handleRoleChange(uid: string) {
@@ -401,6 +452,7 @@ function UsersPanel({
   const rolePill: Record<string, string> = {
     scholar: "bg-zinc-100 text-zinc-700",
     editor: "bg-blue-50 text-blue-700",
+    reviewer: "bg-teal-50 text-teal-700",
     admin: "bg-purple-50 text-purple-700",
   };
 
@@ -437,14 +489,13 @@ function UsersPanel({
                       <select
                         value={newRole}
                         onChange={(e) =>
-                          setNewRole(
-                            e.target.value as "scholar" | "editor" | "admin"
-                          )
+                          setNewRole(e.target.value as UserProfile["role"])
                         }
                         className="rounded border border-[var(--journal-border)] px-2 py-1 text-xs focus:outline-none"
                       >
                         <option value="scholar">Scholar</option>
                         <option value="editor">Editor</option>
+                        <option value="reviewer">Reviewer</option>
                         <option value="admin">Admin</option>
                       </select>
                       <button

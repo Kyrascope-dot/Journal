@@ -5,15 +5,20 @@ import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { contentShell } from "@/lib/content-layout";
 import { useAuth, useAuthSessionPending } from "@/context/AuthContext";
-import { accountNavLinks } from "@/config/site-navigation";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { getDashboardNavLinks } from "@/lib/dashboard-access";
 
 export function TopBar() {
   const { user, loading, signOutUser } = useAuth();
   const sessionPending = useAuthSessionPending();
+  const { profile, loading: profileLoading } = useUserProfile();
   const showSignedIn = Boolean(user) || sessionPending;
   const authBusy = loading && !showSignedIn;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const dashboardLinks =
+    user && profile && !profileLoading ? getDashboardNavLinks(profile.role) : [];
 
   useEffect(() => {
     function handle(e: MouseEvent) {
@@ -71,17 +76,21 @@ export function TopBar() {
                 >
                   <p className="truncate px-3 py-2 text-xs text-zinc-400">{user.email}</p>
                   <hr className="border-zinc-100" />
-                  {accountNavLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      role="menuitem"
-                      href={link.href}
-                      className="block px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                  {profileLoading ? (
+                    <p className="px-3 py-2 text-xs text-zinc-400">Loading menus…</p>
+                  ) : (
+                    dashboardLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        role="menuitem"
+                        href={link.href}
+                        className="block px-3 py-2 text-sm font-medium normal-case text-zinc-700 hover:bg-zinc-50"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        {link.label}
+                      </Link>
+                    ))
+                  )}
                   <hr className="border-zinc-100" />
                   <button
                     type="button"
@@ -101,11 +110,6 @@ export function TopBar() {
             <span className="h-7 w-28 animate-pulse rounded bg-white/20" aria-label="Loading account" />
           ) : (
             <>
-              {accountNavLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="normal-case hover:underline">
-                  {link.label}
-                </Link>
-              ))}
               <Link href="/register" className="hover:underline">
                 Register
               </Link>

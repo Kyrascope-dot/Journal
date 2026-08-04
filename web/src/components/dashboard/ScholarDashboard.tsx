@@ -5,6 +5,7 @@ import {
   createSubmission,
   getSubmissionsByAuthor,
 } from "@/lib/firestore-submissions";
+import { submissionForViewer } from "@/lib/dashboard-access";
 import { updateScholarProfile } from "@/lib/firestore-users";
 import type { Submission, UserProfile } from "@/types/dashboard";
 import { RESEARCH_CATEGORIES } from "@/types/dashboard";
@@ -50,7 +51,9 @@ export function ScholarDashboard({
 
   useEffect(() => {
     getSubmissionsByAuthor(profile.uid).then((s) => {
-      setSubmissions(s);
+      setSubmissions(
+        s.map((sub) => submissionForViewer(sub, "scholar", profile.uid))
+      );
       setLoadingSubs(false);
     });
   }, [profile.uid]);
@@ -91,7 +94,9 @@ export function ScholarDashboard({
       setSubmitMsg("");
       setShowManuscriptNotice(true);
       const updated = await getSubmissionsByAuthor(profile.uid);
-      setSubmissions(updated);
+      setSubmissions(
+        updated.map((sub) => submissionForViewer(sub, "scholar", profile.uid))
+      );
       setTab("submissions");
     } catch {
       setSubmitMsg("Submission failed. Please try again.");
@@ -217,11 +222,6 @@ export function ScholarDashboard({
                         <p className="text-sm text-[var(--journal-body)]">
                           <span className="font-medium">Abstract:</span> {sub.abstract}
                         </p>
-                        {sub.assignedEditorName && (
-                          <p className="mt-2 text-sm text-[var(--journal-muted)]">
-                            Assigned editor: {sub.assignedEditorName}
-                          </p>
-                        )}
                         <CommentThread
                           submissionId={sub.id}
                           currentUserId={profile.uid}

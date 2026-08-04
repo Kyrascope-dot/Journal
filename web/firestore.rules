@@ -40,8 +40,24 @@ service cloud.firestore {
       return isSignedIn() && getUserRole() == 'editor';
     }
 
+    function isReviewer() {
+      return isSignedIn() && getUserRole() == 'reviewer';
+    }
 
-    // ── Journal issues & articles (public read) ─────────────────────────────
+    function editorCanAccessSubmission() {
+      return isEditor() && (
+        resource.data.assignedEditorId == request.auth.uid
+        || resource.data.category in getAssignedCategories()
+      );
+    }
+
+    function reviewerCanAccessSubmission() {
+      return isReviewer() && resource.data.assignedReviewerId == request.auth.uid;
+    }
+
+    function submissionDoc(submissionId) {
+      return get(/databases/$(database)/documents/submissions/$(submissionId)).data;
+    }
 
     match /issues/{issueId} {
       allow read: if true;
@@ -89,15 +105,15 @@ service cloud.firestore {
       // Admins can read everything.
       allow read: if isAdmin()
         || (isSignedIn() && resource.data.authorId == request.auth.uid)
-        || (isEditor() && resource.data.category in getAssignedCategories());
+        || editorCanAccessSubmission()
+        || reviewerCanAccessSubmission();
 
       // Any signed-in user can submit, provided the authorId matches their UID.
       allow create: if isSignedIn()
         && request.resource.data.authorId == request.auth.uid;
 
-      // Editors can update submissions in their categories; admins can update all.
-      allow update: if isAdmin()
-        || (isEditor() && resource.data.category in getAssignedCategories());
+      // Editors can update submissions they handle; admins can update all.
+      allow update: if isAdmin() || editorCanAccessSubmission();
 
       allow delete: if isAdmin();
 
@@ -111,15 +127,22 @@ service cloud.firestore {
         // Admins can read everything.
         allow read: if isAdmin()
           || (isSignedIn() &&
-              get(/databases/$(database)/documents/submissions/$(submissionId)).data.authorId
-              == request.auth.uid)
+              submissionDoc(submissionId).authorId == request.auth.uid)
           || (isEditor() &&
-              get(/databases/$(database)/documents/submissions/$(submissionId)).data.category
-              in getAssignedCategories());
+              (submissionDoc(submissionId).assignedEditorId == request.auth.uid
+               || submissionDoc(submissionId).category in getAssignedCategories()))
+          || (isReviewer() &&
+              submissionDoc(submissionId).assignedReviewerId == request.auth.uid);
 
-        // Editors and admins may post comments.
-        allow create: if (isEditor() || isAdmin())
-          && request.resource.data.authorId == request.auth.uid;
+        // Editors, reviewers (assigned), and admins may post comments.
+        allow create: if request.resource.data.authorId == request.auth.uid && (
+          isAdmin()
+          || (isEditor() &&
+              (submissionDoc(submissionId).assignedEditorId == request.auth.uid
+               || submissionDoc(submissionId).category in getAssignedCategories()))
+          || (isReviewer() &&
+              submissionDoc(submissionId).assignedReviewerId == request.auth.uid)
+        );
 
         // Comments are immutable once posted.
         allow update, delete: if isAdmin();

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSubmissionsByCategories, updateSubmissionStatus } from "@/lib/firestore-submissions";
+import { getSubmissionsForEditor, updateSubmissionStatus } from "@/lib/firestore-submissions";
+import { submissionForViewer } from "@/lib/dashboard-access";
 import type { Submission, SubmissionStatus, UserProfile } from "@/types/dashboard";
 import { STATUS_LABELS } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -25,20 +26,32 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
   const categories = profile.assignedCategories ?? [];
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [filterStatus, setFilterStatus] = useState<SubmissionStatus | "all">("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (categories.length === 0) {
-      setLoading(false);
-      return;
-    }
-    getSubmissionsByCategories(categories).then((s) => {
-      setSubmissions(s);
-      setLoading(false);
-    });
-  }, [categories.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+    let cancelled = false;
+    setLoading(true);
+    setLoadError("");
+    getSubmissionsForEditor(profile.uid, categories)
+      .then((s) => {
+        if (!cancelled) setSubmissions(s);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLoadError("Could not load submissions. Check your connection or Firestore rules.");
+          setSubmissions([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile.uid, categories.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleStatusChange(
     submissionId: string,
@@ -58,42 +71,51 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
     }
   }
 
+  const visibleSubmissions = submissions.map((s) =>
+    submissionForViewer(s, "editor", profile.uid)
+  );
+
   const displayed =
     filterStatus === "all"
-      ? submissions
-      : submissions.filter((s) => s.status === filterStatus);
+      ? visibleSubmissions
+      : visibleSubmissions.filter((s) => s.status === filterStatus);
 
-  if (categories.length === 0) {
-    return (
-      <div className="py-12 text-center">
-        <p className="text-[var(--journal-muted)]">
-          You have no assigned categories yet. Please ask an admin to assign research
-          categories to your editor profile.
-        </p>
-      </div>
-    );
-  }
+  const assignedCount = visibleSubmissions.filter(
+    (s) => s.assignedEditorId === profile.uid
+  ).length;
 
   return (
     <div>
-      {/* Categories overview */}
       <div className="mb-6 rounded-lg border border-[var(--journal-border)] bg-zinc-50 p-4">
         <p className="text-sm font-medium text-[var(--journal-heading)]">
-          Your assigned categories
+          Your editor queue
         </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {categories.map((c) => (
-            <span
-              key={c}
-              className="rounded-full bg-[var(--journal-accent)]/10 px-3 py-1 text-xs text-[var(--journal-accent)]"
-            >
-              {c}
-            </span>
-          ))}
-        </div>
+        <p className="mt-1 text-sm text-[var(--journal-muted)]">
+          {assignedCount} paper{assignedCount === 1 ? "" : "s"} assigned to you
+          {categories.length > 0
+            ? ` · ${categories.length} categor${categories.length === 1 ? "y" : "ies"} for new submissions`
+            : " · ask an admin to assign categories if you need the category queue"}
+        </p>
+        {categories.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <span
+                key={c}
+                className="rounded-full bg-[var(--journal-accent)]/10 px-3 py-1 text-xs text-[var(--journal-accent)]"
+              >
+                {c}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Filter */}
+      {loadError && (
+        <p className="mb-4 text-sm text-red-600" role="alert">
+          {loadError}
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-sm font-medium text-[var(--journal-heading)]">
           Filter by status:
@@ -122,7 +144,8 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
         </div>
       ) : displayed.length === 0 ? (
         <p className="mt-8 text-center text-[var(--journal-muted)]">
-          No submissions match the selected filter.
+          No submissions in your queue yet. When an admin assigns a paper to you, it will appear
+          here.
         </p>
       ) : (
         <ul className="mt-5 divide-y divide-[var(--journal-border)] border-y border-[var(--journal-border)]">
@@ -131,6 +154,11 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-medium text-[var(--journal-heading)]">{sub.title}</p>
+                  {sub.assignedEditorId === profile.uid && (
+                    <span className="mt-1 inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-800">
+                      Assigned to you
+                    </span>
+                  )}
                   <p className="mt-1 text-sm text-[var(--journal-muted)]">
                     {sub.category} · {sub.authorName} · {sub.affiliation}
                   </p>
@@ -161,7 +189,6 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
                     Author email: {sub.authorEmail}
                   </p>
 
-                  {/* Status update */}
                   <div className="mt-5">
                     <p className="text-sm font-medium text-[var(--journal-heading)]">
                       Update status
@@ -213,7 +240,9 @@ function StatusUpdateForm({
         className="w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
       >
         {STATUSES.map((s) => (
-          <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+          <option key={s} value={s}>
+            {STATUS_LABELS[s]}
+          </option>
         ))}
       </select>
       <input
@@ -224,7 +253,7 @@ function StatusUpdateForm({
       />
       <button
         type="button"
-        disabled={loading || status === currentStatus && note === (currentNote ?? "")}
+        disabled={loading || (status === currentStatus && note === (currentNote ?? ""))}
         onClick={() => onSave(status, note || undefined)}
         className="rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
       >

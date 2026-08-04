@@ -1,6 +1,6 @@
 import type { Timestamp } from "firebase/firestore";
 
-export type UserRole = "scholar" | "editor" | "admin";
+export type UserRole = "scholar" | "editor" | "reviewer" | "admin";
 
 export type UserProfile = {
   uid: string;
@@ -34,6 +34,8 @@ export type Submission = {
   lastUpdatedAt: Timestamp | Date | null;
   assignedEditorId: string | null;
   assignedEditorName: string | null;
+  assignedReviewerId: string | null;
+  assignedReviewerName: string | null;
   statusNote: string | null;
 };
 
