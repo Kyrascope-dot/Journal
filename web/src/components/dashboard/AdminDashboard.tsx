@@ -22,6 +22,7 @@ import type {
 import { RESEARCH_CATEGORIES, STATUS_LABELS } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
+import { requestSendReviewerInvitation } from "@/lib/client/send-reviewer-invitation";
 
 function formatDate(value: Submission["submittedAt"]): string {
   if (!value) return "—";
@@ -297,6 +298,8 @@ function SubmissionPanel({
   const [status, setStatus] = useState<SubmissionStatus>(submission.status);
   const [statusNote, setStatusNote] = useState(submission.statusNote ?? "");
   const [saving, setSaving] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailMsg, setEmailMsg] = useState("");
 
   async function handleSave() {
     setSaving(true);
@@ -327,6 +330,23 @@ function SubmissionPanel({
       onUpdate();
     } finally {
       setSaving(false);
+    }
+  }
+
+  const assignedReviewerId = submission.assignedReviewerId;
+  const assignedReviewer = reviewers.find((r) => r.uid === assignedReviewerId);
+
+  async function handleSendReviewerEmail() {
+    if (!assignedReviewerId) return;
+    setEmailMsg("");
+    setEmailSending(true);
+    try {
+      await requestSendReviewerInvitation(submission.id, assignedReviewerId);
+      setEmailMsg(`Invitation email sent to ${assignedReviewer?.email ?? "reviewer"}.`);
+    } catch (err) {
+      setEmailMsg(err instanceof Error ? err.message : "Failed to send email.");
+    } finally {
+      setEmailSending(false);
     }
   }
 
@@ -379,6 +399,30 @@ function SubmissionPanel({
           <p className="mt-1 text-xs text-[var(--journal-muted)]">
             Visible only to you and the assigned reviewer.
           </p>
+          {assignedReviewerId && assignedReviewer && (
+            <div className="mt-3">
+              <button
+                type="button"
+                disabled={emailSending}
+                onClick={handleSendReviewerEmail}
+                className="rounded border border-[var(--journal-accent)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--journal-accent)] hover:bg-[var(--journal-accent)]/5 disabled:opacity-50"
+              >
+                {emailSending ? "Sending…" : "Send invitation email to reviewer"}
+              </button>
+              <p className="mt-1 text-xs text-[var(--journal-muted)]">
+                Includes title, abstract, category, submission ID, and reviewer dashboard link
+                (not author identity).
+              </p>
+            </div>
+          )}
+          {emailMsg && (
+            <p
+              className={`mt-2 text-xs ${emailMsg.includes("sent") ? "text-emerald-700" : "text-red-600"}`}
+              role="status"
+            >
+              {emailMsg}
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-xs font-medium text-[var(--journal-muted)]">
