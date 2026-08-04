@@ -26,8 +26,8 @@ export const SUBMISSION_PURPOSE_OPTIONS: {
   value: SubmissionPurpose;
   label: string;
 }[] = [
-  { value: "journal", label: "Journal (Global Confluence Review)" },
-  { value: "conference", label: "Conference (GCR conference series)" },
+  { value: "journal", label: "Submit for journal publication" },
+  { value: "conference", label: "Submit for conference" },
 ];
 
 export const SUBMISSION_PURPOSE_LABELS: Record<SubmissionPurpose, string> = {

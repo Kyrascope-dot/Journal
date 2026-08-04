@@ -32,6 +32,25 @@ const ABSTRACT_SUCCESS_HEADING = "Abstract received";
 const BEST_PAPER_GCR_PUBLICATION_NOTE =
   "Winners of the Best Paper Award in their track will be offered a publication opportunity in an upcoming issue of Global Confluence Review (GCR), subject to rigorous journal peer review. After winning, you must submit the full paper using the GCR journal manuscript template; it will then receive full consideration for publication in the upcoming GCR issue.";
 
+const BEST_PRESENTER_NOTE =
+  "In this category you may present your paper at the GCR conference via PowerPoint (PPT). This track does not include publication in Global Confluence Review (GCR). Authors whose work is already published in another journal, or is under consideration elsewhere, may present at the GCR conference but will not receive GCR journal publication through this category.";
+
+function ManuscriptEmailInstructions({ className = "" }: { className?: string }) {
+  return (
+    <p className={`leading-relaxed ${className}`}>
+      Please submit the full manuscript in Word format to{" "}
+      <a
+        href={`mailto:${siteConfig.email}`}
+        className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+      >
+        {siteConfig.email}
+      </a>
+      . Include your name, submission title, affiliation, and whether you submitted for journal
+      publication or conference.
+    </p>
+  );
+}
+
 function conferenceShowsPaperSubmission(
   award: ConferenceAwardIntent | ""
 ): award is "best_paper" | "both" {
@@ -75,8 +94,6 @@ export function ScholarDashboard({
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState("");
   const [showManuscriptNotice, setShowManuscriptNotice] = useState(false);
-  const [lastSubmittedPurpose, setLastSubmittedPurpose] =
-    useState<SubmissionPurpose>("journal");
 
   useEffect(() => {
     getSubmissionsByAuthor(profile.uid).then((s) => {
@@ -139,7 +156,6 @@ export function ScholarDashboard({
       setConferenceQuarter("");
       setConferenceAwardIntent("");
       setSubmitMsg("");
-      setLastSubmittedPurpose(submissionPurpose);
       setShowManuscriptNotice(true);
       const updated = await getSubmissionsByAuthor(profile.uid);
       setSubmissions(
@@ -189,42 +205,10 @@ export function ScholarDashboard({
             <p className="font-serif text-base font-semibold text-emerald-900">
               {ABSTRACT_SUCCESS_HEADING}
             </p>
-            {lastSubmittedPurpose === "journal" ? (
-              <>
-                <p className="mt-2 leading-relaxed">
-                  Please submit the full manuscript in Word format to{" "}
-                  <a
-                    href={`mailto:${siteConfig.email}`}
-                    className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
-                  >
-                    {siteConfig.email}
-                  </a>
-                  .
-                </p>
-                <p className="mt-2 text-emerald-800">
-                  You can track your abstract below. Include your name, submission title, and
-                  affiliation in the email.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="mt-2 leading-relaxed">
-                  Your abstract is recorded for a <strong>conference</strong> submission. For
-                  full paper guidelines, registration, and deadlines, see{" "}
-                  <Link
-                    href="/conferences/submit-paper"
-                    className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
-                  >
-                    conference paper submission
-                  </Link>
-                  .
-                </p>
-                <p className="mt-2 text-emerald-800">
-                  You can track this abstract below. The editorial team may contact you about the
-                  relevant GCR conference.
-                </p>
-              </>
-            )}
+            <ManuscriptEmailInstructions className="mt-2 text-emerald-950" />
+            <p className="mt-2 text-emerald-800">
+              You can track your abstract under My Submissions.
+            </p>
             <button
               type="button"
               onClick={() => setShowManuscriptNotice(false)}
@@ -320,9 +304,8 @@ export function ScholarDashboard({
               New Submission
             </h2>
             <p className="mt-2 text-sm text-[var(--journal-muted)]">
-              Submit your abstract here after signing in. Choose whether you are submitting to the
-              journal or a GCR conference. Editors will review it; follow the instructions shown
-              after submission.
+              Choose journal publication or conference, complete the same abstract form, then email
+              the full paper in Word to the editorial address shown below.
             </p>
             {submitMsg && (
               <div className={`mt-4 rounded-md border px-4 py-3 text-sm ${
@@ -335,33 +318,9 @@ export function ScholarDashboard({
             )}
             <form onSubmit={handleSubmit} className="mt-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-[var(--journal-heading)]">
-                  Paper title <span className="text-red-500">*</span>
-                </label>
-                <input
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[var(--journal-heading)]">
-                  Abstract <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  required
-                  rows={5}
-                  value={abstract}
-                  onChange={(e) => setAbstract(e.target.value)}
-                  placeholder="200–300 words recommended"
-                  className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
-                />
-              </div>
-              <div>
                 <fieldset>
                   <legend className="block text-sm font-medium text-[var(--journal-heading)]">
-                    Submit for <span className="text-red-500">*</span>
+                    Submission type <span className="text-red-500">*</span>
                   </legend>
                   <div className="mt-2 space-y-2">
                     {SUBMISSION_PURPOSE_OPTIONS.map((opt) => (
@@ -420,7 +379,11 @@ export function ScholarDashboard({
                           Award nomination <span className="text-red-500">*</span>
                         </legend>
                         <p className="mt-1 text-xs text-[var(--journal-muted)]">
-                          For {CONFERENCE_QUARTER_OPTIONS.find((q) => q.value === conferenceQuarter)?.label}
+                          For{" "}
+                          {
+                            CONFERENCE_QUARTER_OPTIONS.find((q) => q.value === conferenceQuarter)
+                              ?.label
+                          }
                         </p>
                         <div className="mt-2 space-y-2">
                           {CONFERENCE_AWARD_OPTIONS.map((opt) => (
@@ -440,6 +403,13 @@ export function ScholarDashboard({
                             </label>
                           ))}
                         </div>
+                        {conferenceAwardIntent === "best_presenter" && (
+                          <div className="mt-4 rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3">
+                            <p className="text-sm leading-relaxed text-[var(--journal-body)]">
+                              {BEST_PRESENTER_NOTE}
+                            </p>
+                          </div>
+                        )}
                         {conferenceShowsPaperSubmission(conferenceAwardIntent) && (
                           <div className="mt-4 rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3">
                             <p className="text-sm leading-relaxed text-[var(--journal-body)]">
@@ -452,12 +422,13 @@ export function ScholarDashboard({
                               </Link>
                               .
                             </p>
-                            <Link
-                              href="/conferences/submit-paper"
-                              className="mt-3 inline-flex rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95"
-                            >
-                              Submission for paper
-                            </Link>
+                          </div>
+                        )}
+                        {conferenceAwardIntent === "both" && (
+                          <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
+                            <p className="text-sm leading-relaxed text-amber-950">
+                              <span className="font-medium">Best Presenter:</span> {BEST_PRESENTER_NOTE}
+                            </p>
                           </div>
                         )}
                       </fieldset>
@@ -465,6 +436,30 @@ export function ScholarDashboard({
                   )}
                 </>
               )}
+              <div>
+                <label className="block text-sm font-medium text-[var(--journal-heading)]">
+                  Paper title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--journal-heading)]">
+                  Abstract <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={5}
+                  value={abstract}
+                  onChange={(e) => setAbstract(e.target.value)}
+                  placeholder="200–300 words recommended"
+                  className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--journal-heading)]">
                   Research category <span className="text-red-500">*</span>
@@ -475,7 +470,9 @@ export function ScholarDashboard({
                   className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
                 >
                   {RESEARCH_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -490,6 +487,14 @@ export function ScholarDashboard({
                   placeholder="University / Institution"
                   className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
                 />
+              </div>
+              <div className="rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm text-[var(--journal-body)]">
+                <p className="font-medium text-[var(--journal-heading)]">Full paper (Word)</p>
+                <p className="mt-1">
+                  Step 1: Submit your abstract using the button below. Step 2: Email the complete
+                  paper in Microsoft Word to the editorial team.
+                </p>
+                <ManuscriptEmailInstructions className="mt-2 text-[var(--journal-muted)]" />
               </div>
               <button
                 type="submit"
