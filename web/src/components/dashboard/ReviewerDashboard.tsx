@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getSubmissionsByAssignedReviewer } from "@/lib/firestore-submissions";
 import { submissionForViewer } from "@/lib/dashboard-access";
 import type { Submission, UserProfile } from "@/types/dashboard";
-import { SUBMISSION_PURPOSE_LABELS } from "@/types/dashboard";
+import { SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMeta } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 
@@ -54,8 +54,11 @@ export function ReviewerDashboard({ profile }: { profile: UserProfile }) {
                 <div>
                   <p className="font-medium text-[var(--journal-heading)]">{sub.title}</p>
                   <p className="mt-1 text-sm text-[var(--journal-muted)]">
-                    {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]} · {sub.category} · Submitted{" "}
-                    {formatDate(sub.submittedAt)}
+                    {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}
+                    {formatConferenceSubmissionMeta(sub)
+                      ? ` · ${formatConferenceSubmissionMeta(sub)}`
+                      : ""}{" "}
+                    · {sub.category} · Submitted {formatDate(sub.submittedAt)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">

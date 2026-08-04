@@ -35,12 +35,69 @@ export const SUBMISSION_PURPOSE_LABELS: Record<SubmissionPurpose, string> = {
   conference: "Conference",
 };
 
+export type ConferenceQuarter = "q1" | "q2" | "q3" | "q4";
+
+export const CONFERENCE_QUARTER_OPTIONS: {
+  value: ConferenceQuarter;
+  label: string;
+}[] = [
+  { value: "q1", label: "Q1 (Jan–Mar) issue" },
+  { value: "q2", label: "Q2 (Apr–Jun) issue" },
+  { value: "q3", label: "Q3 (Jul–Sep) issue" },
+  { value: "q4", label: "Q4 (Oct–Dec) issue" },
+];
+
+export const CONFERENCE_QUARTER_LABELS: Record<ConferenceQuarter, string> = {
+  q1: "Q1 (Jan–Mar) issue",
+  q2: "Q2 (Apr–Jun) issue",
+  q3: "Q3 (Jul–Sep) issue",
+  q4: "Q4 (Oct–Dec) issue",
+};
+
+export type ConferenceAwardIntent = "best_paper" | "best_presenter" | "both";
+
+export const CONFERENCE_AWARD_OPTIONS: {
+  value: ConferenceAwardIntent;
+  label: string;
+}[] = [
+  { value: "best_paper", label: "Best Paper Award" },
+  { value: "best_presenter", label: "Best Presenter Award" },
+  { value: "both", label: "Both (Best Paper & Best Presenter)" },
+];
+
+export const CONFERENCE_AWARD_LABELS: Record<ConferenceAwardIntent, string> = {
+  best_paper: "Best Paper Award",
+  best_presenter: "Best Presenter Award",
+  both: "Best Paper & Best Presenter",
+};
+
+/** Short line for lists (conference quarter + award). Empty for journal-only rows. */
+export function formatConferenceSubmissionMeta(sub: {
+  submissionPurpose: SubmissionPurpose;
+  conferenceQuarter: ConferenceQuarter | null;
+  conferenceAwardIntent: ConferenceAwardIntent | null;
+}): string {
+  if (sub.submissionPurpose !== "conference") return "";
+  const parts: string[] = [];
+  if (sub.conferenceQuarter) {
+    parts.push(CONFERENCE_QUARTER_LABELS[sub.conferenceQuarter]);
+  }
+  if (sub.conferenceAwardIntent) {
+    parts.push(CONFERENCE_AWARD_LABELS[sub.conferenceAwardIntent]);
+  }
+  return parts.length ? parts.join(" · ") : "";
+}
+
 export type Submission = {
   id: string;
   title: string;
   abstract: string;
   /** Whether the author intends this for the journal or a conference. */
   submissionPurpose: SubmissionPurpose;
+  /** Conference only: which quarterly issue. */
+  conferenceQuarter: ConferenceQuarter | null;
+  /** Conference only: award nomination intent. */
+  conferenceAwardIntent: ConferenceAwardIntent | null;
   authorId: string;
   authorName: string;
   authorEmail: string;

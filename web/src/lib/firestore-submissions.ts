@@ -11,6 +11,8 @@ import {
 import { getDb } from "@/lib/firebase";
 import type {
   Comment,
+  ConferenceAwardIntent,
+  ConferenceQuarter,
   Submission,
   SubmissionPurpose,
   SubmissionStatus,
@@ -32,6 +34,21 @@ function mapSubmission(
     category: String(data.category ?? ""),
     submissionPurpose:
       data.submissionPurpose === "conference" ? "conference" : "journal",
+    conferenceQuarter:
+      data.submissionPurpose === "conference" &&
+      (data.conferenceQuarter === "q1" ||
+        data.conferenceQuarter === "q2" ||
+        data.conferenceQuarter === "q3" ||
+        data.conferenceQuarter === "q4")
+        ? data.conferenceQuarter
+        : null,
+    conferenceAwardIntent:
+      data.submissionPurpose === "conference" &&
+      (data.conferenceAwardIntent === "best_paper" ||
+        data.conferenceAwardIntent === "best_presenter" ||
+        data.conferenceAwardIntent === "both")
+        ? data.conferenceAwardIntent
+        : null,
     status: (data.status as SubmissionStatus) ?? "pending",
     submittedAt: data.submittedAt as Submission["submittedAt"],
     lastUpdatedAt: data.lastUpdatedAt as Submission["lastUpdatedAt"],
@@ -69,13 +86,27 @@ export async function createSubmission(payload: {
   affiliation: string;
   category: string;
   submissionPurpose: SubmissionPurpose;
+  conferenceQuarter?: ConferenceQuarter | null;
+  conferenceAwardIntent?: ConferenceAwardIntent | null;
   authorId: string;
   authorName: string;
   authorEmail: string;
 }): Promise<string> {
+  const isConference = payload.submissionPurpose === "conference";
   const db = getDb();
   const ref = await addDoc(collection(db, "submissions"), {
-    ...payload,
+    title: payload.title,
+    abstract: payload.abstract,
+    affiliation: payload.affiliation,
+    category: payload.category,
+    submissionPurpose: payload.submissionPurpose,
+    conferenceQuarter: isConference ? (payload.conferenceQuarter ?? null) : null,
+    conferenceAwardIntent: isConference
+      ? (payload.conferenceAwardIntent ?? null)
+      : null,
+    authorId: payload.authorId,
+    authorName: payload.authorName,
+    authorEmail: payload.authorEmail,
     status: "pending" as SubmissionStatus,
     assignedEditorId: null,
     assignedEditorName: null,

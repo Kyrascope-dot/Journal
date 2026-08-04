@@ -8,8 +8,17 @@ import {
 } from "@/lib/firestore-submissions";
 import { submissionForViewer } from "@/lib/dashboard-access";
 import { updateScholarProfile } from "@/lib/firestore-users";
-import type { Submission, UserProfile, SubmissionPurpose } from "@/types/dashboard";
+import type {
+  ConferenceAwardIntent,
+  ConferenceQuarter,
+  Submission,
+  UserProfile,
+  SubmissionPurpose,
+} from "@/types/dashboard";
 import {
+  CONFERENCE_AWARD_OPTIONS,
+  CONFERENCE_QUARTER_OPTIONS,
+  formatConferenceSubmissionMeta,
   RESEARCH_CATEGORIES,
   SUBMISSION_PURPOSE_LABELS,
   SUBMISSION_PURPOSE_OPTIONS,
@@ -51,6 +60,9 @@ export function ScholarDashboard({
   const [abstract, setAbstract] = useState("");
   const [category, setCategory] = useState<string>(RESEARCH_CATEGORIES[0]);
   const [submissionPurpose, setSubmissionPurpose] = useState<SubmissionPurpose>("journal");
+  const [conferenceQuarter, setConferenceQuarter] = useState<ConferenceQuarter | "">("");
+  const [conferenceAwardIntent, setConferenceAwardIntent] =
+    useState<ConferenceAwardIntent | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState("");
   const [showManuscriptNotice, setShowManuscriptNotice] = useState(false);
@@ -84,6 +96,14 @@ export function ScholarDashboard({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !abstract.trim()) return;
+    if (submissionPurpose === "conference") {
+      if (!conferenceQuarter || !conferenceAwardIntent) {
+        setSubmitMsg(
+          "For conference submissions, select the issue quarter and your award option."
+        );
+        return;
+      }
+    }
     setSubmitting(true);
     setSubmitMsg("");
     try {
@@ -93,6 +113,12 @@ export function ScholarDashboard({
         affiliation: affiliation || profile.affiliation || "",
         category,
         submissionPurpose,
+        conferenceQuarter:
+          submissionPurpose === "conference" ? (conferenceQuarter as ConferenceQuarter) : null,
+        conferenceAwardIntent:
+          submissionPurpose === "conference"
+            ? (conferenceAwardIntent as ConferenceAwardIntent)
+            : null,
         authorId: profile.uid,
         authorName: profile.displayName || profile.email,
         authorEmail: profile.email,
@@ -101,6 +127,8 @@ export function ScholarDashboard({
       setAbstract("");
       setCategory(RESEARCH_CATEGORIES[0]);
       setSubmissionPurpose("journal");
+      setConferenceQuarter("");
+      setConferenceAwardIntent("");
       setSubmitMsg("");
       setLastSubmittedPurpose(submissionPurpose);
       setShowManuscriptNotice(true);
@@ -223,13 +251,16 @@ export function ScholarDashboard({
               </div>
             ) : (
               <ul className="mt-6 divide-y divide-[var(--journal-border)] border-y border-[var(--journal-border)]">
-                {submissions.map((sub) => (
+                {submissions.map((sub) => {
+                  const conferenceMeta = formatConferenceSubmissionMeta(sub);
+                  return (
                   <li key={sub.id} className="py-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="font-medium text-[var(--journal-heading)]">{sub.title}</p>
                         <p className="mt-1 text-sm text-[var(--journal-muted)]">
-                          {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]} · {sub.category} ·
+                          {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}
+                          {conferenceMeta ? ` · ${conferenceMeta}` : ""} · {sub.category} ·
                           Submitted {formatDate(sub.submittedAt)}
                         </p>
                         {sub.statusNote && (
@@ -266,7 +297,8 @@ export function ScholarDashboard({
                       </div>
                     )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -333,7 +365,13 @@ export function ScholarDashboard({
                           name="submissionPurpose"
                           value={opt.value}
                           checked={submissionPurpose === opt.value}
-                          onChange={() => setSubmissionPurpose(opt.value)}
+                          onChange={() => {
+                            setSubmissionPurpose(opt.value);
+                            if (opt.value === "journal") {
+                              setConferenceQuarter("");
+                              setConferenceAwardIntent("");
+                            }
+                          }}
                           className="mt-0.5 border-[var(--journal-border)] text-[var(--journal-accent)] focus:ring-[var(--journal-accent)]"
                         />
                         <span>{opt.label}</span>
@@ -342,6 +380,62 @@ export function ScholarDashboard({
                   </div>
                 </fieldset>
               </div>
+              {submissionPurpose === "conference" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--journal-heading)]">
+                      Conference issue quarter <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={conferenceQuarter}
+                      onChange={(e) => {
+                        const value = e.target.value as ConferenceQuarter | "";
+                        setConferenceQuarter(value);
+                        if (!value) setConferenceAwardIntent("");
+                      }}
+                      className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
+                    >
+                      <option value="">Select quarter</option>
+                      {CONFERENCE_QUARTER_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {conferenceQuarter && (
+                    <div>
+                      <fieldset>
+                        <legend className="block text-sm font-medium text-[var(--journal-heading)]">
+                          Award nomination <span className="text-red-500">*</span>
+                        </legend>
+                        <p className="mt-1 text-xs text-[var(--journal-muted)]">
+                          For {CONFERENCE_QUARTER_OPTIONS.find((q) => q.value === conferenceQuarter)?.label}
+                        </p>
+                        <div className="mt-2 space-y-2">
+                          {CONFERENCE_AWARD_OPTIONS.map((opt) => (
+                            <label
+                              key={opt.value}
+                              className="flex cursor-pointer items-start gap-2 text-sm text-[var(--journal-body)]"
+                            >
+                              <input
+                                type="radio"
+                                name="conferenceAwardIntent"
+                                value={opt.value}
+                                checked={conferenceAwardIntent === opt.value}
+                                onChange={() => setConferenceAwardIntent(opt.value)}
+                                className="mt-0.5 border-[var(--journal-border)] text-[var(--journal-accent)] focus:ring-[var(--journal-accent)]"
+                              />
+                              <span>{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+                    </div>
+                  )}
+                </>
+              )}
               <div>
                 <label className="block text-sm font-medium text-[var(--journal-heading)]">
                   Research category <span className="text-red-500">*</span>

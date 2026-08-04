@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getSubmissionsForEditor, updateSubmissionStatus } from "@/lib/firestore-submissions";
 import { submissionForViewer } from "@/lib/dashboard-access";
 import type { Submission, SubmissionStatus, UserProfile } from "@/types/dashboard";
-import { STATUS_LABELS, SUBMISSION_PURPOSE_LABELS } from "@/types/dashboard";
+import { STATUS_LABELS, SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMeta } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 
@@ -160,8 +160,11 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
                     </span>
                   )}
                   <p className="mt-1 text-sm text-[var(--journal-muted)]">
-                    {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]} · {sub.category} ·{" "}
-                    {sub.authorName} · {sub.affiliation}
+                    {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}
+                    {formatConferenceSubmissionMeta(sub)
+                      ? ` · ${formatConferenceSubmissionMeta(sub)}`
+                      : ""}{" "}
+                    · {sub.category} · {sub.authorName} · {sub.affiliation}
                   </p>
                   <p className="text-xs text-[var(--journal-muted)]">
                     Submitted {formatDate(sub.submittedAt)}

@@ -19,7 +19,7 @@ import type {
   SubmissionStatus,
   UserProfile,
 } from "@/types/dashboard";
-import { RESEARCH_CATEGORIES, STATUS_LABELS, SUBMISSION_PURPOSE_LABELS } from "@/types/dashboard";
+import { RESEARCH_CATEGORIES, STATUS_LABELS, SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMeta } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 import { requestSendReviewerInvitation } from "@/lib/client/send-reviewer-invitation";
@@ -224,8 +224,11 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                         {sub.authorName} · {sub.affiliation}
                       </p>
                       <p className="text-xs text-[var(--journal-muted)]">
-                        {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]} · {sub.category} ·
-                        Submitted {formatDate(sub.submittedAt)}
+                        {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}
+                        {formatConferenceSubmissionMeta(sub)
+                          ? ` · ${formatConferenceSubmissionMeta(sub)}`
+                          : ""}{" "}
+                        · {sub.category} · Submitted {formatDate(sub.submittedAt)}
                         {sub.assignedEditorName && ` · Editor: ${sub.assignedEditorName}`}
                         {sub.assignedReviewerName && ` · Reviewer: ${sub.assignedReviewerName}`}
                       </p>
@@ -404,6 +407,9 @@ function SubmissionPanel({
       <p className="mt-2 text-sm text-[var(--journal-muted)]">
         Submit for: {SUBMISSION_PURPOSE_LABELS[submission.submissionPurpose]} · Category:{" "}
         {submission.category}
+        {formatConferenceSubmissionMeta(submission)
+          ? ` · ${formatConferenceSubmissionMeta(submission)}`
+          : ""}
       </p>
       <p className="mt-1 text-sm text-[var(--journal-muted)]">
         Author email: {submission.authorEmail}
