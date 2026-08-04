@@ -10,6 +10,9 @@ import type { Submission, UserProfile } from "@/types/dashboard";
 import { RESEARCH_CATEGORIES } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
+import { siteConfig } from "@/lib/site-config";
+
+const ABSTRACT_SUCCESS_HEADING = "Abstract received";
 
 function formatDate(value: Submission["submittedAt"]): string {
   if (!value) return "—";
@@ -43,6 +46,7 @@ export function ScholarDashboard({
   const [category, setCategory] = useState<string>(RESEARCH_CATEGORIES[0]);
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState("");
+  const [showManuscriptNotice, setShowManuscriptNotice] = useState(false);
 
   useEffect(() => {
     getSubmissionsByAuthor(profile.uid).then((s) => {
@@ -84,7 +88,8 @@ export function ScholarDashboard({
       setTitle("");
       setAbstract("");
       setCategory(RESEARCH_CATEGORIES[0]);
-      setSubmitMsg("Submission received! You can track its status below.");
+      setSubmitMsg("");
+      setShowManuscriptNotice(true);
       const updated = await getSubmissionsByAuthor(profile.uid);
       setSubmissions(updated);
       setTab("submissions");
@@ -123,6 +128,38 @@ export function ScholarDashboard({
       </div>
 
       <div className="py-8">
+        {showManuscriptNotice && (
+          <div
+            className="mb-8 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-950"
+            role="status"
+          >
+            <p className="font-serif text-base font-semibold text-emerald-900">
+              {ABSTRACT_SUCCESS_HEADING}
+            </p>
+            <p className="mt-2 leading-relaxed">
+              Please submit the full manuscript in Word format to{" "}
+              <a
+                href={`mailto:${siteConfig.email}`}
+                className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+              >
+                {siteConfig.email}
+              </a>
+              .
+            </p>
+            <p className="mt-2 text-emerald-800">
+              You can track your abstract below. Include your name, submission title, and affiliation
+              in the email.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowManuscriptNotice(false)}
+              className="mt-3 text-xs font-medium uppercase tracking-wide text-emerald-800 hover:underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* MY SUBMISSIONS */}
         {tab === "submissions" && (
           <div>
@@ -208,8 +245,9 @@ export function ScholarDashboard({
               New Submission
             </h2>
             <p className="mt-2 text-sm text-[var(--journal-muted)]">
-              Complete all fields. Your submission will be reviewed by an editor
-              assigned to your research category.
+              Submit your abstract here after signing in. Editors will review it; if invited to
+              proceed, send the complete Word manuscript to the editorial email shown after
+              submission.
             </p>
             {submitMsg && (
               <div className={`mt-4 rounded-md border px-4 py-3 text-sm ${
@@ -276,7 +314,7 @@ export function ScholarDashboard({
                 disabled={submitting}
                 className="rounded bg-[var(--journal-accent)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-95 disabled:opacity-60"
               >
-                {submitting ? "Submitting…" : "Submit paper"}
+                {submitting ? "Submitting…" : "Submit abstract"}
               </button>
             </form>
           </div>

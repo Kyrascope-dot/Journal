@@ -33,6 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     const auth = getFirebaseAuth();
+    // Sync immediately so navigation after signInWithPopup sees the session
+    setUser(auth.currentUser);
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
@@ -54,4 +57,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthState {
   return useContext(AuthContext);
+}
+
+/** True when Firebase has a session but React context has not caught up yet. */
+export function useAuthSessionPending(): boolean {
+  const { user, loading } = useAuth();
+  if (loading || user) return false;
+  if (!isFirebaseConfigured()) return false;
+  return getFirebaseAuth().currentUser != null;
 }

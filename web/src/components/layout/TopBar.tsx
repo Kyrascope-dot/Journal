@@ -4,11 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { contentShell } from "@/lib/content-layout";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, useAuthSessionPending } from "@/context/AuthContext";
 import { accountNavLinks } from "@/config/site-navigation";
 
 export function TopBar() {
   const { user, loading, signOutUser } = useAuth();
+  const sessionPending = useAuthSessionPending();
+  const showSignedIn = Boolean(user) || sessionPending;
+  const authBusy = loading && !showSignedIn;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -26,9 +29,9 @@ export function TopBar() {
     <div className="relative z-[60] border-b border-[var(--journal-border)] bg-[var(--journal-strip)] text-sm text-white">
       <div className={`${contentShell} flex flex-wrap items-center justify-end gap-3 py-2`}>
         <div className="flex items-center gap-4 text-xs font-medium uppercase tracking-wide">
-          {loading ? (
+          {authBusy ? (
             <span className="h-7 w-20 animate-pulse rounded bg-white/20" />
-          ) : user ? (
+          ) : showSignedIn && user ? (
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -94,6 +97,8 @@ export function TopBar() {
                 </div>
               )}
             </div>
+          ) : sessionPending ? (
+            <span className="h-7 w-28 animate-pulse rounded bg-white/20" aria-label="Loading account" />
           ) : (
             <>
               {accountNavLinks.map((link) => (

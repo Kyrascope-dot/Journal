@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, useAuthSessionPending } from "@/context/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { AppShell } from "@/components/layout/AppShell";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
@@ -19,15 +19,17 @@ const ROLE_TITLES = {
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const sessionPending = useAuthSessionPending();
   const { profile, loading: profileLoading, refetch } = useUserProfile();
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading || sessionPending) return;
+    if (!user) {
       router.replace("/login?next=/dashboard");
     }
-  }, [authLoading, user, router]);
+  }, [authLoading, sessionPending, user, router]);
 
-  const loading = authLoading || profileLoading;
+  const loading = authLoading || sessionPending || profileLoading;
 
   return (
     <AppShell>
@@ -42,15 +44,23 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
+        ) : !user ? (
+          <div className="py-16 text-center">
+            <p className="text-[var(--journal-muted)]">Redirecting to sign in…</p>
+          </div>
         ) : !profile ? (
-          <div className="text-center py-16">
+          <div className="py-16 text-center">
             <p className="text-[var(--journal-muted)]">
-              Please{" "}
-              <a href="/login" className="text-[var(--journal-accent)] hover:underline">
-                sign in
-              </a>{" "}
-              to access your dashboard.
+              We could not load your profile. Check your connection and refresh, or contact the
+              editorial office if this continues.
             </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="mt-4 text-sm font-medium text-[var(--journal-accent)] hover:underline"
+            >
+              Try again
+            </button>
           </div>
         ) : (
           <>

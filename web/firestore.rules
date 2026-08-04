@@ -13,7 +13,9 @@ service cloud.firestore {
     // their Firestore role is set, so you can log in and manage the platform
     // from day one.
     function isBootstrapAdmin() {
-      return request.auth.token.email == 'sonam.dobriyal@athenaeducation.co.in';
+      let email = request.auth.token.email.lower();
+      return email == 'sonam.dobriyal@athenaeducation.co.in'
+        || email == 'editorglobalconfluencereview@gmail.com';
     }
 
     // Read the caller's role from their Firestore user profile.

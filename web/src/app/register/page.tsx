@@ -9,9 +9,15 @@ import {
   AuthErrorCodes,
 } from "firebase/auth";
 import { AppShell } from "@/components/layout/AppShell";
+import { AuthDivider, GoogleButton } from "@/components/auth/GoogleButton";
 import { contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
 import { isFirebaseConfigured, getFirebaseAuth } from "@/lib/firebase";
+import {
+  messageForGoogleAuthError,
+  signInWithGoogleAccount,
+  waitForSignedInUser,
+} from "@/lib/google-auth";
 
 function friendlyError(code: string): string {
   switch (code) {
@@ -35,6 +41,7 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const firebaseReady = isFirebaseConfigured();
 
@@ -56,6 +63,7 @@ export default function RegisterPage() {
       if (displayName.trim()) {
         await updateProfile(cred.user, { displayName: displayName.trim() });
       }
+      await waitForSignedInUser();
       router.push("/dashboard");
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? "";
@@ -64,6 +72,24 @@ export default function RegisterPage() {
       setLoading(false);
     }
   }
+
+  async function handleGoogleRegister() {
+    if (!firebaseReady) return;
+    setError("");
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogleAccount();
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code ?? "";
+      const msg = messageForGoogleAuthError(code);
+      if (msg) setError(msg);
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
+
+  const busy = loading || googleLoading;
 
   return (
     <AppShell>
@@ -91,7 +117,15 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form className="mt-6 space-y-4" onSubmit={handleRegister} noValidate>
+        <GoogleButton
+          label={googleLoading ? "Connecting…" : "Continue with Google"}
+          disabled={!firebaseReady || busy}
+          onClick={handleGoogleRegister}
+        />
+
+        <AuthDivider />
+
+        <form className="space-y-4" onSubmit={handleRegister} noValidate>
           <div>
             <label
               className="block text-sm font-medium text-[var(--journal-heading)]"
@@ -168,7 +202,7 @@ export default function RegisterPage() {
           </p>
           <button
             type="submit"
-            disabled={!firebaseReady || loading}
+            disabled={!firebaseReady || busy}
             className="w-full rounded bg-[var(--journal-accent)] py-2.5 text-sm font-medium text-white transition hover:opacity-95 disabled:opacity-60"
           >
             {loading ? "Creating account…" : "Create account"}

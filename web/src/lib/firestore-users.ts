@@ -14,7 +14,10 @@ import { getDb } from "@/lib/firebase";
 import type { UserProfile, UserRole } from "@/types/dashboard";
 
 /** Emails that are always treated as admins, regardless of the Firestore role field. */
-const ADMIN_EMAILS = ["sonam.dobriyal@athenaeducation.co.in"];
+const ADMIN_EMAILS = [
+  "sonam.dobriyal@athenaeducation.co.in",
+  "editorglobalconfluencereview@gmail.com",
+];
 
 function resolveRole(email: string, storedRole: UserRole): UserRole {
   return ADMIN_EMAILS.includes(email.toLowerCase()) ? "admin" : storedRole;
