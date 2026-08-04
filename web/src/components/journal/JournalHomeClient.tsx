@@ -10,6 +10,7 @@ import { contentProse, contentShell } from "@/lib/content-layout";
 import { formatPublished } from "@/lib/format-dates";
 import { mergeIssueWithLocalPapers } from "@/lib/local-issue-assets";
 import { siteConfig } from "@/lib/site-config";
+import { ArticleList } from "@/components/journal/ArticleList";
 
 export function JournalHomeClient() {
   const [issue, setIssue] = useState<IssueWithArticles | null>(null);
@@ -44,7 +45,7 @@ export function JournalHomeClient() {
   const data = mergeIssueWithLocalPapers(issue ?? demoCurrentIssue);
 
   return (
-    <div className={`${contentShell} py-10`}>
+    <div className={`${contentShell} py-10`} id="current-issue">
       <header className="border-b border-[var(--journal-border)] pb-8">
         <p className="text-sm font-medium uppercase tracking-wider text-[var(--journal-muted)]">
           Current Issue
@@ -94,6 +95,20 @@ export function JournalHomeClient() {
           </>
         )}
       </header>
+
+      {!loading && data.articles.length > 0 ? (
+        <section className="mt-10" aria-labelledby="latest-articles-heading">
+          <h2
+            id="latest-articles-heading"
+            className="font-serif text-xl font-semibold text-[var(--journal-heading)]"
+          >
+            Latest articles
+          </h2>
+          <div className="mt-6">
+            <ArticleList articles={data.articles} issueSlug={data.slug} />
+          </div>
+        </section>
+      ) : null}
 
       <section
         className={`mt-14 border-t border-[var(--journal-border)] pt-10 ${contentProse}`}

@@ -2,18 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { contentShell } from "@/lib/content-layout";
 import { useAuth } from "@/context/AuthContext";
+import { accountNavLinks } from "@/config/site-navigation";
 
 export function TopBar() {
-  const router = useRouter();
   const { user, loading, signOutUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handle(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -37,12 +35,13 @@ export function TopBar() {
                 onClick={() => setMenuOpen((v) => !v)}
                 className="flex items-center gap-2 rounded px-2 py-1 hover:bg-white/15"
                 aria-expanded={menuOpen}
-                aria-haspopup="true"
+                aria-haspopup="menu"
+                id="account-menu-button"
               >
                 {user.photoURL ? (
                   <Image
                     src={user.photoURL}
-                    alt={user.displayName ?? "avatar"}
+                    alt=""
                     width={24}
                     height={24}
                     className="h-6 w-6 rounded-full object-cover"
@@ -62,24 +61,28 @@ export function TopBar() {
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-full z-[200] mt-1 min-w-[180px] rounded-md border border-zinc-200 bg-white py-1 shadow-lg">
-                  <p className="truncate px-3 py-2 text-xs text-zinc-400">
-                    {user.email}
-                  </p>
+                <div
+                  role="menu"
+                  aria-labelledby="account-menu-button"
+                  className="absolute right-0 top-full z-[200] mt-1 min-w-[220px] rounded-md border border-zinc-200 bg-white py-1 shadow-lg"
+                >
+                  <p className="truncate px-3 py-2 text-xs text-zinc-400">{user.email}</p>
+                  <hr className="border-zinc-100" />
+                  {accountNavLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      role="menuitem"
+                      href={link.href}
+                      className="block px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
                   <hr className="border-zinc-100" />
                   <button
                     type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      router.push("/dashboard");
-                    }}
-                    className="w-full px-3 py-2 text-left text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-                  >
-                    My Dashboard
-                  </button>
-                  <hr className="border-zinc-100" />
-                  <button
-                    type="button"
+                    role="menuitem"
                     onClick={async () => {
                       await signOutUser();
                       setMenuOpen(false);
@@ -93,11 +96,16 @@ export function TopBar() {
             </div>
           ) : (
             <>
+              {accountNavLinks.map((link) => (
+                <Link key={link.href} href={link.href} className="normal-case hover:underline">
+                  {link.label}
+                </Link>
+              ))}
               <Link href="/register" className="hover:underline">
                 Register
               </Link>
               <Link href="/login" className="hover:underline">
-                Login
+                Sign in
               </Link>
             </>
           )}
