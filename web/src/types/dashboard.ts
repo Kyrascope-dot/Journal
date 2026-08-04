@@ -20,10 +20,27 @@ export type SubmissionStatus =
   | "accepted"
   | "rejected";
 
+export type SubmissionPurpose = "journal" | "conference";
+
+export const SUBMISSION_PURPOSE_OPTIONS: {
+  value: SubmissionPurpose;
+  label: string;
+}[] = [
+  { value: "journal", label: "Journal (Global Confluence Review)" },
+  { value: "conference", label: "Conference (GCR conference series)" },
+];
+
+export const SUBMISSION_PURPOSE_LABELS: Record<SubmissionPurpose, string> = {
+  journal: "Journal",
+  conference: "Conference",
+};
+
 export type Submission = {
   id: string;
   title: string;
   abstract: string;
+  /** Whether the author intends this for the journal or a conference. */
+  submissionPurpose: SubmissionPurpose;
   authorId: string;
   authorName: string;
   authorEmail: string;

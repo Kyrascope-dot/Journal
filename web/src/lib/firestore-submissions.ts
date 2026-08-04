@@ -12,6 +12,7 @@ import { getDb } from "@/lib/firebase";
 import type {
   Comment,
   Submission,
+  SubmissionPurpose,
   SubmissionStatus,
   UserRole,
 } from "@/types/dashboard";
@@ -29,6 +30,8 @@ function mapSubmission(
     authorEmail: String(data.authorEmail ?? ""),
     affiliation: String(data.affiliation ?? ""),
     category: String(data.category ?? ""),
+    submissionPurpose:
+      data.submissionPurpose === "conference" ? "conference" : "journal",
     status: (data.status as SubmissionStatus) ?? "pending",
     submittedAt: data.submittedAt as Submission["submittedAt"],
     lastUpdatedAt: data.lastUpdatedAt as Submission["lastUpdatedAt"],
@@ -65,6 +68,7 @@ export async function createSubmission(payload: {
   abstract: string;
   affiliation: string;
   category: string;
+  submissionPurpose: SubmissionPurpose;
   authorId: string;
   authorName: string;
   authorEmail: string;

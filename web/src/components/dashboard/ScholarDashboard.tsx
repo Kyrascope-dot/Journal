@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   createSubmission,
@@ -7,8 +8,12 @@ import {
 } from "@/lib/firestore-submissions";
 import { submissionForViewer } from "@/lib/dashboard-access";
 import { updateScholarProfile } from "@/lib/firestore-users";
-import type { Submission, UserProfile } from "@/types/dashboard";
-import { RESEARCH_CATEGORIES } from "@/types/dashboard";
+import type { Submission, UserProfile, SubmissionPurpose } from "@/types/dashboard";
+import {
+  RESEARCH_CATEGORIES,
+  SUBMISSION_PURPOSE_LABELS,
+  SUBMISSION_PURPOSE_OPTIONS,
+} from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 import { siteConfig } from "@/lib/site-config";
@@ -45,9 +50,12 @@ export function ScholarDashboard({
   const [title, setTitle] = useState("");
   const [abstract, setAbstract] = useState("");
   const [category, setCategory] = useState<string>(RESEARCH_CATEGORIES[0]);
+  const [submissionPurpose, setSubmissionPurpose] = useState<SubmissionPurpose>("journal");
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState("");
   const [showManuscriptNotice, setShowManuscriptNotice] = useState(false);
+  const [lastSubmittedPurpose, setLastSubmittedPurpose] =
+    useState<SubmissionPurpose>("journal");
 
   useEffect(() => {
     getSubmissionsByAuthor(profile.uid).then((s) => {
@@ -84,6 +92,7 @@ export function ScholarDashboard({
         abstract: abstract.trim(),
         affiliation: affiliation || profile.affiliation || "",
         category,
+        submissionPurpose,
         authorId: profile.uid,
         authorName: profile.displayName || profile.email,
         authorEmail: profile.email,
@@ -91,7 +100,9 @@ export function ScholarDashboard({
       setTitle("");
       setAbstract("");
       setCategory(RESEARCH_CATEGORIES[0]);
+      setSubmissionPurpose("journal");
       setSubmitMsg("");
+      setLastSubmittedPurpose(submissionPurpose);
       setShowManuscriptNotice(true);
       const updated = await getSubmissionsByAuthor(profile.uid);
       setSubmissions(
@@ -141,20 +152,42 @@ export function ScholarDashboard({
             <p className="font-serif text-base font-semibold text-emerald-900">
               {ABSTRACT_SUCCESS_HEADING}
             </p>
-            <p className="mt-2 leading-relaxed">
-              Please submit the full manuscript in Word format to{" "}
-              <a
-                href={`mailto:${siteConfig.email}`}
-                className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
-              >
-                {siteConfig.email}
-              </a>
-              .
-            </p>
-            <p className="mt-2 text-emerald-800">
-              You can track your abstract below. Include your name, submission title, and affiliation
-              in the email.
-            </p>
+            {lastSubmittedPurpose === "journal" ? (
+              <>
+                <p className="mt-2 leading-relaxed">
+                  Please submit the full manuscript in Word format to{" "}
+                  <a
+                    href={`mailto:${siteConfig.email}`}
+                    className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                  >
+                    {siteConfig.email}
+                  </a>
+                  .
+                </p>
+                <p className="mt-2 text-emerald-800">
+                  You can track your abstract below. Include your name, submission title, and
+                  affiliation in the email.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="mt-2 leading-relaxed">
+                  Your abstract is recorded for a <strong>conference</strong> submission. For
+                  full paper guidelines, registration, and deadlines, see{" "}
+                  <Link
+                    href="/conferences/submit-paper"
+                    className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                  >
+                    conference paper submission
+                  </Link>
+                  .
+                </p>
+                <p className="mt-2 text-emerald-800">
+                  You can track this abstract below. The editorial team may contact you about the
+                  relevant GCR conference.
+                </p>
+              </>
+            )}
             <button
               type="button"
               onClick={() => setShowManuscriptNotice(false)}
@@ -196,7 +229,8 @@ export function ScholarDashboard({
                       <div className="min-w-0">
                         <p className="font-medium text-[var(--journal-heading)]">{sub.title}</p>
                         <p className="mt-1 text-sm text-[var(--journal-muted)]">
-                          {sub.category} · Submitted {formatDate(sub.submittedAt)}
+                          {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]} · {sub.category} ·
+                          Submitted {formatDate(sub.submittedAt)}
                         </p>
                         {sub.statusNote && (
                           <p className="mt-1 text-sm italic text-[var(--journal-muted)]">
@@ -245,9 +279,9 @@ export function ScholarDashboard({
               New Submission
             </h2>
             <p className="mt-2 text-sm text-[var(--journal-muted)]">
-              Submit your abstract here after signing in. Editors will review it; if invited to
-              proceed, send the complete Word manuscript to the editorial email shown after
-              submission.
+              Submit your abstract here after signing in. Choose whether you are submitting to the
+              journal or a GCR conference. Editors will review it; follow the instructions shown
+              after submission.
             </p>
             {submitMsg && (
               <div className={`mt-4 rounded-md border px-4 py-3 text-sm ${
@@ -282,6 +316,31 @@ export function ScholarDashboard({
                   placeholder="200–300 words recommended"
                   className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
                 />
+              </div>
+              <div>
+                <fieldset>
+                  <legend className="block text-sm font-medium text-[var(--journal-heading)]">
+                    Submit for <span className="text-red-500">*</span>
+                  </legend>
+                  <div className="mt-2 space-y-2">
+                    {SUBMISSION_PURPOSE_OPTIONS.map((opt) => (
+                      <label
+                        key={opt.value}
+                        className="flex cursor-pointer items-start gap-2 text-sm text-[var(--journal-body)]"
+                      >
+                        <input
+                          type="radio"
+                          name="submissionPurpose"
+                          value={opt.value}
+                          checked={submissionPurpose === opt.value}
+                          onChange={() => setSubmissionPurpose(opt.value)}
+                          className="mt-0.5 border-[var(--journal-border)] text-[var(--journal-accent)] focus:ring-[var(--journal-accent)]"
+                        />
+                        <span>{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--journal-heading)]">

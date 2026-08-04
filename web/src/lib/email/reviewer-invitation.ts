@@ -1,5 +1,10 @@
 import { Resend } from "resend";
 import { siteConfig } from "@/lib/site-config";
+import {
+  assertValidRecipientEmail,
+  formatResendError,
+  formatResendFromAddress,
+} from "@/lib/email/format-address";
 
 export type ReviewerInvitationPayload = {
   reviewerEmail: string;
@@ -74,24 +79,27 @@ export async function sendReviewerInvitationEmail(
     throw new Error("RESEND_API_KEY is not configured.");
   }
 
-  const from =
-    process.env.EMAIL_FROM?.trim() ||
-    `${siteConfig.shortName} <onboarding@resend.dev>`;
+  const from = formatResendFromAddress(process.env.EMAIL_FROM);
+  const to = assertValidRecipientEmail(payload.reviewerEmail, "Reviewer");
+  const replyTo = assertValidRecipientEmail(
+    process.env.EDITORIAL_EMAIL ?? siteConfig.email,
+    "Reply-to"
+  );
 
   const resend = new Resend(apiKey);
   const subject = `Peer review invitation — ${payload.title.slice(0, 80)}${payload.title.length > 80 ? "…" : ""}`;
 
   const { data, error } = await resend.emails.send({
     from,
-    to: payload.reviewerEmail,
-    replyTo: process.env.EDITORIAL_EMAIL ?? siteConfig.email,
+    to,
+    replyTo,
     subject,
     html: buildHtml(payload),
     text: buildPlainText(payload),
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(formatResendError(error.message));
   }
 
   return { messageId: data?.id ?? null };

@@ -21,7 +21,17 @@ export async function requestSendReviewerInvitation(
     body: JSON.stringify({ submissionId, reviewerId }),
   });
 
-  const data = (await res.json()) as { error?: string; messageId?: string | null; ok?: boolean };
+  const text = await res.text();
+  let data: { error?: string; messageId?: string | null; ok?: boolean };
+  try {
+    data = text ? (JSON.parse(text) as typeof data) : {};
+  } catch {
+    throw new Error(
+      res.ok
+        ? "Unexpected response from server."
+        : `Server error (${res.status}). Check FIREBASE_SERVICE_ACCOUNT_JSON is valid single-line JSON or use FIREBASE_ADMIN_* variables.`
+    );
+  }
 
   if (!res.ok) {
     throw new Error(data.error ?? "Could not send email.");
