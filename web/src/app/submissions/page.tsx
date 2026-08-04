@@ -84,7 +84,7 @@ export default function SubmissionsPage() {
         </ul>
         <p className="mt-6 text-[15px] leading-relaxed text-[var(--journal-body)]">
           Use <strong>Times New Roman, 11 pt</strong> for the main text. Manuscripts must be
-          written in <strong>English</strong>. Use double-spacing, numbered pages, and clear
+          written in <strong>English</strong>. Use single-spacing, numbered pages, and clear
           headings as shown in the templates. Figures and tables should be high resolution
           and placed where referred to in the text.
         </p>
@@ -104,7 +104,7 @@ export default function SubmissionsPage() {
             References in <strong>APA 7th&nbsp;edition</strong> (in-text and list), complete
             and up to date.
           </li>
-          <li>Funding statements and conflict-of-interest disclosures on the title page.</li>
+          <li>Funding statements and conflict-of-interest disclosures before the references.</li>
           <li>Ethics approval or participant consent details where human subjects are involved.</li>
         </ul>
 
