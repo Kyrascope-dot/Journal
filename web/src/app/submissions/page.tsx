@@ -1,5 +1,9 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { contentProse, contentShell } from "@/lib/content-layout";
+import {
+  MANUSCRIPT_TEMPLATE_ZIP,
+  manuscriptTemplateDownloads,
+} from "@/lib/manuscript-templates";
 import { siteConfig } from "@/lib/site-config";
 
 export default function SubmissionsPage() {
@@ -47,16 +51,42 @@ export default function SubmissionsPage() {
         </ul>
 
         <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
-          Manuscript format
+          Manuscript templates
         </h2>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          Submissions are <strong>format-free</strong> for layout beyond usual scholarly
-          sections (no fixed journal template), but the manuscript should use{" "}
-          <strong>Times New Roman, 11 pt</strong> for the main text. Use double-spacing,
-          numbered pages, and clear headings unless the editorial office specifies
-          otherwise. Figures and tables should be high resolution and placed where referred
-          to in the text. Manuscripts should be in English (or the language agreed with
-          the editor).
+          Prepare your submission using the{" "}
+          <strong>GCR Complete Manuscript Template Pack</strong>. Download the full pack
+          (Word and PDF examples) or open the Word template that matches your submission
+          type.
+        </p>
+        <p className="mt-4">
+          <a
+            href={MANUSCRIPT_TEMPLATE_ZIP}
+            download
+            className="inline-flex items-center gap-2 rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-95"
+          >
+            Download complete template pack (ZIP)
+          </a>
+        </p>
+        <ul className="mt-6 space-y-2 text-sm text-[var(--journal-body)]">
+          {manuscriptTemplateDownloads.map((item) => (
+            <li key={item.href}>
+              <a
+                className="text-[var(--journal-accent)] hover:underline"
+                href={item.href}
+                download
+              >
+                {item.label}
+              </a>
+              <span className="text-[var(--journal-muted)]"> (.docx)</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-6 text-[15px] leading-relaxed text-[var(--journal-body)]">
+          Use <strong>Times New Roman, 11 pt</strong> for the main text. Manuscripts must be
+          written in <strong>English</strong>. Use double-spacing, numbered pages, and clear
+          headings as shown in the templates. Figures and tables should be high resolution
+          and placed where referred to in the text.
         </p>
         <p className="mt-3 text-[15px] leading-relaxed text-[var(--journal-body)]">
           <strong>References</strong> must follow{" "}
