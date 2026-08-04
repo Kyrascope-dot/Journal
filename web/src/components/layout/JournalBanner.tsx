@@ -9,10 +9,15 @@ export function JournalBanner() {
           {siteConfig.name}{" "}
           <span className="whitespace-nowrap font-normal">({siteConfig.shortName})</span>
         </h1>
-        <p className="mt-3 text-center text-sm text-[var(--journal-muted)]">
-          {[siteConfig.issn && `ISSN ${siteConfig.issn}`, siteConfig.tagline]
-            .filter(Boolean)
-            .join(" · ")}
+        {siteConfig.issn ? (
+          <p className="mt-3 text-center text-sm font-medium tracking-wide text-[var(--journal-heading)]">
+            ISSN: {siteConfig.issn}
+          </p>
+        ) : null}
+        <p
+          className={`text-center text-sm text-[var(--journal-muted)] ${siteConfig.issn ? "mt-2" : "mt-3"}`}
+        >
+          {siteConfig.tagline}
         </p>
       </div>
     </div>

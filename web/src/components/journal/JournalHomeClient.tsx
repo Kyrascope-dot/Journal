@@ -106,17 +106,23 @@ export function JournalHomeClient() {
             <strong>{siteConfig.name}</strong>
             {siteConfig.issn ? <> (ISSN {siteConfig.issn})</> : null} is an
             international, peer-reviewed, open-access academic journal committed to
-            fostering intellectual exchange across diverse disciplines. The journal serves
-            as a platform for scholars, researchers, and practitioners to present
-            high-quality research that bridges traditional academic boundaries and
-            encourages interdisciplinary dialogue.
+            fostering intellectual exchange across diverse disciplines. The journal is for{" "}
+            <strong>high school students</strong>, <strong>researchers</strong>, educators,
+            and practitioners who want to publish or read rigorous work in an open-access
+            setting.
+          </p>
+          <p>
+            We accept <strong>research papers</strong>, <strong>essays</strong>, and{" "}
+            <strong>review papers</strong>, along with other scholarly contributions that meet
+            our scope and ethics guidelines. The journal serves as a platform to present
+            high-quality work that bridges traditional academic boundaries and encourages
+            interdisciplinary dialogue.
           </p>
           <p>
             With a strong emphasis on academic rigour and integrity, the journal follows
             a double-blind peer-review process, ensuring unbiased evaluation and the
-            publication of original, impactful research. It welcomes a wide range of
-            scholarly contributions, including empirical studies, theoretical papers,
-            review articles, and critical discussions.
+            publication of original, impactful research. It also welcomes empirical studies,
+            theoretical papers, review articles, and critical discussions where appropriate.
           </p>
           <p>
             By integrating perspectives from both qualitative and quantitative domains,{" "}

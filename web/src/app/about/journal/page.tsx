@@ -61,6 +61,14 @@ export default function AboutJournalPage() {
             readers without barriers.
           </p>
           <p>
+            The journal is open to <strong>high school students</strong>, undergraduate and
+            graduate <strong>researchers</strong>, educators, doctoral scholars, and
+            practitioners who wish to share original work or engage with contemporary
+            debates. We accept <strong>research papers</strong>, <strong>essays</strong>, and{" "}
+            <strong>review papers</strong>, alongside other rigorous scholarly formats, subject
+            to peer review and our publication ethics standards.
+          </p>
+          <p>
             The journal serves as a platform for scholars, researchers, and practitioners
             to present high-quality research that bridges traditional academic boundaries
             and encourages interdisciplinary dialogue. With a strong emphasis on academic
@@ -101,8 +109,9 @@ export default function AboutJournalPage() {
           <p>
             The journal&apos;s name reflects our core commitment: a confluence of
             disciplines, perspectives, and regions. We welcome original research articles,
-            review articles, and well-argued short communications that engage with
-            contemporary debates and are accessible to a broad scholarly readership.
+            review articles, essays, and well-argued short communications that engage with
+            contemporary debates and are accessible to a broad readership—from motivated
+            high school writers to established researchers.
           </p>
           <p>
             The journal&apos;s multidisciplinary scope spans both social sciences,
@@ -146,9 +155,12 @@ export default function AboutJournalPage() {
           Audience
         </h2>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          We serve researchers, doctoral students, educators, and professionals who rely
-          on trustworthy, citable research. Our editorial board and reviewers work to
-          maintain constructive feedback and timely decisions wherever possible.
+          We serve <strong>high school students</strong>, researchers at all levels, doctoral
+          students, educators, and professionals who rely on trustworthy, citable scholarship.
+          The journal welcomes submissions of <strong>research papers</strong>,{" "}
+          <strong>essays</strong>, and <strong>review papers</strong>. Our editorial board and
+          reviewers work to maintain constructive feedback and timely decisions wherever
+          possible.
         </p>
         </div>
       </div>

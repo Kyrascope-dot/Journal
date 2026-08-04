@@ -5,7 +5,7 @@ export const siteConfig = {
   tagline:
     "Peer-reviewed, open-access scholarship connecting research across disciplines.",
   /** Set when registered (e.g. "1234-5678"). Empty string shows a placeholder on About. */
-  issn: "",
+  issn: "3139-6690",
   /** Copyright line in footer; usually the journal title. */
   publisher: "Global Confluence Review",
   /** Legal / publishing organisation (masthead). */
