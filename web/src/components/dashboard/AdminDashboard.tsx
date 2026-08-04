@@ -249,6 +249,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                       submission={sub}
                       editors={editors}
                       reviewers={reviewers}
+                      allUsers={users}
                       adminProfile={profile}
                       onUpdate={refreshAll}
                     />
@@ -280,14 +281,16 @@ function SubmissionPanel({
   submission,
   editors,
   reviewers,
+  allUsers,
   adminProfile,
   onUpdate,
 }: {
   submission: Submission;
   editors: UserProfile[];
   reviewers: UserProfile[];
+  allUsers: UserProfile[];
   adminProfile: UserProfile;
-  onUpdate: () => void;
+  onUpdate: () => Promise<void>;
 }) {
   const [selectedEditorId, setSelectedEditorId] = useState(
     submission.assignedEditorId ?? ""
@@ -301,8 +304,46 @@ function SubmissionPanel({
   const [emailSending, setEmailSending] = useState(false);
   const [emailMsg, setEmailMsg] = useState("");
 
+  useEffect(() => {
+    setSelectedEditorId(submission.assignedEditorId ?? "");
+    setSelectedReviewerId(submission.assignedReviewerId ?? "");
+    setStatus(submission.status);
+    setStatusNote(submission.statusNote ?? "");
+  }, [
+    submission.id,
+    submission.assignedEditorId,
+    submission.assignedReviewerId,
+    submission.status,
+    submission.statusNote,
+  ]);
+
+  const reviewerOptions =
+    reviewers.length > 0
+      ? reviewers
+      : allUsers.filter((u) => u.role !== "admin");
+
+  function findUserById(uid: string): UserProfile | undefined {
+    return (
+      reviewers.find((r) => r.uid === uid) ??
+      allUsers.find((u) => u.uid === uid)
+    );
+  }
+
+  async function persistReviewerAssignment(reviewerId: string): Promise<void> {
+    const reviewer = findUserById(reviewerId);
+    if (!reviewer) {
+      throw new Error("Selected reviewer not found. Assign the Reviewer role in Users first.");
+    }
+    await assignReviewer(
+      submission.id,
+      reviewer.uid,
+      reviewer.displayName || reviewer.email
+    );
+  }
+
   async function handleSave() {
     setSaving(true);
+    setEmailMsg("");
     try {
       if (selectedEditorId && selectedEditorId !== submission.assignedEditorId) {
         const editor = editors.find((e) => e.uid === selectedEditorId);
@@ -312,14 +353,7 @@ function SubmissionPanel({
       }
       if (selectedReviewerId !== (submission.assignedReviewerId ?? "")) {
         if (selectedReviewerId) {
-          const reviewer = reviewers.find((r) => r.uid === selectedReviewerId);
-          if (reviewer) {
-            await assignReviewer(
-              submission.id,
-              reviewer.uid,
-              reviewer.displayName || reviewer.email
-            );
-          }
+          await persistReviewerAssignment(selectedReviewerId);
         } else {
           await assignReviewer(submission.id, null, null);
         }
@@ -327,22 +361,33 @@ function SubmissionPanel({
       if (status !== submission.status || statusNote !== submission.statusNote) {
         await updateSubmissionStatus(submission.id, status, statusNote || undefined);
       }
-      onUpdate();
+      await onUpdate();
     } finally {
       setSaving(false);
     }
   }
 
-  const assignedReviewerId = submission.assignedReviewerId;
-  const assignedReviewer = reviewers.find((r) => r.uid === assignedReviewerId);
+  const savedReviewerId = submission.assignedReviewerId;
+  const reviewerPendingSave =
+    Boolean(selectedReviewerId) && selectedReviewerId !== (savedReviewerId ?? "");
 
   async function handleSendReviewerEmail() {
-    if (!assignedReviewerId) return;
     setEmailMsg("");
     setEmailSending(true);
     try {
-      await requestSendReviewerInvitation(submission.id, assignedReviewerId);
-      setEmailMsg(`Invitation email sent to ${assignedReviewer?.email ?? "reviewer"}.`);
+      let reviewerId = savedReviewerId;
+      if (!reviewerId || reviewerId !== selectedReviewerId) {
+        if (!selectedReviewerId) {
+          setEmailMsg("Select a peer reviewer first.");
+          return;
+        }
+        await persistReviewerAssignment(selectedReviewerId);
+        await onUpdate();
+        reviewerId = selectedReviewerId;
+      }
+      const reviewer = findUserById(reviewerId);
+      await requestSendReviewerInvitation(submission.id, reviewerId);
+      setEmailMsg(`Invitation email sent to ${reviewer?.email ?? "reviewer"}.`);
     } catch (err) {
       setEmailMsg(err instanceof Error ? err.message : "Failed to send email.");
     } finally {
@@ -386,41 +431,28 @@ function SubmissionPanel({
           </label>
           <select
             value={selectedReviewerId}
-            onChange={(e) => setSelectedReviewerId(e.target.value)}
+            onChange={(e) => {
+              setSelectedReviewerId(e.target.value);
+              setEmailMsg("");
+            }}
             className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
           >
             <option value="">— Unassigned —</option>
-            {reviewers.map((rev) => (
+            {reviewerOptions.map((rev) => (
               <option key={rev.uid} value={rev.uid}>
                 {rev.displayName || rev.email}
+                {rev.role !== "reviewer" ? ` (${rev.role})` : ""}
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-[var(--journal-muted)]">
-            Visible only to you and the assigned reviewer.
-          </p>
-          {assignedReviewerId && assignedReviewer && (
-            <div className="mt-3">
-              <button
-                type="button"
-                disabled={emailSending}
-                onClick={handleSendReviewerEmail}
-                className="rounded border border-[var(--journal-accent)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--journal-accent)] hover:bg-[var(--journal-accent)]/5 disabled:opacity-50"
-              >
-                {emailSending ? "Sending…" : "Send invitation email to reviewer"}
-              </button>
-              <p className="mt-1 text-xs text-[var(--journal-muted)]">
-                Includes title, abstract, category, submission ID, and reviewer dashboard link
-                (not author identity).
-              </p>
-            </div>
-          )}
-          {emailMsg && (
-            <p
-              className={`mt-2 text-xs ${emailMsg.includes("sent") ? "text-emerald-700" : "text-red-600"}`}
-              role="status"
-            >
-              {emailMsg}
+          {reviewerOptions.length === 0 ? (
+            <p className="mt-2 text-xs text-amber-800">
+              No reviewers yet. Open the <strong>Users</strong> tab and set a user&apos;s role to{" "}
+              <strong>Reviewer</strong>, then return here.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-[var(--journal-muted)]">
+              Reviewer identity is visible only to admin and the assigned reviewer.
             </p>
           )}
         </div>
@@ -458,6 +490,39 @@ function SubmissionPanel({
       >
         {saving ? "Saving…" : "Save changes"}
       </button>
+
+      {selectedReviewerId ? (
+        <div className="mt-6 rounded-lg border border-[var(--journal-border)] bg-white p-4">
+          <p className="text-sm font-medium text-[var(--journal-heading)]">
+            Peer review invitation email
+          </p>
+          <p className="mt-1 text-xs text-[var(--journal-muted)]">
+            Sends title, abstract, category, submission ID, and a link to the reviewer dashboard
+            (author identity is not included).
+          </p>
+          {reviewerPendingSave ? (
+            <p className="mt-2 text-xs text-amber-800">
+              You can save first or send now — sending will save the reviewer assignment automatically.
+            </p>
+          ) : null}
+          <button
+            type="button"
+            disabled={emailSending || saving}
+            onClick={handleSendReviewerEmail}
+            className="mt-3 rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
+          >
+            {emailSending ? "Sending…" : "Send invitation email to reviewer"}
+          </button>
+          {emailMsg ? (
+            <p
+              className={`mt-3 text-sm ${emailMsg.includes("sent") ? "text-emerald-700" : "text-red-600"}`}
+              role="status"
+            >
+              {emailMsg}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <CommentThread
         submissionId={submission.id}
