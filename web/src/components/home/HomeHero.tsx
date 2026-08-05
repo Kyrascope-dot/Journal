@@ -11,7 +11,7 @@ export function HomeHero() {
           href="/conferences"
           className="home-marquee block whitespace-nowrap py-2 text-sm font-medium tracking-wide hover:underline"
         >
-          Upcoming Conference — Explore the GCR Quarterly Conference Series
+          Upcoming Conference — Quarter III (July–September) — Explore the GCR Quarterly Conference Series
         </Link>
       </div>
       <div className="border-b border-[var(--journal-border)] bg-gradient-to-b from-[var(--journal-hero-bg)] to-white">
