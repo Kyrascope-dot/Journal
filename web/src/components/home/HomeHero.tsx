@@ -5,8 +5,17 @@ import { siteConfig } from "@/lib/site-config";
 
 export function HomeHero() {
   return (
-    <div className="border-b border-[var(--journal-border)] bg-gradient-to-b from-[var(--journal-hero-bg)] to-white">
-      <div className={`${contentShell} py-12 text-center sm:py-14`}>
+    <>
+      <div className="overflow-hidden bg-[var(--journal-strip)] text-white">
+        <Link
+          href="/conferences"
+          className="home-marquee block whitespace-nowrap py-2 text-sm font-medium tracking-wide hover:underline"
+        >
+          Upcoming Conference — Explore the GCR Quarterly Conference Series
+        </Link>
+      </div>
+      <div className="border-b border-[var(--journal-border)] bg-gradient-to-b from-[var(--journal-hero-bg)] to-white">
+        <div className={`${contentShell} py-12 text-center sm:py-14`}>
         <h1 className="font-serif text-3xl font-semibold tracking-tight text-[var(--journal-heading)] sm:text-4xl lg:text-5xl">
           {siteConfig.name}
         </h1>
@@ -52,7 +61,8 @@ export function HomeHero() {
             Young Researchers’ Hub
           </Link>
         </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

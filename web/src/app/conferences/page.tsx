@@ -48,7 +48,7 @@ export default function ConferencesPage() {
                 className="rounded-lg border border-[var(--journal-border)] p-4 text-sm"
               >
                 <p className="font-semibold text-[var(--journal-heading)]">
-                  {q.quarter} — {q.title}
+                  {q.quarter}
                 </p>
                 <p className="mt-1 text-[var(--journal-muted)]">{q.period}</p>
               </li>
@@ -56,7 +56,7 @@ export default function ConferencesPage() {
           </ul>
 
           <h2 id="upcoming" className="mt-12 font-serif text-xl font-semibold text-[var(--journal-heading)]">
-            Upcoming conferences
+            Registration and paper submission
           </h2>
           <p className="mt-4 text-[15px] text-[var(--journal-body)]">
             Schedules and registration windows are published here when confirmed. Use registration

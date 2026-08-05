@@ -41,3 +41,23 @@ body {
   text-align: center;
   text-wrap: balance;
 }
+
+@keyframes home-marquee {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.home-marquee {
+  animation: home-marquee 14s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-marquee {
+    animation: none;
+    text-align: center;
+  }
+}

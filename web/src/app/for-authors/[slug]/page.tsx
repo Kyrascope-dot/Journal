@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StaticContentPage } from "@/components/layout/StaticContentPage";
 import { forAuthorsPages, forAuthorsSlugs } from "@/content/for-authors-pages";
@@ -14,6 +15,23 @@ export default async function ForAuthorsSlugPage({ params }: Props) {
   if (!page) notFound();
 
   return (
-    <StaticContentPage title={page.title} intro={page.intro} sections={page.sections} />
+    <StaticContentPage title={page.title} intro={page.intro} sections={page.sections}>
+      {slug === "submit-manuscript" ? (
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/register"
+            className="inline-flex items-center rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-95"
+          >
+            Complete registration
+          </Link>
+          <Link
+            href="/login"
+            className="inline-flex items-center rounded border border-[var(--journal-border)] bg-white px-5 py-2.5 text-sm font-medium text-[var(--journal-heading)] hover:bg-zinc-50"
+          >
+            Sign in to submit
+          </Link>
+        </div>
+      ) : null}
+    </StaticContentPage>
   );
 }

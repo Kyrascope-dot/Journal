@@ -12,22 +12,18 @@ export const featuredConference = {
 export const quarterlyConferenceSeries = [
   {
     quarter: "Quarter I",
-    title: "Emerging Ideas and Future Research",
     period: "January–March",
   },
   {
     quarter: "Quarter II",
-    title: "Innovation, Sustainability and Development",
     period: "April–June",
   },
   {
     quarter: "Quarter III",
-    title: "Technology, Society and Global Transformation",
     period: "July–September",
   },
   {
     quarter: "Quarter IV",
-    title: "Interdisciplinary Pathways for Inclusive Progress",
     period: "October–December",
   },
 ] as const;
