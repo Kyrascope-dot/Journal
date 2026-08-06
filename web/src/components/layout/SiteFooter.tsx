@@ -2,8 +2,6 @@ import Link from "next/link";
 import { contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
 import { footerNavColumns } from "@/config/site-navigation";
-import { TermsModal } from "@/components/layout/TermsModal";
-import { PrivacyModal } from "@/components/layout/PrivacyModal";
 import { getIssnLabel } from "@/lib/journal-settings";
 
 export function SiteFooter() {
@@ -74,9 +72,21 @@ export function SiteFooter() {
               .
             </span>
             <span aria-hidden>·</span>
-            <TermsModal />
+            <Link className="hover:underline" href="/terms-and-conditions">
+              Terms and Conditions
+            </Link>
             <span aria-hidden>·</span>
-            <PrivacyModal />
+            <Link className="hover:underline" href="/privacy-policy">
+              Privacy Policy
+            </Link>
+            <span aria-hidden>·</span>
+            <Link className="hover:underline" href="/copyright-notice">
+              Copyright Notice
+            </Link>
+            <span aria-hidden>·</span>
+            <Link className="hover:underline" href="/refund-and-cancellation-policy">
+              Refund and Cancellation Policy
+            </Link>
           </div>
         </div>
       </div>
