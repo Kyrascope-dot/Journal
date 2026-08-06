@@ -10,6 +10,7 @@ import { HomeEditorialPreview } from "@/components/home/HomeEditorialPreview";
 import { HomeIndexingPreview } from "@/components/home/HomeIndexingPreview";
 import { HomeCompetitionPreview } from "@/components/home/HomeCompetitionPreview";
 import { HomeConferencePreview } from "@/components/home/HomeConferencePreview";
+import { ConferencePopup } from "@/components/home/ConferencePopup";
 import { JournalHomeClient } from "@/components/journal/JournalHomeClient";
 import { contentShell } from "@/lib/content-layout";
 import { getIssnLabel } from "@/lib/journal-settings";
@@ -17,6 +18,7 @@ import { getIssnLabel } from "@/lib/journal-settings";
 export default function Home() {
   return (
     <AppShell>
+      <ConferencePopup />
       <HomeHero />
       <HomeTrustStrip issnLabel={getIssnLabel()} />
       <div className={contentShell}>
