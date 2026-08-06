@@ -35,6 +35,9 @@ const BEST_PAPER_GCR_PUBLICATION_NOTE =
 const BEST_PRESENTER_NOTE =
   "In this category you may present your paper at the GCR conference via PowerPoint (PPT). This track does not include publication in Global Confluence Review (GCR). Authors whose work is already published in another journal, or is under consideration elsewhere, may present at the GCR conference but will not receive GCR journal publication through this category.";
 
+const BEST_PRESENTER_SUBMISSION_NOTE =
+  "Under the Best Presenter category, you do not need to submit a full paper to GCR. You only need to present your research paper through a PowerPoint (PPT) presentation at the conference.";
+
 function ManuscriptEmailInstructions({ className = "" }: { className?: string }) {
   return (
     <p className={`leading-relaxed ${className}`}>
@@ -94,6 +97,8 @@ export function ScholarDashboard({
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState("");
   const [showManuscriptNotice, setShowManuscriptNotice] = useState(false);
+  const [lastSubmittedAwardIntent, setLastSubmittedAwardIntent] =
+    useState<ConferenceAwardIntent | null>(null);
 
   useEffect(() => {
     getSubmissionsByAuthor(profile.uid).then((s) => {
@@ -152,6 +157,11 @@ export function ScholarDashboard({
       setTitle("");
       setAbstract("");
       setCategory(RESEARCH_CATEGORIES[0]);
+      setLastSubmittedAwardIntent(
+        submissionPurpose === "conference"
+          ? (conferenceAwardIntent as ConferenceAwardIntent)
+          : null
+      );
       setSubmissionPurpose("journal");
       setConferenceQuarter("");
       setConferenceAwardIntent("");
@@ -205,7 +215,13 @@ export function ScholarDashboard({
             <p className="font-serif text-base font-semibold text-emerald-900">
               {ABSTRACT_SUCCESS_HEADING}
             </p>
-            <ManuscriptEmailInstructions className="mt-2 text-emerald-950" />
+            {lastSubmittedAwardIntent === "best_presenter" ? (
+              <p className="mt-2 leading-relaxed text-emerald-950">
+                {BEST_PRESENTER_SUBMISSION_NOTE}
+              </p>
+            ) : (
+              <ManuscriptEmailInstructions className="mt-2 text-emerald-950" />
+            )}
             <p className="mt-2 text-emerald-800">
               You can track your abstract under My Submissions.
             </p>
@@ -488,14 +504,24 @@ export function ScholarDashboard({
                   className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
                 />
               </div>
-              <div className="rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm text-[var(--journal-body)]">
-                <p className="font-medium text-[var(--journal-heading)]">Full paper (Word)</p>
-                <p className="mt-1">
-                  Step 1: Submit your abstract using the button below. Step 2: Email the complete
-                  paper in Microsoft Word to the editorial team.
-                </p>
-                <ManuscriptEmailInstructions className="mt-2 text-[var(--journal-muted)]" />
-              </div>
+              {submissionPurpose === "conference" &&
+              conferenceAwardIntent === "best_presenter" ? (
+                <div className="rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm text-[var(--journal-body)]">
+                  <p className="font-medium text-[var(--journal-heading)]">
+                    Best Presenter submission
+                  </p>
+                  <p className="mt-1">{BEST_PRESENTER_SUBMISSION_NOTE}</p>
+                </div>
+              ) : (
+                <div className="rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm text-[var(--journal-body)]">
+                  <p className="font-medium text-[var(--journal-heading)]">Full paper (Word)</p>
+                  <p className="mt-1">
+                    Step 1: Submit your abstract using the button below. Step 2: Email the complete
+                    paper in Microsoft Word to the editorial team.
+                  </p>
+                  <ManuscriptEmailInstructions className="mt-2 text-[var(--journal-muted)]" />
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={submitting}

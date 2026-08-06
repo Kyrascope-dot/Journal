@@ -105,7 +105,6 @@ export function ConferencePopup() {
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>Abstract Submission Deadline: 25 August 2026</li>
             <li>Acceptance Notification: Within One Week of Abstract Submission</li>
-            <li>Registration Deadline: 25 August 2026</li>
           </ul>
 
           <h3 className="mt-6 font-serif text-lg font-semibold text-[var(--journal-heading)]">
@@ -114,7 +113,6 @@ export function ConferencePopup() {
           <ol className="mt-2 list-decimal space-y-1 pl-5">
             <li>Register on the conference website</li>
             <li>Submit your abstract</li>
-            <li>Receive acceptance notification within one week</li>
             <li>Complete the registration payment after acceptance</li>
           </ol>
 
