@@ -36,6 +36,13 @@ import {
   requestRetryNotification,
   type AdminEmailLog,
 } from "@/lib/client/admin-notifications";
+import {
+  requestCommunicationHistory,
+  requestCommunicationTemplates,
+} from "@/lib/client/admin-communications";
+import type { CommunicationHistoryItem, EmailTemplateRecord } from "@/types/communications";
+import { CommunicationsPanel } from "@/components/dashboard/communications/CommunicationsPanel";
+import { BulkEmailComposer } from "@/components/dashboard/communications/BulkEmailComposer";
 
 function formatDate(value: Submission["submittedAt"]): string {
   if (!value) return "—";
@@ -72,7 +79,13 @@ function statusesForSubmission(submission: Submission): SubmissionStatus[] {
       ];
 }
 
-type AdminTab = "overview" | "submissions" | "users" | "editors" | "email_logs";
+type AdminTab =
+  | "overview"
+  | "submissions"
+  | "users"
+  | "editors"
+  | "communications"
+  | "email_logs";
 
 export function AdminDashboard({ profile }: { profile: UserProfile }) {
   const [tab, setTab] = useState<AdminTab>("overview");
@@ -164,6 +177,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     { key: "submissions", label: `Submissions (${submissions.length})` },
     { key: "users", label: `Users (${users.length})` },
     { key: "editors", label: `Editors (${editors.length})` },
+    { key: "communications", label: "Communications" },
     { key: "email_logs", label: "Email Logs" },
   ];
 
@@ -388,6 +402,10 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
             onUpdate={refreshAll}
           />
         )}
+        {!loading && tab === "communications" && (
+          <CommunicationsPanel editors={editors} reviewers={reviewers} />
+        )}
+
         {!loading && tab === "email_logs" && <EmailLogsPanel />}
       </div>
     </div>
@@ -427,6 +445,11 @@ function SubmissionPanel({
   const [statusMsg, setStatusMsg] = useState("");
   const [failedNotificationId, setFailedNotificationId] = useState<string | null>(null);
   const [retryingEmail, setRetryingEmail] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [commTemplates, setCommTemplates] = useState<EmailTemplateRecord[]>([]);
+  const [commHistory, setCommHistory] = useState<CommunicationHistoryItem[]>([]);
+  const [commHistoryLoading, setCommHistoryLoading] = useState(false);
+  const [commHistoryError, setCommHistoryError] = useState("");
 
   useEffect(() => {
     setSelectedEditorId(submission.assignedEditorId ?? "");
@@ -436,6 +459,7 @@ function SubmissionPanel({
     setReviewDeadline(formatDateInput(submission.reviewDeadline));
     setStatusMsg("");
     setFailedNotificationId(null);
+    setComposerOpen(false);
   }, [
     submission.id,
     submission.assignedEditorId,
@@ -444,6 +468,28 @@ function SubmissionPanel({
     submission.statusNote,
     submission.reviewDeadline,
   ]);
+
+  async function loadCommunicationHistory() {
+    setCommHistoryLoading(true);
+    setCommHistoryError("");
+    try {
+      setCommHistory(await requestCommunicationHistory(submission.id));
+    } catch (error) {
+      setCommHistoryError(
+        error instanceof Error ? error.message : "Could not load communication history."
+      );
+    } finally {
+      setCommHistoryLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadCommunicationHistory();
+    void requestCommunicationTemplates()
+      .then(setCommTemplates)
+      .catch(() => setCommTemplates([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when submission changes
+  }, [submission.id]);
 
   const reviewerOptions =
     reviewers.length > 0
@@ -735,6 +781,88 @@ function SubmissionPanel({
             </button>
           ) : null}
         </div>
+      ) : null}
+
+      <div className="mt-6 rounded-lg border border-[var(--journal-border)] bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-sm font-medium text-[var(--journal-heading)]">
+              Author communication
+            </p>
+            <p className="mt-1 text-xs text-[var(--journal-muted)]">
+              Send an individual email using templates and {"{{variables}}"}.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setComposerOpen(true)}
+            className="rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95"
+          >
+            Send Email
+          </button>
+        </div>
+
+        <div className="mt-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-medium text-[var(--journal-muted)]">
+              Communication history
+            </p>
+            <button
+              type="button"
+              onClick={() => void loadCommunicationHistory()}
+              className="text-xs font-medium text-[var(--journal-accent)] hover:underline"
+            >
+              Refresh
+            </button>
+          </div>
+          {commHistoryLoading ? (
+            <p className="mt-2 text-xs text-[var(--journal-muted)]">Loading…</p>
+          ) : null}
+          {commHistoryError ? (
+            <p className="mt-2 text-xs text-red-700">{commHistoryError}</p>
+          ) : null}
+          {!commHistoryLoading && !commHistoryError && commHistory.length === 0 ? (
+            <p className="mt-2 text-xs text-[var(--journal-muted)]">No emails logged yet.</p>
+          ) : null}
+          {commHistory.length > 0 ? (
+            <ul className="mt-2 space-y-2">
+              {commHistory.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded border border-[var(--journal-border)] bg-zinc-50 px-3 py-2 text-xs"
+                >
+                  <p className="font-medium text-[var(--journal-heading)]">{item.subject}</p>
+                  <p className="mt-0.5 text-[var(--journal-muted)]">
+                    {item.createdAt
+                      ? new Date(item.createdAt).toLocaleString("en-GB")
+                      : "—"}{" "}
+                    · {item.deliveryStatus}
+                    {item.channel ? ` · ${item.channel}` : ""}
+                    {item.template ? ` · ${item.template}` : ""}
+                  </p>
+                  {item.error ? <p className="mt-0.5 text-red-700">{item.error}</p> : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      </div>
+
+      {composerOpen ? (
+        <BulkEmailComposer
+          open
+          mode="individual"
+          purpose={submission.submissionPurpose}
+          templates={commTemplates}
+          submissionId={submission.id}
+          defaultSubject={`Update on your submission | {{registrationId}}`}
+          defaultBodyHtml={`<p>Dear {{authorName}},</p>\n<p>This is an update regarding <strong>{{title}}</strong> ({{registrationId}}). Current status: <strong>{{statusLabel}}</strong>.</p>\n<p><a href="{{dashboardUrl}}">Open your dashboard</a></p>\n<p>Kind regards,<br/>Editorial Office</p>`}
+          onClose={() => setComposerOpen(false)}
+          onCampaignChange={() => {
+            void loadCommunicationHistory();
+            void onUpdate();
+          }}
+        />
       ) : null}
 
       {selectedReviewerId ? (
