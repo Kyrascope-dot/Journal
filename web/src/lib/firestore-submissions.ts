@@ -142,6 +142,7 @@ export async function createSubmission(payload: {
     headers: {
       Authorization: `Bearer ${idToken}`,
       "Content-Type": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify({
       title: payload.title,
@@ -153,13 +154,23 @@ export async function createSubmission(payload: {
       conferenceAwardIntent: payload.conferenceAwardIntent ?? null,
     }),
   });
-  const data = (await response.json()) as {
+  const raw = await response.text();
+  let data: {
     error?: string;
     submissionId?: string;
     registrationId?: string;
     submittedAt?: string;
     emailSent?: boolean;
   };
+  try {
+    data = JSON.parse(raw) as typeof data;
+  } catch {
+    throw new Error(
+      response.status >= 500
+        ? "Submission service is temporarily unavailable. Please try again in a moment."
+        : "Could not register submission. Please refresh the page and try again."
+    );
+  }
   if (!response.ok || !data.submissionId || !data.registrationId || !data.submittedAt) {
     throw new Error(data.error ?? "Could not register submission.");
   }

@@ -105,8 +105,9 @@ export async function processQueuedSubmissionNotification(
     return { sent: false, error };
   }
 
-  const email = renderSubmissionEmail(queued.templateKey, queued.context);
+  let email: ReturnType<typeof renderSubmissionEmail> | null = null;
   try {
+    email = renderSubmissionEmail(queued.templateKey, queued.context);
     const result = await emailService.send({
       to: email.recipient,
       subject: email.subject,
@@ -148,35 +149,39 @@ export async function processQueuedSubmissionNotification(
     return { sent: true, messageId: result.messageId };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Email delivery failed.";
-    const batch = db.batch();
-    batch.update(queueRef, {
-      queueStatus: "failed",
-      deliveryStatus: "failed",
-      subject: email.subject,
-      attempts: FieldValue.increment(1),
-      error: message,
-      lastAttemptAt: FieldValue.serverTimestamp(),
-    });
-    batch.update(submissionRef, {
-      lastEmailTemplate: queued.templateKey,
-      emailStatus: "failed",
-      emailTimestamp: FieldValue.serverTimestamp(),
-      deliveryStatus: "failed",
-    });
-    batch.create(db.collection("email_logs").doc(), {
-      type: "submission_status",
-      submissionId: queued.submissionId,
-      registrationId: queued.registrationId,
-      template: queued.templateKey,
-      recipient: email.recipient,
-      subject: email.subject,
-      deliveryStatus: "failed",
-      providerMessageId: null,
-      notificationId,
-      error: message,
-      createdAt: FieldValue.serverTimestamp(),
-    });
-    await batch.commit();
+    try {
+      const batch = db.batch();
+      batch.update(queueRef, {
+        queueStatus: "failed",
+        deliveryStatus: "failed",
+        subject: email?.subject ?? null,
+        attempts: FieldValue.increment(1),
+        error: message,
+        lastAttemptAt: FieldValue.serverTimestamp(),
+      });
+      batch.update(submissionRef, {
+        lastEmailTemplate: queued.templateKey,
+        emailStatus: "failed",
+        emailTimestamp: FieldValue.serverTimestamp(),
+        deliveryStatus: "failed",
+      });
+      batch.create(db.collection("email_logs").doc(), {
+        type: "submission_status",
+        submissionId: queued.submissionId,
+        registrationId: queued.registrationId,
+        template: queued.templateKey,
+        recipient: email?.recipient ?? queued.recipient,
+        subject: email?.subject ?? null,
+        deliveryStatus: "failed",
+        providerMessageId: null,
+        notificationId,
+        error: message,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      await batch.commit();
+    } catch (logError) {
+      console.error("[notificationQueue] failed to persist email failure:", logError);
+    }
     return { sent: false, error: message };
   }
 }

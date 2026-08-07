@@ -143,6 +143,11 @@ export function ScholarDashboard({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !abstract.trim()) return;
+    const resolvedAffiliation = (affiliation || profile.affiliation || "").trim();
+    if (!resolvedAffiliation) {
+      setSubmitMsg("Please enter your affiliation before submitting.");
+      return;
+    }
     if (submissionPurpose === "conference") {
       if (!conferenceQuarter || !conferenceAwardIntent) {
         setSubmitMsg(
@@ -157,7 +162,7 @@ export function ScholarDashboard({
       const created = await createSubmission({
         title: title.trim(),
         abstract: abstract.trim(),
-        affiliation: affiliation || profile.affiliation || "",
+        affiliation: resolvedAffiliation,
         category,
         submissionPurpose,
         conferenceQuarter:

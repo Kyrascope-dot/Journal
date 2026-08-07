@@ -26,159 +26,188 @@ function cleanString(value: unknown, maxLength: number): string {
 }
 
 export async function POST(request: Request) {
-  if (!isFirebaseAdminConfigured()) {
-    return NextResponse.json(
-      { error: "Server-side submission registration is not configured." },
-      { status: 503 }
-    );
-  }
-
-  const user = await verifyUserIdToken(request.headers.get("authorization"));
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
-
-  let body: Body;
   try {
-    body = (await request.json()) as Body;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
-  }
-
-  const title = cleanString(body.title, 500);
-  const abstract = cleanString(body.abstract, 20_000);
-  const affiliation = cleanString(body.affiliation, 500);
-  const category = cleanString(body.category, 300);
-  const purpose = body.submissionPurpose;
-  const isConference = purpose === "conference";
-
-  if (!title || !abstract || !affiliation || !category) {
-    return NextResponse.json(
-      { error: "Title, abstract, affiliation, and category are required." },
-      { status: 400 }
-    );
-  }
-  if (purpose !== "journal" && purpose !== "conference") {
-    return NextResponse.json({ error: "Invalid submission type." }, { status: 400 });
-  }
-  if (
-    isConference &&
-    (!["q1", "q2", "q3", "q4"].includes(body.conferenceQuarter ?? "") ||
-      !["best_paper", "best_presenter", "both"].includes(
-        body.conferenceAwardIntent ?? ""
-      ))
-  ) {
-    return NextResponse.json(
-      { error: "Conference quarter and award category are required." },
-      { status: 400 }
-    );
-  }
-
-  const db = getAdminFirestore();
-  const profileSnap = await db.doc(`users/${user.uid}`).get();
-  const profile = profileSnap.data();
-  const authorEmail = cleanString(profile?.email ?? user.email, 320);
-  const authorName = cleanString(profile?.displayName ?? authorEmail, 300);
-  const now = Timestamp.now();
-  const year = now.toDate().getUTCFullYear();
-  const prefix = isConference ? "GCRC" : "GCRJ";
-  const initialStatus = isConference ? "pending" : "editorial_screening";
-  const counterRef = db.doc(`registrationCounters/${prefix}-${year}`);
-  const submissionRef = db.collection("submissions").doc();
-
-  let registrationId = "";
-  await db.runTransaction(async (transaction) => {
-    const counterSnap = await transaction.get(counterRef);
-    const lastNumber = counterSnap.exists
-      ? Number(counterSnap.data()?.lastNumber ?? 0)
-      : 0;
-    const nextNumber = lastNumber + 1;
-    registrationId = `${prefix}-${year}-${String(nextNumber).padStart(6, "0")}`;
-    const registrationRef = db.doc(`registrationIds/${registrationId}`);
-    const registrationSnap = await transaction.get(registrationRef);
-    if (registrationSnap.exists) {
-      throw new Error("Registration ID collision. Please retry.");
+    if (!isFirebaseAdminConfigured()) {
+      return NextResponse.json(
+        { error: "Server-side submission registration is not configured." },
+        { status: 503 }
+      );
     }
 
-    transaction.set(
-      counterRef,
-      {
-        prefix,
-        year,
-        lastNumber: nextNumber,
-        updatedAt: now,
-      },
-      { merge: true }
-    );
-    transaction.create(registrationRef, {
-      registrationId,
+    const user = await verifyUserIdToken(request.headers.get("authorization"));
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
+    let body: Body;
+    try {
+      body = (await request.json()) as Body;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
+
+    const title = cleanString(body.title, 500);
+    const abstract = cleanString(body.abstract, 20_000);
+    const affiliation = cleanString(body.affiliation, 500);
+    const category = cleanString(body.category, 300);
+    const purpose = body.submissionPurpose;
+    const isConference = purpose === "conference";
+
+    if (!title || !abstract || !affiliation || !category) {
+      return NextResponse.json(
+        { error: "Title, abstract, affiliation, and category are required." },
+        { status: 400 }
+      );
+    }
+    if (purpose !== "journal" && purpose !== "conference") {
+      return NextResponse.json({ error: "Invalid submission type." }, { status: 400 });
+    }
+    if (
+      isConference &&
+      (!["q1", "q2", "q3", "q4"].includes(body.conferenceQuarter ?? "") ||
+        !["best_paper", "best_presenter", "both"].includes(
+          body.conferenceAwardIntent ?? ""
+        ))
+    ) {
+      return NextResponse.json(
+        { error: "Conference quarter and award category are required." },
+        { status: 400 }
+      );
+    }
+
+    const db = getAdminFirestore();
+    const profileSnap = await db.doc(`users/${user.uid}`).get();
+    const profile = profileSnap.data();
+    const authorEmail = cleanString(profile?.email ?? user.email, 320);
+    const authorName = cleanString(profile?.displayName ?? authorEmail, 300);
+    if (!authorEmail) {
+      return NextResponse.json(
+        { error: "Your account email is missing. Update your profile and try again." },
+        { status: 400 }
+      );
+    }
+
+    const now = Timestamp.now();
+    const year = now.toDate().getUTCFullYear();
+    const prefix = isConference ? "GCRC" : "GCRJ";
+    const initialStatus = isConference ? "pending" : "editorial_screening";
+    const counterRef = db.doc(`registrationCounters/${prefix}-${year}`);
+    const submissionRef = db.collection("submissions").doc();
+
+    let registrationId = "";
+    await db.runTransaction(async (transaction) => {
+      const counterSnap = await transaction.get(counterRef);
+      const lastNumber = counterSnap.exists
+        ? Number(counterSnap.data()?.lastNumber ?? 0)
+        : 0;
+      const nextNumber = lastNumber + 1;
+      registrationId = `${prefix}-${year}-${String(nextNumber).padStart(6, "0")}`;
+      const registrationRef = db.doc(`registrationIds/${registrationId}`);
+      const registrationSnap = await transaction.get(registrationRef);
+      if (registrationSnap.exists) {
+        throw new Error("Registration ID collision. Please retry.");
+      }
+
+      transaction.set(
+        counterRef,
+        {
+          prefix,
+          year,
+          lastNumber: nextNumber,
+          updatedAt: now,
+        },
+        { merge: true }
+      );
+      transaction.create(registrationRef, {
+        registrationId,
+        submissionId: submissionRef.id,
+        submissionPurpose: purpose,
+        createdAt: now,
+      });
+      transaction.create(submissionRef, {
+        registrationId,
+        title,
+        abstract,
+        affiliation,
+        category,
+        submissionPurpose: purpose,
+        conferenceQuarter: isConference ? body.conferenceQuarter : null,
+        conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
+        authorId: user.uid,
+        authorName,
+        authorEmail,
+        status: initialStatus,
+        assignedEditorId: null,
+        assignedEditorName: null,
+        assignedReviewerId: null,
+        assignedReviewerName: null,
+        reviewDeadline: null,
+        statusNote: null,
+        lastEmailSent: null,
+        lastEmailTemplate: isConference
+          ? "conference_submission_received"
+          : "journal_submission_received",
+        emailStatus: "pending",
+        emailTimestamp: now,
+        deliveryStatus: "queued",
+        submittedAt: now,
+        lastUpdatedAt: now,
+      });
+      transaction.create(submissionRef.collection("statusHistory").doc(), {
+        registrationId,
+        status: initialStatus,
+        note: isConference
+          ? "Conference abstract submitted."
+          : "Manuscript received and entered editorial screening.",
+        createdAt: now,
+        changedById: user.uid,
+        changedByName: "Author",
+        changedByRole: "scholar",
+      });
+    });
+
+    let emailSent = false;
+    try {
+      const emailResult = await notificationQueue.enqueueAndProcess({
+        submissionId: submissionRef.id,
+        submission: {
+          registrationId,
+          title,
+          authorName,
+          authorEmail,
+          submissionPurpose: purpose,
+          conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
+          submittedAt: now,
+        },
+        status: initialStatus,
+        trigger: "create",
+        createdBy: user.uid,
+      });
+      emailSent = Boolean(emailResult.emailSent);
+    } catch (emailError) {
+      console.error("[submissions/create] confirmation email failed:", emailError);
+      try {
+        await submissionRef.update({
+          emailStatus: "failed",
+          deliveryStatus: "failed",
+          emailTimestamp: Timestamp.now(),
+        });
+      } catch {
+        // Submission is already saved; email metadata is best-effort.
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
       submissionId: submissionRef.id,
-      submissionPurpose: purpose,
-      createdAt: now,
-    });
-    transaction.create(submissionRef, {
       registrationId,
-      title,
-      abstract,
-      affiliation,
-      category,
-      submissionPurpose: purpose,
-      conferenceQuarter: isConference ? body.conferenceQuarter : null,
-      conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
-      authorId: user.uid,
-      authorName,
-      authorEmail,
-      status: initialStatus,
-      assignedEditorId: null,
-      assignedEditorName: null,
-      assignedReviewerId: null,
-      assignedReviewerName: null,
-      reviewDeadline: null,
-      statusNote: null,
-      lastEmailSent: null,
-      lastEmailTemplate: isConference
-        ? "conference_submission_received"
-        : "journal_submission_received",
-      emailStatus: "pending",
-      emailTimestamp: now,
-      deliveryStatus: "queued",
-      submittedAt: now,
-      lastUpdatedAt: now,
+      submittedAt: now.toDate().toISOString(),
+      emailSent,
     });
-    transaction.create(submissionRef.collection("statusHistory").doc(), {
-      registrationId,
-      status: initialStatus,
-      note: isConference
-        ? "Conference abstract submitted."
-        : "Manuscript received and entered editorial screening.",
-      createdAt: now,
-      changedById: user.uid,
-      changedByName: "Author",
-      changedByRole: "scholar",
-    });
-  });
-
-  const emailResult = await notificationQueue.enqueueAndProcess({
-    submissionId: submissionRef.id,
-    submission: {
-      registrationId,
-      title,
-      authorName,
-      authorEmail,
-      submissionPurpose: purpose,
-      conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
-      submittedAt: now,
-    },
-    status: initialStatus,
-    trigger: "create",
-    createdBy: user.uid,
-  });
-
-  return NextResponse.json({
-    ok: true,
-    submissionId: submissionRef.id,
-    registrationId,
-    submittedAt: now.toDate().toISOString(),
-    emailSent: emailResult.emailSent,
-  });
+  } catch (error) {
+    console.error("[submissions/create]", error);
+    const message =
+      error instanceof Error ? error.message : "Could not register submission.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
