@@ -28,19 +28,33 @@ export default function ConferencesPage() {
             networking, expert keynote sessions, research workshops, PhD colloquia, editorial
             discussions, and research recognition.
           </p>
-          <figure className="mt-8">
-            <Image
-              src="/poster.jpeg"
-              alt="Poster for the GCR International Multidisciplinary Conference on 30 August 2026"
-              width={683}
-              height={1024}
-              priority
-              className="mx-auto h-auto w-full max-w-2xl rounded border border-[var(--journal-border)]"
-            />
-            <figcaption className="mt-3 text-center text-sm text-[var(--journal-muted)]">
-              International Multidisciplinary Conference 2026 — 30 August 2026, online via Zoom
-            </figcaption>
-          </figure>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            <figure>
+              <Image
+                src="/poster.jpeg"
+                alt="Poster for the GCR International Multidisciplinary Conference on 30 August 2026"
+                width={1024}
+                height={1536}
+                priority
+                className="mx-auto h-auto w-full rounded border border-[var(--journal-border)]"
+              />
+              <figcaption className="mt-3 text-center text-sm text-[var(--journal-muted)]">
+                International Multidisciplinary Conference 2026 — 30 August 2026, online via Zoom
+              </figcaption>
+            </figure>
+            <figure>
+              <Image
+                src="/poster-colloqium.jpeg"
+                alt="Poster for the GCR PhD Colloquium"
+                width={1070}
+                height={1600}
+                className="mx-auto h-auto w-full rounded border border-[var(--journal-border)]"
+              />
+              <figcaption className="mt-3 text-center text-sm text-[var(--journal-muted)]">
+                PhD Colloquium
+              </figcaption>
+            </figure>
+          </div>
           <ul className="mt-6 list-disc space-y-2 pl-5 text-[15px] text-[var(--journal-body)]">
             <li>Research presentations</li>
             <li>Interdisciplinary dialogue</li>

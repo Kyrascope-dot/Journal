@@ -66,13 +66,20 @@ export function ConferencePopup() {
           ×
         </button>
 
-        <div className="bg-slate-100 p-3 sm:p-5">
+        <div className="space-y-4 bg-slate-100 p-3 sm:p-5">
           <Image
             src="/poster.jpeg"
             alt="Poster for the GCR International Multidisciplinary Conference on 30 August 2026"
-            width={683}
-            height={1024}
+            width={1024}
+            height={1536}
             priority
+            className="mx-auto h-auto w-full max-w-[560px]"
+          />
+          <Image
+            src="/poster-colloqium.jpeg"
+            alt="Poster for the GCR PhD Colloquium"
+            width={1070}
+            height={1600}
             className="mx-auto h-auto w-full max-w-[560px]"
           />
         </div>
