@@ -6,8 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import { getSubmissionById } from "@/lib/firestore-submissions";
 import { siteConfig } from "@/lib/site-config";
 import {
-  STATUS_LABELS,
   SUBMISSION_PURPOSE_LABELS,
+  getSubmissionStatusLabel,
   type Submission,
 } from "@/types/dashboard";
 
@@ -78,7 +78,13 @@ export function SubmissionAcknowledgement({
             ["Date & Time", formatDateTime(submission.submittedAt)],
             ["Author Name", submission.authorName],
             ["Author Email", submission.authorEmail],
-            ["Current Status", STATUS_LABELS[submission.status]],
+            [
+              "Current Status",
+              getSubmissionStatusLabel(
+                submission.status,
+                submission.submissionPurpose
+              ),
+            ],
             ["Journal/Conference Name", publicationName],
           ].map(([label, value]) => (
             <div key={label}>

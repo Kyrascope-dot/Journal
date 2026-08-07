@@ -96,6 +96,20 @@ export const editorialTeam: EditorialMember[] = [
     ],
   },
   {
+    id: "parthasarathi",
+    name: "Prof. Parthasarathi",
+    headline: "Editorial Board",
+    qualification:
+      "Physics; non-Hermitian quantum mechanics, complex phase space quantum mechanics, and plasmonics",
+    designation:
+      "Maharaja Agrasen College, University of Delhi\nDelhi, India\n\nFormer department head; Coordinator, ISRO START Program\nRecipient, Rosalind Fellowship (London Press, 2021)",
+    imageSrc: "/editorial/prof-parthasarathi.jpeg",
+    bioParagraphs: [
+      "Professor Parthasarathi is an accomplished academic with over 24 years of teaching experience at Maharaja Agrasen College, University of Delhi. A pioneer in non-Hermitian quantum mechanics, he has made significant contributions through his research on complex phase space quantum mechanics and plasmonics. His work includes over 15 peer-reviewed publications in internationally recognized journals indexed in Scopus and Web of Science. He has served as a resource person and invited speaker at numerous national and international conferences. His leadership is evident from his multiple administrative roles including department head and coordinator for ISRO’s START Program. He is also a recipient of the prestigious Rosalind Fellowship awarded by London Press in 2021.",
+      "In addition to his academic and research credentials, Prof. Parthasarathi has been instrumental in designing and revising several undergraduate physics curricula for IGNOU. His interdisciplinary interests include applying computational tools in plasmonics and quantum systems, as well as exploring the societal impact of social media through data mining. He has published thought-provoking articles on platforms like The Wire and OpIndia, showcasing his engagement with broader public discourse. His future vision focuses on establishing a research-driven, digitally empowered band of youth aligned with NEP 2020, emphasizing multidisciplinary learning, innovation, and inclusive education, with plans to collaborate with premier institutions.",
+    ],
+  },
+  {
     id: "parveen-kumar",
     name: "Dr. Parveen Kumar",
     headline: "Associate Editor",

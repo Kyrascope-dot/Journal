@@ -307,8 +307,17 @@ export function ScholarDashboard({
                   <li key={sub.id} className="py-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[var(--journal-accent)]">
-                          Registration ID: {sub.registrationId}
+                        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--journal-accent)]">
+                          <span>Registration ID: {sub.registrationId}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void navigator.clipboard.writeText(sub.registrationId)
+                            }
+                            className="rounded border border-[var(--journal-border)] bg-white px-2 py-0.5 text-[11px] font-medium text-[var(--journal-heading)] hover:bg-zinc-50"
+                          >
+                            Copy
+                          </button>
                         </p>
                         <p className="mt-1 font-medium text-[var(--journal-heading)]">
                           Paper Title: {sub.title}

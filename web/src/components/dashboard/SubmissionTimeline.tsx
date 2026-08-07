@@ -55,10 +55,13 @@ export function SubmissionTimeline({ submission }: { submission: Submission }) {
         id={`timeline-${submission.id}`}
         className="text-sm font-semibold text-[var(--journal-heading)]"
       >
-        Status timeline — {submission.registrationId}
+        Status timeline
       </h3>
+      <p className="mt-1 font-mono text-sm font-semibold text-[var(--journal-accent)]">
+        {submission.registrationId}
+      </p>
       <ol className="mt-3 border-l-2 border-[var(--journal-border)] pl-5">
-        {displayed.map((event) => (
+        {displayed.map((event, index) => (
           <li key={event.id} className="relative pb-5 last:pb-0">
             <span
               className="absolute -left-[1.65rem] top-1 flex h-3 w-3 items-center justify-center rounded-full bg-[var(--journal-accent)] text-[8px] text-white"
@@ -67,10 +70,11 @@ export function SubmissionTimeline({ submission }: { submission: Submission }) {
               ✓
             </span>
             <p className="text-sm font-medium text-[var(--journal-heading)]">
-              ✓ {getSubmissionStatusLabel(event.status, submission.submissionPurpose)}
+              {getSubmissionStatusLabel(event.status, submission.submissionPurpose)}
             </p>
             <p className="text-xs text-[var(--journal-muted)]">
               {formatDateTime(event.createdAt)}
+              {index < displayed.length - 1 ? " ↓" : ""}
             </p>
             {event.note ? (
               <p className="mt-1 text-sm text-[var(--journal-body)]">{event.note}</p>
