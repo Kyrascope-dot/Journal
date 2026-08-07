@@ -39,7 +39,8 @@ export default function ConferencesPage() {
                 className="mx-auto h-auto w-full rounded border border-[var(--journal-border)]"
               />
               <figcaption className="mt-3 text-center text-sm text-[var(--journal-muted)]">
-                International Multidisciplinary Conference 2026 — 30 August 2026, online via Zoom
+                International Multidisciplinary Conference 2026 — 30 August 2026, 9:30am IST,
+                online via Zoom
               </figcaption>
             </figure>
             <figure>
@@ -51,7 +52,7 @@ export default function ConferencesPage() {
                 className="mx-auto h-auto w-full rounded border border-[var(--journal-border)]"
               />
               <figcaption className="mt-3 text-center text-sm text-[var(--journal-muted)]">
-                Colloquium
+                Colloquia/Workshop — 29th August 2026, 9:30am IST, online via Zoom
               </figcaption>
             </figure>
           </div>
