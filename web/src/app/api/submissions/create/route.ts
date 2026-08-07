@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase-admin/firestore";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getAdminFirestore, isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { notificationQueue } from "@/lib/email/submission-notifications";
 import { verifyUserIdToken } from "@/lib/server/verify-user";
@@ -7,6 +7,7 @@ import type {
   ConferenceAwardIntent,
   ConferenceQuarter,
   SubmissionPurpose,
+  SubmissionStatus,
 } from "@/types/dashboard";
 
 export const runtime = "nodejs";
@@ -29,14 +30,20 @@ export async function POST(request: Request) {
   try {
     if (!isFirebaseAdminConfigured()) {
       return NextResponse.json(
-        { error: "Server-side submission registration is not configured." },
+        {
+          error:
+            "Server-side submission registration is not configured. Ask the administrator to set Firebase Admin credentials on the server.",
+        },
         { status: 503 }
       );
     }
 
     const user = await verifyUserIdToken(request.headers.get("authorization"));
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized. Please sign in again and retry." },
+        { status: 401 }
+      );
     }
 
     let body: Body;
@@ -90,7 +97,9 @@ export async function POST(request: Request) {
     const now = Timestamp.now();
     const year = now.toDate().getUTCFullYear();
     const prefix = isConference ? "GCRC" : "GCRJ";
-    const initialStatus = isConference ? "pending" : "editorial_screening";
+    const initialStatus: SubmissionStatus = isConference
+      ? "pending"
+      : "editorial_screening";
     const counterRef = db.doc(`registrationCounters/${prefix}-${year}`);
     const submissionRef = db.collection("submissions").doc();
 
@@ -166,43 +175,60 @@ export async function POST(request: Request) {
       });
     });
 
-    let emailSent = false;
-    try {
-      const emailResult = await notificationQueue.enqueueAndProcess({
-        submissionId: submissionRef.id,
-        submission: {
-          registrationId,
-          title,
-          authorName,
-          authorEmail,
-          submissionPurpose: purpose,
-          conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
-          submittedAt: now,
-        },
-        status: initialStatus,
-        trigger: "create",
-        createdBy: user.uid,
-      });
-      emailSent = Boolean(emailResult.emailSent);
-    } catch (emailError) {
-      console.error("[submissions/create] confirmation email failed:", emailError);
-      try {
-        await submissionRef.update({
-          emailStatus: "failed",
-          deliveryStatus: "failed",
-          emailTimestamp: Timestamp.now(),
+    // Never block registration on email. Attempt delivery after the response is sent.
+    const emailPayload = {
+      submissionId: submissionRef.id,
+      submission: {
+        registrationId,
+        title,
+        authorName,
+        authorEmail,
+        submissionPurpose: purpose,
+        conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
+        submittedAt: now,
+      },
+      status: initialStatus,
+      trigger: "create" as const,
+      createdBy: user.uid,
+    };
+
+    after(() => {
+      void notificationQueue
+        .enqueueAndProcess(emailPayload)
+        .then(async (result) => {
+          if (result.emailSent || !result.emailRequired) return;
+          try {
+            await submissionRef.update({
+              emailStatus: "failed",
+              deliveryStatus: "failed",
+              emailTimestamp: Timestamp.now(),
+            });
+          } catch {
+            // Best-effort metadata only.
+          }
+        })
+        .catch(async (emailError) => {
+          console.error("[submissions/create] confirmation email failed:", emailError);
+          try {
+            await submissionRef.update({
+              emailStatus: "failed",
+              deliveryStatus: "failed",
+              emailTimestamp: Timestamp.now(),
+            });
+          } catch {
+            // Submission is already saved.
+          }
         });
-      } catch {
-        // Submission is already saved; email metadata is best-effort.
-      }
-    }
+    });
 
     return NextResponse.json({
       ok: true,
       submissionId: submissionRef.id,
       registrationId,
       submittedAt: now.toDate().toISOString(),
-      emailSent,
+      // Email is attempted asynchronously; treat registration as success either way.
+      emailSent: false,
+      emailQueued: true,
     });
   } catch (error) {
     console.error("[submissions/create]", error);

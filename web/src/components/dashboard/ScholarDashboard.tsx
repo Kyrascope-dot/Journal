@@ -249,9 +249,11 @@ export function ScholarDashboard({
                   Registration ID: {lastSubmission.registrationId}
                 </p>
                 <p className="mt-1 text-xs text-emerald-800">
+                  Your submission is saved. Keep this Registration ID for all future
+                  correspondence
                   {lastSubmission.emailSent
-                    ? "A confirmation email has been sent."
-                    : "Your submission is saved. Email delivery is pending; keep this Registration ID."}
+                    ? ". A confirmation email has been sent."
+                    : ". A confirmation email will follow if email delivery is available."}
                 </p>
                 <Link
                   href={`/dashboard/acknowledgement/${lastSubmission.id}`}

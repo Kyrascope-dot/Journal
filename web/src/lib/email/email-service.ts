@@ -19,18 +19,44 @@ export type EmailSendResult = {
 };
 
 export class EmailService {
+  isConfigured(): boolean {
+    return Boolean(process.env.RESEND_API_KEY?.trim());
+  }
+
   async send(message: EmailMessage): Promise<EmailSendResult> {
     const apiKey = process.env.RESEND_API_KEY?.trim();
     if (!apiKey) throw new Error("RESEND_API_KEY is not configured.");
 
-    const resend = new Resend(apiKey);
-    const { data, error } = await resend.emails.send({
-      from: formatResendFromAddress(process.env.EMAIL_FROM),
-      to: assertValidRecipientEmail(message.to),
-      replyTo: assertValidRecipientEmail(
+    let from: string;
+    try {
+      from = formatResendFromAddress(process.env.EMAIL_FROM);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : "EMAIL_FROM is invalid. Check the Vercel environment variable."
+      );
+    }
+
+    let replyTo: string;
+    try {
+      replyTo = assertValidRecipientEmail(
         process.env.EDITORIAL_EMAIL ?? siteConfig.email,
         "Reply-to"
-      ),
+      );
+    } catch (error) {
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : "EDITORIAL_EMAIL is invalid. Check the Vercel environment variable."
+      );
+    }
+
+    const resend = new Resend(apiKey);
+    const { data, error } = await resend.emails.send({
+      from,
+      to: assertValidRecipientEmail(message.to),
+      replyTo,
       subject: message.subject,
       html: message.html,
       text: message.text,

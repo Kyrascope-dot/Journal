@@ -220,24 +220,50 @@ export class NotificationQueue {
       return { emailRequired: false, emailSent: false };
     }
 
+    if (!emailService.isConfigured()) {
+      return {
+        emailRequired: true,
+        emailSent: false,
+        error: "RESEND_API_KEY is not configured.",
+      };
+    }
+
     const db = getAdminFirestore();
     const queueRef = db.collection("notificationQueue").doc();
-    await queueRef.set({
-      ...notification,
-      queueStatus: "pending",
-      deliveryStatus: "queued",
-      attempts: 0,
-      error: null,
-      createdAt: Timestamp.now(),
-      createdBy: input.createdBy,
-    });
-    const result = await processQueuedSubmissionNotification(queueRef.id);
-    return {
-      emailRequired: true,
-      emailSent: result.sent,
-      notificationId: queueRef.id,
-      error: result.error,
-    };
+    try {
+      await queueRef.set({
+        ...notification,
+        queueStatus: "pending",
+        deliveryStatus: "queued",
+        attempts: 0,
+        error: null,
+        createdAt: Timestamp.now(),
+        createdBy: input.createdBy,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not enqueue notification.";
+      return { emailRequired: true, emailSent: false, error: message };
+    }
+
+    try {
+      const result = await processQueuedSubmissionNotification(queueRef.id);
+      return {
+        emailRequired: true,
+        emailSent: result.sent,
+        notificationId: queueRef.id,
+        error: result.error,
+      };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Email delivery failed.";
+      return {
+        emailRequired: true,
+        emailSent: false,
+        notificationId: queueRef.id,
+        error: message,
+      };
+    }
   }
 
   process(notificationId: string) {
