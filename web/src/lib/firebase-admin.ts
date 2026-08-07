@@ -33,11 +33,19 @@ function loadServiceAccount(): ServiceAccountFields {
     };
   }
 
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
+  let raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
   if (!raw) {
     throw new Error(
       "Firebase Admin is not configured. Set FIREBASE_SERVICE_ACCOUNT_JSON (single-line JSON) or FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY."
     );
+  }
+
+  // Vercel UI sometimes stores the value wrapped in extra quotes.
+  if (
+    (raw.startsWith('"') && raw.endsWith('"')) ||
+    (raw.startsWith("'") && raw.endsWith("'"))
+  ) {
+    raw = raw.slice(1, -1).trim();
   }
 
   try {
@@ -45,10 +53,14 @@ function loadServiceAccount(): ServiceAccountFields {
     if (!parsed.project_id || !parsed.client_email || !parsed.private_key) {
       throw new Error("Missing project_id, client_email, or private_key.");
     }
-    return parsed;
-  } catch {
+    return {
+      ...parsed,
+      private_key: String(parsed.private_key).replace(/\\n/g, "\n"),
+    };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : "invalid JSON";
     throw new Error(
-      "FIREBASE_SERVICE_ACCOUNT_JSON is invalid. In .env it must be one single line of JSON (not multiple lines). Easier option: use FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY instead."
+      `FIREBASE_SERVICE_ACCOUNT_JSON is invalid (${detail}). Prefer FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY on Vercel.`
     );
   }
 }

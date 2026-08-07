@@ -1,8 +1,4 @@
-import { Timestamp } from "firebase-admin/firestore";
-import { after, NextResponse } from "next/server";
-import { getAdminFirestore, isFirebaseAdminConfigured } from "@/lib/firebase-admin";
-import { notificationQueue } from "@/lib/email/submission-notifications";
-import { verifyUserIdToken } from "@/lib/server/verify-user";
+import { NextResponse } from "next/server";
 import type {
   ConferenceAwardIntent,
   ConferenceQuarter,
@@ -11,6 +7,7 @@ import type {
 } from "@/types/dashboard";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type Body = {
   title?: string;
@@ -26,31 +23,37 @@ function cleanString(value: unknown, maxLength: number): string {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 }
 
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: message }, { status });
+}
+
 export async function POST(request: Request) {
   try {
+    // Dynamic imports keep cold-start failures inside the handler (JSON),
+    // instead of crashing the whole route module into an HTML 500 page.
+    const { getAdminFirestore, isFirebaseAdminConfigured } = await import(
+      "@/lib/firebase-admin"
+    );
+    const { verifyUserIdToken } = await import("@/lib/server/verify-user");
+    const { Timestamp } = await import("firebase-admin/firestore");
+
     if (!isFirebaseAdminConfigured()) {
-      return NextResponse.json(
-        {
-          error:
-            "Server-side submission registration is not configured. Ask the administrator to set Firebase Admin credentials on the server.",
-        },
-        { status: 503 }
+      return jsonError(
+        "Server-side submission registration is not configured. Set Firebase Admin credentials on Vercel (FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_ADMIN_*).",
+        503
       );
     }
 
     const user = await verifyUserIdToken(request.headers.get("authorization"));
     if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized. Please sign in again and retry." },
-        { status: 401 }
-      );
+      return jsonError("Unauthorized. Please sign in again and retry.", 401);
     }
 
     let body: Body;
     try {
       body = (await request.json()) as Body;
     } catch {
-      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+      return jsonError("Invalid JSON body.", 400);
     }
 
     const title = cleanString(body.title, 500);
@@ -61,13 +64,13 @@ export async function POST(request: Request) {
     const isConference = purpose === "conference";
 
     if (!title || !abstract || !affiliation || !category) {
-      return NextResponse.json(
-        { error: "Title, abstract, affiliation, and category are required." },
-        { status: 400 }
+      return jsonError(
+        "Title, abstract, affiliation, and category are required.",
+        400
       );
     }
     if (purpose !== "journal" && purpose !== "conference") {
-      return NextResponse.json({ error: "Invalid submission type." }, { status: 400 });
+      return jsonError("Invalid submission type.", 400);
     }
     if (
       isConference &&
@@ -76,9 +79,9 @@ export async function POST(request: Request) {
           body.conferenceAwardIntent ?? ""
         ))
     ) {
-      return NextResponse.json(
-        { error: "Conference quarter and award category are required." },
-        { status: 400 }
+      return jsonError(
+        "Conference quarter and award category are required.",
+        400
       );
     }
 
@@ -88,9 +91,9 @@ export async function POST(request: Request) {
     const authorEmail = cleanString(profile?.email ?? user.email, 320);
     const authorName = cleanString(profile?.displayName ?? authorEmail, 300);
     if (!authorEmail) {
-      return NextResponse.json(
-        { error: "Your account email is missing. Update your profile and try again." },
-        { status: 400 }
+      return jsonError(
+        "Your account email is missing. Update your profile and try again.",
+        400
       );
     }
 
@@ -175,58 +178,57 @@ export async function POST(request: Request) {
       });
     });
 
-    // Never block registration on email. Attempt delivery after the response is sent.
-    const emailPayload = {
-      submissionId: submissionRef.id,
-      submission: {
-        registrationId,
-        title,
-        authorName,
-        authorEmail,
-        submissionPurpose: purpose,
-        conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
-        submittedAt: now,
-      },
-      status: initialStatus,
-      trigger: "create" as const,
-      createdBy: user.uid,
-    };
-
-    after(() => {
-      void notificationQueue
-        .enqueueAndProcess(emailPayload)
-        .then(async (result) => {
-          if (result.emailSent || !result.emailRequired) return;
-          try {
-            await submissionRef.update({
-              emailStatus: "failed",
-              deliveryStatus: "failed",
-              emailTimestamp: Timestamp.now(),
-            });
-          } catch {
-            // Best-effort metadata only.
-          }
+    // Fire-and-forget confirmation email. Never block or fail registration.
+    void import("@/lib/email/submission-notifications")
+      .then(({ notificationQueue }) =>
+        notificationQueue.enqueueAndProcess({
+          submissionId: submissionRef.id,
+          submission: {
+            registrationId,
+            title,
+            authorName,
+            authorEmail,
+            submissionPurpose: purpose,
+            conferenceAwardIntent: isConference
+              ? body.conferenceAwardIntent
+              : null,
+            submittedAt: now,
+          },
+          status: initialStatus,
+          trigger: "create",
+          createdBy: user.uid,
         })
-        .catch(async (emailError) => {
-          console.error("[submissions/create] confirmation email failed:", emailError);
-          try {
-            await submissionRef.update({
-              emailStatus: "failed",
-              deliveryStatus: "failed",
-              emailTimestamp: Timestamp.now(),
-            });
-          } catch {
-            // Submission is already saved.
-          }
-        });
-    });
+      )
+      .then(async (result) => {
+        if (!result || result.emailSent || !result.emailRequired) return;
+        try {
+          await submissionRef.update({
+            emailStatus: "failed",
+            deliveryStatus: "failed",
+            emailTimestamp: Timestamp.now(),
+          });
+        } catch {
+          // ignore
+        }
+      })
+      .catch(async (emailError) => {
+        console.error("[submissions/create] email skipped/failed:", emailError);
+        try {
+          await submissionRef.update({
+            emailStatus: "failed",
+            deliveryStatus: "failed",
+            emailTimestamp: Timestamp.now(),
+          });
+        } catch {
+          // ignore
+        }
+      });
 
     return NextResponse.json({
       ok: true,
       submissionId: submissionRef.id,
       registrationId,
       submittedAt: now.toDate().toISOString(),
-      // Email is attempted asynchronously; treat registration as success either way.
       emailSent: false,
       emailQueued: true,
     });
@@ -234,6 +236,6 @@ export async function POST(request: Request) {
     console.error("[submissions/create]", error);
     const message =
       error instanceof Error ? error.message : "Could not register submission.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return jsonError(message, 500);
   }
 }
