@@ -1,3 +1,4 @@
+import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { StaticContentPage } from "@/components/layout/StaticContentPage";
 
 export const metadata = { title: "Conference FAQs" };
@@ -8,45 +9,132 @@ export default function ConferenceFaqsPage() {
       title="Conference FAQs"
       sections={[
         {
-          heading: "Does conference registration guarantee journal publication?",
-          paragraphs: [
-            "No. Conference participation does not guarantee journal publication. Selected manuscripts may be considered for publication subject to peer review, editorial evaluation, author revisions, and the journal’s publication schedule.",
+          heading: "How do I register?",
+          paragraphs: [],
+          list: [
+            "Create an account.",
+            "Submit your abstract.",
+            "Editorial screening.",
+            "Status visible in Author Dashboard.",
+            "Acceptance email sent.",
+            "Complete payment.",
+            "Join conference.",
           ],
         },
         {
-          heading: "What does the Best Paper Award category include?",
-          paragraphs: [
-            "Winners of the Best Paper Award in their track will be offered a publication opportunity in an upcoming issue of Global Confluence Review (GCR), subject to rigorous journal peer review.",
-            "After winning, the author must submit the complete paper using the GCR journal manuscript template. The paper will then receive full consideration for publication in the upcoming GCR issue. Winning the award does not bypass peer review or guarantee acceptance.",
+          heading: "What happens if I choose Best Presenter Award?",
+          paragraphs: [],
+          list: [
+            "Prepare a PowerPoint presentation (PPT).",
+            "Present during the conference.",
+            "No manuscript needs to be emailed.",
           ],
         },
         {
-          heading: "What does the Best Presenter Award category include?",
-          paragraphs: [
-            "Participants in this category may present their paper at the GCR conference through a PowerPoint presentation (PPT). This category does not include publication in Global Confluence Review.",
-            "Authors whose papers have already been published in another journal, or are currently under consideration by another journal, may present their work at the GCR conference but will not receive GCR journal publication through this category.",
+          heading: "What happens if I choose Best Paper Award?",
+          paragraphs: [],
+          list: [
+            "Prepare a PowerPoint presentation (PPT).",
+            "Present during the conference.",
+            "Submit the paper by email.",
+            "Send a blinded manuscript.",
+            "Send the title page separately.",
           ],
         },
         {
-          heading: "Can I apply for both Best Paper and Best Presenter Awards?",
+          heading: "What happens if I choose Both Awards?",
           paragraphs: [
-            "Yes. Select the Both option during conference submission to be considered for the Best Paper Award and the Best Presenter Award.",
-            "The presentation conditions of the Best Presenter category apply. A publication opportunity is available only if the participant wins the Best Paper Award in their track, and the complete manuscript must still undergo rigorous GCR peer review and editorial consideration.",
+            "Prepare a PowerPoint presentation, present during the conference, and email both the blinded manuscript and the separate title page to editorglobalconfluencereview@gmail.com.",
           ],
         },
         {
-          heading: "How do I receive my registration ID?",
+          heading: "Can already published papers participate?",
           paragraphs: [
-            "After successful registration you will receive a confirmation email with your registration ID. Save this ID for payment, paper submission, and dashboard access.",
+            "Yes. Researchers whose work is already published may still compete.",
+            "They should email the PDF of the published paper after abstract acceptance. Publication in GCR is not automatic.",
           ],
         },
         {
-          heading: "Where are fees listed?",
+          heading: "Do I have to use the journal template?",
           paragraphs: [
-            "Participant fees are configured in the admin pricing table and shown at checkout when payment is enabled. Fees are separate from journal article processing charges (APC).",
+            "The journal template is recommended but optional for the initial conference submission.",
+            "Authors submitting through the conference for publication consideration are encouraged to use the journal template.",
+            "If selected for Best Paper and invited for journal review, authors will be required to submit the revised manuscript in journal format before peer review.",
+          ],
+        },
+        {
+          heading: "Who can submit?",
+          paragraphs: [],
+          list: [
+            "Researchers with already published work.",
+            "Researchers with unpublished work.",
+            "Faculty.",
+            "Students.",
+            "Industry professionals.",
+            "Policy researchers.",
+            "Independent scholars.",
+          ],
+        },
+        {
+          heading: "If I win Best Paper, is publication guaranteed?",
+          paragraphs: [
+            "No. Winning Best Paper does not guarantee publication. Winning papers are invited for peer review.",
+            "If accepted, the publication fee is waived.",
+            "If not selected as Best Paper, authors may still submit through the regular journal submission process.",
+            "Failure to win Best Paper does not indicate poor research quality.",
+          ],
+        },
+        {
+          heading: "Award Categories",
+          paragraphs: [
+            "Separate awards may be given for school students, undergraduate students, postgraduate students, PhD scholars, and faculty at the discretion of the Conference Evaluation Committee.",
+            "Separate awards may also be given for qualitative research, quantitative research, and mixed methods research at the discretion of the Committee.",
+          ],
+        },
+        {
+          heading: "How are submissions evaluated?",
+          paragraphs: [
+            "All award nominations are assessed independently by the Conference Evaluation Committee. Evaluation is based on the overall quality of the research and presentation. The committee’s decision is final.",
+          ],
+        },
+        {
+          heading: "Best Paper Award evaluation",
+          paragraphs: ["The committee may consider factors such as:"],
+          list: [
+            "Originality and novelty of the research",
+            "Significance and contribution to the field",
+            "Literature review and theoretical foundation",
+            "Research methodology and design",
+            "Data analysis and interpretation",
+            "Quality of discussion and conclusions",
+            "Overall organisation and clarity of the manuscript",
+            "Academic writing and referencing",
+          ],
+        },
+        {
+          heading: "Best Presentation Award evaluation",
+          paragraphs: ["The committee may consider factors such as:"],
+          list: [
+            "Clarity and organisation of the presentation",
+            "Communication and presentation skills",
+            "Quality and effectiveness of presentation slides",
+            "Understanding of the research topic",
+            "Ability to answer questions",
+            "Time management",
+            "Audience engagement",
+          ],
+        },
+        {
+          heading: "Additional Information",
+          paragraphs: [
+            "Awards may be presented separately for different academic levels (e.g., school students, undergraduate students, postgraduate students, PhD scholars, faculty members) depending on the number and quality of submissions.",
+            "Separate awards may also be presented for qualitative, quantitative, and mixed-methods research, where appropriate.",
+            "The Conference Evaluation Committee reserves the right to modify award categories or withhold an award if no submission meets the required standard.",
           ],
         },
       ]}
-    />
+    >
+      <FeeWaiverNotice className="mt-10" />
+    </StaticContentPage>
   );
 }

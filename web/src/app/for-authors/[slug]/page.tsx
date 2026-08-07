@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BlindedManuscriptNotice } from "@/components/for-authors/BlindedManuscriptNotice";
+import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { StaticContentPage } from "@/components/layout/StaticContentPage";
 import { forAuthorsPages, forAuthorsSlugs } from "@/content/for-authors-pages";
 
@@ -13,9 +15,17 @@ export default async function ForAuthorsSlugPage({ params }: Props) {
   const { slug } = await params;
   const page = forAuthorsPages[slug];
   if (!page) notFound();
+  const showsManuscriptRequirements = [
+    "author-guidelines",
+    "submission-checklist",
+    "submit-manuscript",
+  ].includes(slug);
+  const showsFeeWaiver = ["publication-fees", "fee-waiver-policy"].includes(slug);
 
   return (
     <StaticContentPage title={page.title} intro={page.intro} sections={page.sections}>
+      {showsManuscriptRequirements ? <BlindedManuscriptNotice className="mt-10" /> : null}
+      {showsFeeWaiver ? <FeeWaiverNotice className="mt-10" /> : null}
       {slug === "submit-manuscript" ? (
         <div className="mt-8 flex flex-wrap gap-3">
           <Link

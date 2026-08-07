@@ -40,17 +40,26 @@ const BEST_PRESENTER_SUBMISSION_NOTE =
 
 function ManuscriptEmailInstructions({ className = "" }: { className?: string }) {
   return (
-    <p className={`leading-relaxed ${className}`}>
-      Please submit the full manuscript in Word format to{" "}
-      <a
-        href={`mailto:${siteConfig.email}`}
-        className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
-      >
-        {siteConfig.email}
-      </a>
-      . Include your name, submission title, affiliation, and whether you submitted for journal
-      publication or conference.
-    </p>
+    <div className={`leading-relaxed ${className}`}>
+      <p>Authors must submit a blinded manuscript and a separate title page in Word format.</p>
+      <p className="mt-2">
+        Email:{" "}
+        <a
+          href={`mailto:${siteConfig.email}`}
+          className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+        >
+          {siteConfig.email}
+        </a>
+      </p>
+      <p className="mt-2">
+        The blinded manuscript must not contain author names, affiliations, acknowledgements or
+        identifying information.
+      </p>
+      <p className="mt-2">
+        The separate title page must include the paper title, author(s), affiliation, ORCID
+        (optional), email, and corresponding author.
+      </p>
+    </div>
   );
 }
 
@@ -366,6 +375,16 @@ export function ScholarDashboard({
               </div>
               {submissionPurpose === "conference" && (
                 <>
+                  <p className="rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm text-[var(--journal-body)]">
+                    Please read the{" "}
+                    <Link
+                      href="/conferences/faqs"
+                      className="font-medium text-[var(--journal-accent)] underline"
+                    >
+                      Conference FAQ
+                    </Link>{" "}
+                    before submitting your abstract.
+                  </p>
                   <div>
                     <label className="block text-sm font-medium text-[var(--journal-heading)]">
                       Conference issue quarter <span className="text-red-500">*</span>
@@ -400,6 +419,12 @@ export function ScholarDashboard({
                             CONFERENCE_QUARTER_OPTIONS.find((q) => q.value === conferenceQuarter)
                               ?.label
                           }
+                        </p>
+                        <p className="mt-3 text-xs leading-relaxed text-[var(--journal-muted)]">
+                          Separate awards may be presented for different academic levels and
+                          research methodologies depending upon the number and quality of
+                          submissions. Final decisions rest with the Conference Evaluation
+                          Committee.
                         </p>
                         <div className="mt-2 space-y-2">
                           {CONFERENCE_AWARD_OPTIONS.map((opt) => (
@@ -514,10 +539,12 @@ export function ScholarDashboard({
                 </div>
               ) : (
                 <div className="rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm text-[var(--journal-body)]">
-                  <p className="font-medium text-[var(--journal-heading)]">Full paper (Word)</p>
+                  <p className="font-medium text-[var(--journal-heading)]">
+                    Manuscript files (Word)
+                  </p>
                   <p className="mt-1">
-                    Step 1: Submit your abstract using the button below. Step 2: Email the complete
-                    paper in Microsoft Word to the editorial team.
+                    Step 1: Submit your abstract using the button below. Step 2: Email the blinded
+                    manuscript and separate title page to the editorial team.
                   </p>
                   <ManuscriptEmailInstructions className="mt-2 text-[var(--journal-muted)]" />
                 </div>

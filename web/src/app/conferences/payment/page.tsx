@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { AppShell } from "@/components/layout/AppShell";
 import { contentProse, contentShell } from "@/lib/content-layout";
 
@@ -21,6 +22,7 @@ export default function ConferencePaymentPage() {
           <p className="mt-4 text-sm font-medium text-[var(--journal-heading)]">
             Payment confirms conference registration only and does not guarantee journal publication.
           </p>
+          <FeeWaiverNotice className="mt-8" />
           <p className="mt-8">
             <Link href="/conferences/register" className="text-[var(--journal-accent)] hover:underline">
               Registration

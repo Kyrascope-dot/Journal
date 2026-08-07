@@ -1,3 +1,4 @@
+import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { StaticContentPage } from "@/components/layout/StaticContentPage";
 
 export const metadata = {
@@ -109,6 +110,8 @@ export default function TermsAndConditionsPage() {
           ],
         },
       ]}
-    />
+    >
+      <FeeWaiverNotice className="mt-10" />
+    </StaticContentPage>
   );
 }

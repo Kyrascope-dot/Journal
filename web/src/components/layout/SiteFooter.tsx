@@ -87,6 +87,26 @@ export function SiteFooter() {
             <Link className="hover:underline" href="/refund-and-cancellation-policy">
               Refund and Cancellation Policy
             </Link>
+            <span aria-hidden>·</span>
+            <Link className="hover:underline" href="/shipping-and-delivery-policy">
+              Shipping &amp; Delivery Policy
+            </Link>
+            <span aria-hidden>·</span>
+            <Link className="hover:underline" href="/for-authors/publication-fees">
+              Publication Charges
+            </Link>
+            <span aria-hidden>·</span>
+            <Link className="hover:underline" href="/conferences/faqs">
+              Conference FAQ
+            </Link>
+            <span aria-hidden>·</span>
+            <Link className="hover:underline" href="/conferences/register">
+              Conference Registration
+            </Link>
+            <span aria-hidden>·</span>
+            <Link className="hover:underline" href="/for-authors/fee-waiver-policy">
+              Need-based Fee Waiver
+            </Link>
           </div>
         </div>
       </div>

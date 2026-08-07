@@ -23,7 +23,10 @@ export function ConferencePopup() {
     document.body.style.overflow = "hidden";
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") closePopup();
+      if (event.key === "Escape") {
+        window.localStorage.setItem(STORAGE_KEY, "seen");
+        setIsOpen(false);
+      }
     }
 
     document.addEventListener("keydown", handleKeyDown);

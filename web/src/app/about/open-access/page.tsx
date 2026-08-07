@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { contentProse, contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
 
@@ -48,18 +49,10 @@ export default function OpenAccessPage() {
           Article processing charges (APCs)
         </h2>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          <strong>Article processing charges (APCs) are waived for the initial volumes or
-          issues</strong> while the journal establishes its operations. After that launch
-          period, the journal <strong>may introduce APCs</strong>; any fees, waivers for
-          authors in lower-income contexts, and payment timing will be published on the{" "}
-          <a className="text-[var(--journal-accent)] hover:underline" href="/submissions">
-            Submissions
-          </a>{" "}
-          page and confirmed with authors before acceptance. When charged, APCs help cover
-          editorial management, peer review coordination, copy-editing, and online
-          dissemination. Authors are never asked to pay simply to submit or to guarantee
-          acceptance.
+          No APC is charged during submission. The applicable APC is charged only after
+          acceptance and does not influence editorial decisions or guarantee publication.
         </p>
+        <FeeWaiverNotice className="mt-8" />
 
         <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
           Archiving

@@ -5,6 +5,15 @@ import { fileURLToPath } from "node:url";
 const webRoot = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/delivery-policy",
+        destination: "/shipping-and-delivery-policy",
+        permanent: true,
+      },
+    ];
+  },
   turbopack: {
     root: webRoot,
   },

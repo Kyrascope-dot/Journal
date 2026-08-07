@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { AppShell } from "@/components/layout/AppShell";
 import { contentProse, contentShell } from "@/lib/content-layout";
 
@@ -17,6 +18,14 @@ export default function ConferenceDashboardPage() {
             schedules after signing in. This dashboard will list your conference registrations once
             the backend module is connected.
           </p>
+          <p className="mt-4 text-[15px] font-medium text-[var(--journal-heading)]">
+            Please read the{" "}
+            <Link href="/conferences/faqs" className="text-[var(--journal-accent)] underline">
+              Conference FAQ
+            </Link>{" "}
+            before submitting your abstract.
+          </p>
+          <FeeWaiverNotice className="mt-8" />
           <p className="mt-8">
             <Link href="/login" className="text-[var(--journal-accent)] hover:underline">
               Sign in

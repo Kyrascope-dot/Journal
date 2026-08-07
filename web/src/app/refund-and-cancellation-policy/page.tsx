@@ -1,3 +1,4 @@
+import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { StaticContentPage } from "@/components/layout/StaticContentPage";
 
 export const metadata = {
@@ -21,7 +22,7 @@ export default function RefundAndCancellationPolicyPage() {
         {
           heading: "Journal submissions and publication fees",
           paragraphs: [
-            "There is no initial journal submission fee. An article processing charge, where applicable, is requested only after the relevant editorial stage.",
+            "No APC is charged during submission. An article processing charge, where applicable, is charged only after acceptance.",
             "Withdrawing a manuscript after paying an applicable publication or processing fee does not automatically create a right to a refund. Editorial work already completed, peer-review activity, production work, and administrative processing may be taken into account.",
           ],
         },
@@ -57,6 +58,8 @@ export default function RefundAndCancellationPolicyPage() {
           ],
         },
       ]}
-    />
+    >
+      <FeeWaiverNotice className="mt-10" />
+    </StaticContentPage>
   );
 }

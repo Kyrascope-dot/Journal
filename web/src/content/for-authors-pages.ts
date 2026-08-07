@@ -16,14 +16,14 @@ export const forAuthorsPages: Record<string, ForAuthorsPageContent> = {
       {
         heading: "Manuscript length and article types",
         paragraphs: [
-          "Unless the editorial office specifies otherwise, manuscripts should not exceed 20 pages (including references, tables, and figures).",
+          "Use the suggested word and page limits for your manuscript type in the Manuscript Templates page. Word limits exclude the abstract, references, tables, figures and appendices.",
           "Accepted article types include original research, review articles, research essays, policy papers, case studies, and other formats listed in the manuscript template library.",
         ],
       },
       {
         heading: "Formatting",
         paragraphs: [
-          "Use Times New Roman, 11 pt for the main text. Manuscripts must be written in English.",
+          "Use Times New Roman, 11 pt, single line spacing, justified alignment, and continuous page numbering. Manuscripts must be written in English.",
           "Include a structured abstract, keywords, clear section headings, and references in APA 7th edition.",
         ],
         list: [
@@ -69,8 +69,8 @@ export const forAuthorsPages: Record<string, ForAuthorsPageContent> = {
           "Choose Submit for Journal Publication.",
           "Enter all required details, including the paper title, abstract, research category, and affiliation.",
           "Review the information and submit your application.",
-          "Format the manuscript according to the template provided under For Authors → Manuscript Templates. Use 11-point Times New Roman, and keep the paper within 20 pages, including references.",
-          `Send the complete manuscript in Microsoft Word format to ${siteConfig.email}. Include your name, paper title, and affiliation in the email.`,
+          "Format the manuscript according to the template and the limits for your manuscript type under For Authors → Manuscript Templates.",
+          `Send the blinded manuscript and separate title page in Microsoft Word format to ${siteConfig.email}.`,
           "Track the application under My Submissions in the author dashboard.",
         ],
       },
@@ -78,7 +78,7 @@ export const forAuthorsPages: Record<string, ForAuthorsPageContent> = {
         heading: "Where to submit",
         paragraphs: [
           "Use For Authors → Submit Manuscript from the website navigation whenever you want to start a new journal submission.",
-          "Payment of an article processing charge is only requested after the relevant editorial stage—not at initial submission.",
+          "No article processing charge (APC) is charged during submission. The APC is charged only after acceptance.",
         ],
       },
     ],
@@ -90,7 +90,7 @@ export const forAuthorsPages: Record<string, ForAuthorsPageContent> = {
     sections: [
       {
         heading: "Submission fee",
-        paragraphs: ["No initial submission fee."],
+        paragraphs: ["No APC is charged during submission."],
       },
       {
         heading: "Article processing charge (APC)",
@@ -98,7 +98,7 @@ export const forAuthorsPages: Record<string, ForAuthorsPageContent> = {
           "National scholars in India: USD 150.",
           "International scholars: USD 200.",
           "The final payable amount in local currency may vary according to the payment provider’s applicable exchange rate and charges.",
-          "An APC is requested only after the relevant editorial stage. Conference registration payments are separate from journal APCs.",
+          "The APC is charged only after acceptance. Conference registration payments are separate from journal APCs.",
         ],
       },
       {

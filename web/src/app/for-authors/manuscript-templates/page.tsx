@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { BlindedManuscriptNotice } from "@/components/for-authors/BlindedManuscriptNotice";
 import { ManuscriptTemplatesList } from "@/components/for-authors/ManuscriptTemplatesList";
 import { contentProse, contentShell } from "@/lib/content-layout";
 
@@ -19,6 +20,7 @@ export default function ManuscriptTemplatesPage() {
             Prepare your manuscript for submission
           </p>
           <ManuscriptTemplatesList />
+          <BlindedManuscriptNotice className="mt-10" />
         </div>
       </div>
     </AppShell>

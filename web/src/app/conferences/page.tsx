@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
 import { contentProse, contentShell } from "@/lib/content-layout";
@@ -27,6 +28,19 @@ export default function ConferencesPage() {
             networking, expert keynote sessions, research workshops, PhD colloquia, editorial
             discussions, and research recognition.
           </p>
+          <figure className="mt-8">
+            <Image
+              src="/poster.jpeg"
+              alt="Poster for the GCR International Multidisciplinary Conference on 30 August 2026"
+              width={683}
+              height={1024}
+              priority
+              className="mx-auto h-auto w-full max-w-2xl rounded border border-[var(--journal-border)]"
+            />
+            <figcaption className="mt-3 text-center text-sm text-[var(--journal-muted)]">
+              International Multidisciplinary Conference 2026 — 30 August 2026, online via Zoom
+            </figcaption>
+          </figure>
           <ul className="mt-6 list-disc space-y-2 pl-5 text-[15px] text-[var(--journal-body)]">
             <li>Research presentations</li>
             <li>Interdisciplinary dialogue</li>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BlindedManuscriptNotice } from "@/components/for-authors/BlindedManuscriptNotice";
 import { AppShell } from "@/components/layout/AppShell";
 import { contentProse, contentShell } from "@/lib/content-layout";
 
@@ -13,13 +14,22 @@ export default function ConferenceSubmitPaperPage() {
             Submit conference paper
           </h1>
           <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-            Conference paper submission (title, abstract, co-authors, and file upload) will be
-            available through this portal. You will receive a conference-paper submission ID and
-            email confirmation when the workflow is live.
+            Sign in to the Author Dashboard, select New Submission, choose Submit for Conference,
+            and submit your abstract. Read the Conference FAQs before submitting.
           </p>
+          <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
+            Best Presenter-only participants do not need to email a manuscript. Best Paper, Both
+            Awards, and conference submissions being considered for journal publication must follow
+            the blinded manuscript requirements below.
+          </p>
+          <BlindedManuscriptNotice className="mt-8" />
           <p className="mt-8">
             <Link href="/for-authors/manuscript-templates" className="text-[var(--journal-accent)] hover:underline">
               Conference paper template
+            </Link>
+            {" · "}
+            <Link href="/conferences/faqs" className="text-[var(--journal-accent)] hover:underline">
+              Conference FAQs
             </Link>
             {" · "}
             <Link href="/conferences" className="text-[var(--journal-accent)] hover:underline">
