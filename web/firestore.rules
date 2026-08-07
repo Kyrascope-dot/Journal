@@ -198,5 +198,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Server-managed notification queue and delivery logs.
+    match /notificationQueue/{notificationId} {
+      allow read, write: if false;
+    }
+
+    match /email_logs/{logId} {
+      allow read, write: if false;
+    }
+
   }
 }

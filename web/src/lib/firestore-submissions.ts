@@ -70,6 +70,23 @@ function mapSubmission(
       ? String(data.assignedReviewerName)
       : null,
     statusNote: data.statusNote ? String(data.statusNote) : null,
+    lastEmailSent: (data.lastEmailSent ?? null) as Submission["lastEmailSent"],
+    lastEmailTemplate: data.lastEmailTemplate
+      ? String(data.lastEmailTemplate)
+      : null,
+    emailStatus:
+      data.emailStatus === "pending" ||
+      data.emailStatus === "sent" ||
+      data.emailStatus === "failed"
+        ? data.emailStatus
+        : "not_required",
+    emailTimestamp: (data.emailTimestamp ?? null) as Submission["emailTimestamp"],
+    deliveryStatus:
+      data.deliveryStatus === "queued" ||
+      data.deliveryStatus === "sent" ||
+      data.deliveryStatus === "failed"
+        ? data.deliveryStatus
+        : "not_applicable",
   };
 }
 
@@ -312,32 +329,14 @@ export async function updateSubmissionStatus(
 export async function assignEditor(
   submissionId: string,
   editorId: string,
-  editorName: string,
-  actor?: { id: string; name: string; registrationId: string }
+  editorName: string
 ): Promise<void> {
   const db = getDb();
-  const batch = writeBatch(db);
-  batch.update(doc(db, "submissions", submissionId), {
+  await updateDoc(doc(db, "submissions", submissionId), {
     assignedEditorId: editorId,
     assignedEditorName: editorName,
-    status: "under_review" as SubmissionStatus,
     lastUpdatedAt: serverTimestamp(),
   });
-  if (actor) {
-    const historyRef = doc(
-      collection(db, "submissions", submissionId, "statusHistory")
-    );
-    batch.set(historyRef, {
-      registrationId: actor.registrationId,
-      status: "under_review",
-      note: `Assigned to editor ${editorName}.`,
-      createdAt: serverTimestamp(),
-      changedById: actor.id,
-      changedByName: actor.name,
-      changedByRole: "admin",
-    });
-  }
-  await batch.commit();
 }
 
 /** Admin: assign a peer reviewer (identity visible only to admin and that reviewer). */

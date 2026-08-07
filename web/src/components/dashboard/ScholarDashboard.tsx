@@ -20,9 +20,9 @@ import {
   CONFERENCE_QUARTER_OPTIONS,
   formatConferenceSubmissionMeta,
   RESEARCH_CATEGORIES,
-  STATUS_LABELS,
   SUBMISSION_PURPOSE_LABELS,
   SUBMISSION_PURPOSE_OPTIONS,
+  getSubmissionStatusLabel,
 } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
@@ -325,7 +325,10 @@ export function ScholarDashboard({
                         )}
                       </div>
                       <div className="flex items-center gap-3">
-                        <StatusBadge status={sub.status} />
+                        <StatusBadge
+                          status={sub.status}
+                          purpose={sub.submissionPurpose}
+                        />
                         <button
                           type="button"
                           onClick={() =>
@@ -359,7 +362,12 @@ export function ScholarDashboard({
                             <dt className="font-medium text-[var(--journal-muted)]">
                               Current Status
                             </dt>
-                            <dd>{STATUS_LABELS[sub.status]}</dd>
+                            <dd>
+                              {getSubmissionStatusLabel(
+                                sub.status,
+                                sub.submissionPurpose
+                              )}
+                            </dd>
                           </div>
                           <div>
                             <dt className="font-medium text-[var(--journal-muted)]">

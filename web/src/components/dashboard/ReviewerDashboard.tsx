@@ -5,7 +5,7 @@ import { getSubmissionsByAssignedReviewer } from "@/lib/firestore-submissions";
 import { submissionForViewer } from "@/lib/dashboard-access";
 import type { Submission, UserProfile } from "@/types/dashboard";
 import {
-  STATUS_LABELS,
+  getSubmissionStatusLabel,
   SUBMISSION_PURPOSE_LABELS,
   formatConferenceSubmissionMeta,
 } from "@/types/dashboard";
@@ -71,12 +71,16 @@ export function ReviewerDashboard({ profile }: { profile: UserProfile }) {
                     · {sub.category} · Submitted {formatDate(sub.submittedAt)}
                   </p>
                   <p className="text-xs text-[var(--journal-muted)]">
-                    Status: {STATUS_LABELS[sub.status]} · Review Deadline:{" "}
-                    {formatDate(sub.reviewDeadline)}
+                    Status:{" "}
+                    {getSubmissionStatusLabel(sub.status, sub.submissionPurpose)} · Review
+                    Deadline: {formatDate(sub.reviewDeadline)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <StatusBadge status={sub.status} />
+                  <StatusBadge
+                    status={sub.status}
+                    purpose={sub.submissionPurpose}
+                  />
                   <button
                     type="button"
                     onClick={() => setExpandedId(expandedId === sub.id ? null : sub.id)}
@@ -103,7 +107,12 @@ export function ReviewerDashboard({ profile }: { profile: UserProfile }) {
                       <dt className="font-medium text-[var(--journal-muted)]">
                         Current Status
                       </dt>
-                      <dd>{STATUS_LABELS[sub.status]}</dd>
+                      <dd>
+                        {getSubmissionStatusLabel(
+                          sub.status,
+                          sub.submissionPurpose
+                        )}
+                      </dd>
                     </div>
                     <div>
                       <dt className="font-medium text-[var(--journal-muted)]">

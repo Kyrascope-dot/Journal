@@ -15,12 +15,17 @@ export type UserProfile = {
 
 export type SubmissionStatus =
   | "pending"
+  | "editorial_screening"
+  | "desk_rejected"
   | "under_review"
   | "revision_requested"
   | "accepted"
   | "rejected";
 
 export type SubmissionPurpose = "journal" | "conference";
+
+export type EmailStatus = "pending" | "sent" | "failed" | "not_required";
+export type DeliveryStatus = "queued" | "sent" | "failed" | "not_applicable";
 
 export const SUBMISSION_PURPOSE_OPTIONS: {
   value: SubmissionPurpose;
@@ -114,6 +119,11 @@ export type Submission = {
   assignedReviewerId: string | null;
   assignedReviewerName: string | null;
   statusNote: string | null;
+  lastEmailSent: Timestamp | Date | null;
+  lastEmailTemplate: string | null;
+  emailStatus: EmailStatus;
+  emailTimestamp: Timestamp | Date | null;
+  deliveryStatus: DeliveryStatus;
 };
 
 export type SubmissionStatusEvent = {
@@ -147,8 +157,10 @@ export const RESEARCH_CATEGORIES = [
 export type ResearchCategory = (typeof RESEARCH_CATEGORIES)[number];
 
 export const STATUS_LABELS: Record<SubmissionStatus, string> = {
-  pending: "Pending",
-  under_review: "Under Review",
+  pending: "Submitted",
+  editorial_screening: "Under Editorial Screening",
+  desk_rejected: "Desk Rejected",
+  under_review: "Sent for Peer Review",
   revision_requested: "Revision Requested",
   accepted: "Accepted",
   rejected: "Rejected",
@@ -156,8 +168,22 @@ export const STATUS_LABELS: Record<SubmissionStatus, string> = {
 
 export const STATUS_COLORS: Record<SubmissionStatus, string> = {
   pending: "bg-zinc-100 text-zinc-700",
+  editorial_screening: "bg-sky-50 text-sky-700",
+  desk_rejected: "bg-red-50 text-red-700",
   under_review: "bg-blue-50 text-blue-700",
   revision_requested: "bg-amber-50 text-amber-700",
   accepted: "bg-emerald-50 text-emerald-700",
   rejected: "bg-red-50 text-red-700",
 };
+
+export function getSubmissionStatusLabel(
+  status: SubmissionStatus,
+  purpose: SubmissionPurpose
+): string {
+  if (purpose === "conference") {
+    if (status === "accepted") return "Abstract Accepted";
+    if (status === "rejected") return "Abstract Rejected";
+    if (status === "pending") return "Abstract Submitted";
+  }
+  return STATUS_LABELS[status];
+}

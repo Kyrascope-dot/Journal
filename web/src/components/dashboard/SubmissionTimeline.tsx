@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getSubmissionStatusHistory } from "@/lib/firestore-submissions";
 import {
-  STATUS_LABELS,
+  getSubmissionStatusLabel,
   type Submission,
   type SubmissionStatusEvent,
 } from "@/types/dashboard";
@@ -32,7 +32,7 @@ export function SubmissionTimeline({ submission }: { submission: Submission }) {
     return () => {
       cancelled = true;
     };
-  }, [submission.id]);
+  }, [submission.id, submission.status, submission.lastUpdatedAt]);
 
   const displayed =
     events.length > 0
@@ -61,11 +61,13 @@ export function SubmissionTimeline({ submission }: { submission: Submission }) {
         {displayed.map((event) => (
           <li key={event.id} className="relative pb-5 last:pb-0">
             <span
-              className="absolute -left-[1.65rem] top-1 h-3 w-3 rounded-full bg-[var(--journal-accent)]"
+              className="absolute -left-[1.65rem] top-1 flex h-3 w-3 items-center justify-center rounded-full bg-[var(--journal-accent)] text-[8px] text-white"
               aria-hidden
-            />
+            >
+              ✓
+            </span>
             <p className="text-sm font-medium text-[var(--journal-heading)]">
-              {STATUS_LABELS[event.status]}
+              ✓ {getSubmissionStatusLabel(event.status, submission.submissionPurpose)}
             </p>
             <p className="text-xs text-[var(--journal-muted)]">
               {formatDateTime(event.createdAt)}

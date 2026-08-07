@@ -1,15 +1,12 @@
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 import { getAdminFirestore, isFirebaseAdminConfigured } from "@/lib/firebase-admin";
-import { getSiteBaseUrl } from "@/lib/email/reviewer-invitation";
-import { sendSubmissionConfirmationEmail } from "@/lib/email/submission-confirmation";
+import { notificationQueue } from "@/lib/email/submission-notifications";
 import { verifyUserIdToken } from "@/lib/server/verify-user";
-import {
-  STATUS_LABELS,
-  SUBMISSION_PURPOSE_LABELS,
-  type ConferenceAwardIntent,
-  type ConferenceQuarter,
-  type SubmissionPurpose,
+import type {
+  ConferenceAwardIntent,
+  ConferenceQuarter,
+  SubmissionPurpose,
 } from "@/types/dashboard";
 
 export const runtime = "nodejs";
@@ -85,6 +82,7 @@ export async function POST(request: Request) {
   const now = Timestamp.now();
   const year = now.toDate().getUTCFullYear();
   const prefix = isConference ? "GCRC" : "GCRJ";
+  const initialStatus = isConference ? "pending" : "editorial_screening";
   const counterRef = db.doc(`registrationCounters/${prefix}-${year}`);
   const submissionRef = db.collection("submissions").doc();
 
@@ -130,20 +128,29 @@ export async function POST(request: Request) {
       authorId: user.uid,
       authorName,
       authorEmail,
-      status: "pending",
+      status: initialStatus,
       assignedEditorId: null,
       assignedEditorName: null,
       assignedReviewerId: null,
       assignedReviewerName: null,
       reviewDeadline: null,
       statusNote: null,
+      lastEmailSent: null,
+      lastEmailTemplate: isConference
+        ? "conference_submission_received"
+        : "journal_submission_received",
+      emailStatus: "pending",
+      emailTimestamp: now,
+      deliveryStatus: "queued",
       submittedAt: now,
       lastUpdatedAt: now,
     });
     transaction.create(submissionRef.collection("statusHistory").doc(), {
       registrationId,
-      status: "pending",
-      note: "Submission received.",
+      status: initialStatus,
+      note: isConference
+        ? "Conference abstract submitted."
+        : "Manuscript received and entered editorial screening.",
       createdAt: now,
       changedById: user.uid,
       changedByName: "Author",
@@ -151,40 +158,27 @@ export async function POST(request: Request) {
     });
   });
 
-  let emailSent = false;
-  try {
-    const result = await sendSubmissionConfirmationEmail({
-      authorEmail,
-      authorName,
+  const emailResult = await notificationQueue.enqueueAndProcess({
+    submissionId: submissionRef.id,
+    submission: {
       registrationId,
       title,
-      submissionType: SUBMISSION_PURPOSE_LABELS[purpose],
-      submittedAt: now.toDate().toLocaleString("en-GB", {
-        dateStyle: "medium",
-        timeStyle: "short",
-        timeZone: "Asia/Kolkata",
-      }),
-      status: STATUS_LABELS.pending,
-      dashboardUrl: `${getSiteBaseUrl()}/dashboard?view=author`,
-    });
-    emailSent = true;
-    await db.collection("email_logs").add({
-      type: "submission_confirmation",
-      submissionId: submissionRef.id,
-      registrationId,
-      recipient: authorEmail,
-      providerMessageId: result.messageId,
-      createdAt: FieldValue.serverTimestamp(),
-    });
-  } catch {
-    // Submission remains valid if email delivery is temporarily unavailable.
-  }
+      authorName,
+      authorEmail,
+      submissionPurpose: purpose,
+      conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
+      submittedAt: now,
+    },
+    status: initialStatus,
+    trigger: "create",
+    createdBy: user.uid,
+  });
 
   return NextResponse.json({
     ok: true,
     submissionId: submissionRef.id,
     registrationId,
     submittedAt: now.toDate().toISOString(),
-    emailSent,
+    emailSent: emailResult.emailSent,
   });
 }

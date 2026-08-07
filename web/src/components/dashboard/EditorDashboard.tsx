@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getSubmissionsForEditor, updateSubmissionStatus } from "@/lib/firestore-submissions";
 import { submissionForViewer } from "@/lib/dashboard-access";
 import type { Submission, SubmissionStatus, UserProfile } from "@/types/dashboard";
-import { STATUS_LABELS, SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMeta } from "@/types/dashboard";
+import { STATUS_LABELS, SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMeta, getSubmissionStatusLabel } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
@@ -17,11 +17,26 @@ function formatDate(value: Submission["submittedAt"]): string {
 
 const STATUSES: SubmissionStatus[] = [
   "pending",
+  "editorial_screening",
+  "desk_rejected",
   "under_review",
   "revision_requested",
   "accepted",
   "rejected",
 ];
+
+function statusesForSubmission(purpose: Submission["submissionPurpose"]): SubmissionStatus[] {
+  return purpose === "conference"
+    ? ["pending", "accepted", "rejected"]
+    : [
+        "editorial_screening",
+        "desk_rejected",
+        "under_review",
+        "revision_requested",
+        "accepted",
+        "rejected",
+      ];
+}
 
 export function EditorDashboard({ profile }: { profile: UserProfile }) {
   const categories = profile.assignedCategories ?? [];
@@ -264,7 +279,10 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <StatusBadge status={sub.status} />
+                  <StatusBadge
+                    status={sub.status}
+                    purpose={sub.submissionPurpose}
+                  />
                   <button
                     type="button"
                     onClick={() =>
@@ -300,7 +318,12 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
                       <dt className="font-medium text-[var(--journal-muted)]">
                         Current Status
                       </dt>
-                      <dd>{STATUS_LABELS[sub.status]}</dd>
+                      <dd>
+                        {getSubmissionStatusLabel(
+                          sub.status,
+                          sub.submissionPurpose
+                        )}
+                      </dd>
                     </div>
                     <div>
                       <dt className="font-medium text-[var(--journal-muted)]">
@@ -321,6 +344,7 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
                       Update status
                     </p>
                     <StatusUpdateForm
+                      purpose={sub.submissionPurpose}
                       currentStatus={sub.status}
                       currentNote={sub.statusNote}
                       loading={updatingId === sub.id}
@@ -347,11 +371,13 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
 }
 
 function StatusUpdateForm({
+  purpose,
   currentStatus,
   currentNote,
   loading,
   onSave,
 }: {
+  purpose: Submission["submissionPurpose"];
   currentStatus: SubmissionStatus;
   currentNote: string | null;
   loading: boolean;
@@ -359,6 +385,7 @@ function StatusUpdateForm({
 }) {
   const [status, setStatus] = useState<SubmissionStatus>(currentStatus);
   const [note, setNote] = useState(currentNote ?? "");
+  const options = statusesForSubmission(purpose);
 
   return (
     <div className="mt-2 space-y-3">
@@ -367,9 +394,9 @@ function StatusUpdateForm({
         onChange={(e) => setStatus(e.target.value as SubmissionStatus)}
         className="w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
       >
-        {STATUSES.map((s) => (
+        {options.map((s) => (
           <option key={s} value={s}>
-            {STATUS_LABELS[s]}
+            {getSubmissionStatusLabel(s, purpose)}
           </option>
         ))}
       </select>

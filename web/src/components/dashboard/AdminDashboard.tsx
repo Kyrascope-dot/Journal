@@ -5,7 +5,6 @@ import {
   getAllSubmissions,
   assignEditor,
   assignReviewer,
-  updateSubmissionStatus,
 } from "@/lib/firestore-submissions";
 import {
   getAllUsers,
@@ -20,11 +19,23 @@ import type {
   SubmissionStatus,
   UserProfile,
 } from "@/types/dashboard";
-import { RESEARCH_CATEGORIES, STATUS_LABELS, SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMeta } from "@/types/dashboard";
+import {
+  RESEARCH_CATEGORIES,
+  STATUS_LABELS,
+  SUBMISSION_PURPOSE_LABELS,
+  formatConferenceSubmissionMeta,
+  getSubmissionStatusLabel,
+} from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
 import { requestSendReviewerInvitation } from "@/lib/client/send-reviewer-invitation";
+import {
+  requestAdminEmailLogs,
+  requestAdminStatusUpdate,
+  requestRetryNotification,
+  type AdminEmailLog,
+} from "@/lib/client/admin-notifications";
 
 function formatDate(value: Submission["submittedAt"]): string {
   if (!value) return "—";
@@ -40,13 +51,28 @@ function formatDateInput(value: Submission["reviewDeadline"]): string {
 
 const STATUSES: SubmissionStatus[] = [
   "pending",
+  "editorial_screening",
+  "desk_rejected",
   "under_review",
   "revision_requested",
   "accepted",
   "rejected",
 ];
 
-type AdminTab = "overview" | "submissions" | "users" | "editors";
+function statusesForSubmission(submission: Submission): SubmissionStatus[] {
+  return submission.submissionPurpose === "conference"
+    ? ["pending", "accepted", "rejected"]
+    : [
+        "editorial_screening",
+        "desk_rejected",
+        "under_review",
+        "revision_requested",
+        "accepted",
+        "rejected",
+      ];
+}
+
+type AdminTab = "overview" | "submissions" | "users" | "editors" | "email_logs";
 
 export function AdminDashboard({ profile }: { profile: UserProfile }) {
   const [tab, setTab] = useState<AdminTab>("overview");
@@ -138,6 +164,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     { key: "submissions", label: `Submissions (${submissions.length})` },
     { key: "users", label: `Users (${users.length})` },
     { key: "editors", label: `Editors (${editors.length})` },
+    { key: "email_logs", label: "Email Logs" },
   ];
 
   return (
@@ -318,7 +345,10 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <StatusBadge status={sub.status} />
+                      <StatusBadge
+                        status={sub.status}
+                        purpose={sub.submissionPurpose}
+                      />
                       <button
                         type="button"
                         onClick={() =>
@@ -358,6 +388,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
             onUpdate={refreshAll}
           />
         )}
+        {!loading && tab === "email_logs" && <EmailLogsPanel />}
       </div>
     </div>
   );
@@ -393,6 +424,9 @@ function SubmissionPanel({
   const [saving, setSaving] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
   const [emailMsg, setEmailMsg] = useState("");
+  const [statusMsg, setStatusMsg] = useState("");
+  const [failedNotificationId, setFailedNotificationId] = useState<string | null>(null);
+  const [retryingEmail, setRetryingEmail] = useState(false);
 
   useEffect(() => {
     setSelectedEditorId(submission.assignedEditorId ?? "");
@@ -400,6 +434,8 @@ function SubmissionPanel({
     setStatus(submission.status);
     setStatusNote(submission.statusNote ?? "");
     setReviewDeadline(formatDateInput(submission.reviewDeadline));
+    setStatusMsg("");
+    setFailedNotificationId(null);
   }, [
     submission.id,
     submission.assignedEditorId,
@@ -437,6 +473,8 @@ function SubmissionPanel({
   async function handleSave() {
     setSaving(true);
     setEmailMsg("");
+    setStatusMsg("");
+    setFailedNotificationId(null);
     try {
       if (selectedEditorId && selectedEditorId !== submission.assignedEditorId) {
         const editor = editors.find((e) => e.uid === selectedEditorId);
@@ -444,12 +482,7 @@ function SubmissionPanel({
           await assignEditor(
             submission.id,
             editor.uid,
-            editor.displayName || editor.email,
-            {
-              id: adminProfile.uid,
-              name: adminProfile.displayName || adminProfile.email,
-              registrationId: submission.registrationId,
-            }
+            editor.displayName || editor.email
           );
         }
       }
@@ -471,16 +504,42 @@ function SubmissionPanel({
         status !== submission.status ||
         statusNote !== (submission.statusNote ?? "")
       ) {
-        await updateSubmissionStatus(submission.id, status, statusNote || undefined, {
-          id: adminProfile.uid,
-          name: adminProfile.displayName || adminProfile.email,
-          role: "admin",
-          registrationId: submission.registrationId,
+        const result = await requestAdminStatusUpdate({
+          submissionId: submission.id,
+          status,
+          statusNote: statusNote || undefined,
         });
+        if (!result.emailRequired) {
+          setStatusMsg("✓ Status Updated Successfully · No email required for this status");
+        } else if (result.emailSent) {
+          setStatusMsg("✓ Status Updated Successfully · ✓ Email Sent Successfully");
+        } else {
+          setStatusMsg(`Status Updated · Email Failed${result.error ? `: ${result.error}` : ""}`);
+          setFailedNotificationId(result.notificationId ?? null);
+        }
       }
       await onUpdate();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleRetryStatusEmail() {
+    if (!failedNotificationId) return;
+    setRetryingEmail(true);
+    try {
+      const result = await requestRetryNotification(failedNotificationId);
+      if (result.emailSent) {
+        setStatusMsg("✓ Email Sent Successfully");
+        setFailedNotificationId(null);
+        await onUpdate();
+      } else {
+        setStatusMsg(`Email Failed${result.error ? `: ${result.error}` : ""}`);
+      }
+    } catch (error) {
+      setStatusMsg(error instanceof Error ? error.message : "Email retry failed.");
+    } finally {
+      setRetryingEmail(false);
     }
   }
 
@@ -531,7 +590,12 @@ function SubmissionPanel({
         </div>
         <div>
           <dt className="font-medium text-[var(--journal-muted)]">Current Status</dt>
-          <dd>{STATUS_LABELS[submission.status]}</dd>
+          <dd>
+            {getSubmissionStatusLabel(
+              submission.status,
+              submission.submissionPurpose
+            )}
+          </dd>
         </div>
         <div>
           <dt className="font-medium text-[var(--journal-muted)]">Submission Type</dt>
@@ -623,8 +687,10 @@ function SubmissionPanel({
             onChange={(e) => setStatus(e.target.value as SubmissionStatus)}
             className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
           >
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+            {statusesForSubmission(submission).map((s) => (
+              <option key={s} value={s}>
+                {getSubmissionStatusLabel(s, submission.submissionPurpose)}
+              </option>
             ))}
           </select>
         </div>
@@ -648,6 +714,28 @@ function SubmissionPanel({
       >
         {saving ? "Saving…" : "Save changes"}
       </button>
+      {statusMsg ? (
+        <div
+          className={`mt-4 rounded border px-4 py-3 text-sm ${
+            statusMsg.includes("Failed")
+              ? "border-amber-200 bg-amber-50 text-amber-900"
+              : "border-emerald-200 bg-emerald-50 text-emerald-900"
+          }`}
+          role="status"
+        >
+          <p>{statusMsg}</p>
+          {failedNotificationId ? (
+            <button
+              type="button"
+              onClick={handleRetryStatusEmail}
+              disabled={retryingEmail}
+              className="mt-2 font-medium text-[var(--journal-accent)] underline disabled:opacity-50"
+            >
+              {retryingEmail ? "Retrying…" : "Retry Email"}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {selectedReviewerId ? (
         <div className="mt-6 rounded-lg border border-[var(--journal-border)] bg-white p-4">
@@ -691,6 +779,120 @@ function SubmissionPanel({
         currentUserRole="admin"
         canComment={true}
       />
+    </div>
+  );
+}
+
+function EmailLogsPanel() {
+  const [logs, setLogs] = useState<AdminEmailLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(true);
+  const [error, setError] = useState("");
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+
+  async function loadLogs() {
+    setError("");
+    try {
+      setLogs(await requestAdminEmailLogs());
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Could not load email logs.");
+    } finally {
+      setLoadingLogs(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadLogs();
+  }, []);
+
+  async function retry(log: AdminEmailLog) {
+    if (!log.notificationId) return;
+    setRetryingId(log.id);
+    try {
+      const result = await requestRetryNotification(log.notificationId);
+      if (!result.emailSent) throw new Error(result.error ?? "Email retry failed.");
+      await loadLogs();
+    } catch (retryError) {
+      setError(retryError instanceof Error ? retryError.message : "Email retry failed.");
+    } finally {
+      setRetryingId(null);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-serif text-xl font-semibold text-[var(--journal-heading)]">
+          Email Logs
+        </h2>
+        <button
+          type="button"
+          onClick={() => {
+            setLoadingLogs(true);
+            void loadLogs();
+          }}
+          className="text-sm font-medium text-[var(--journal-accent)] hover:underline"
+        >
+          Refresh
+        </button>
+      </div>
+      {error ? (
+        <p className="mt-4 text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {loadingLogs ? (
+        <p className="mt-6 text-sm text-[var(--journal-muted)]">Loading email logs…</p>
+      ) : logs.length === 0 ? (
+        <p className="mt-6 text-sm text-[var(--journal-muted)]">No email logs yet.</p>
+      ) : (
+        <div className="mt-6 overflow-x-auto">
+          <table className="min-w-[900px] w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-[var(--journal-border)] text-xs uppercase tracking-wide text-[var(--journal-muted)]">
+                <th className="px-3 py-2">Registration ID</th>
+                <th className="px-3 py-2">Recipient</th>
+                <th className="px-3 py-2">Subject</th>
+                <th className="px-3 py-2">Time</th>
+                <th className="px-3 py-2">Delivery Status</th>
+                <th className="px-3 py-2">Error</th>
+                <th className="px-3 py-2">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--journal-border)]">
+              {logs.map((log) => (
+                <tr key={log.id}>
+                  <td className="px-3 py-3 font-medium text-[var(--journal-accent)]">
+                    {log.registrationId}
+                  </td>
+                  <td className="px-3 py-3">{log.recipient}</td>
+                  <td className="max-w-xs px-3 py-3">{log.subject}</td>
+                  <td className="px-3 py-3 text-[var(--journal-muted)]">
+                    {log.createdAt
+                      ? new Date(log.createdAt).toLocaleString("en-GB")
+                      : "—"}
+                  </td>
+                  <td className="px-3 py-3 capitalize">{log.deliveryStatus}</td>
+                  <td className="max-w-xs px-3 py-3 text-red-700">{log.error ?? "—"}</td>
+                  <td className="px-3 py-3">
+                    {log.deliveryStatus === "failed" && log.notificationId ? (
+                      <button
+                        type="button"
+                        disabled={retryingId === log.id}
+                        onClick={() => retry(log)}
+                        className="font-medium text-[var(--journal-accent)] underline disabled:opacity-50"
+                      >
+                        {retryingId === log.id ? "Retrying…" : "Retry Email"}
+                      </button>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
