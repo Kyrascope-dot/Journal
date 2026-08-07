@@ -51,7 +51,7 @@ export default function ConferencesPage() {
                 className="mx-auto h-auto w-full rounded border border-[var(--journal-border)]"
               />
               <figcaption className="mt-3 text-center text-sm text-[var(--journal-muted)]">
-                PhD Colloquium
+                Colloquium
               </figcaption>
             </figure>
           </div>
