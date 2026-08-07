@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 const webRoot = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  // Keep firebase-admin external so Vercel loads the installed (overridden) jose/jwks-rsa graph.
+  serverExternalPackages: ["firebase-admin", "jose", "jwks-rsa"],
   async redirects() {
     return [
       {
