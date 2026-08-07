@@ -90,6 +90,8 @@ export function formatConferenceSubmissionMeta(sub: {
 
 export type Submission = {
   id: string;
+  /** Permanent, human-facing identifier (for example GCRJ-2026-000001). */
+  registrationId: string;
   title: string;
   abstract: string;
   /** Whether the author intends this for the journal or a conference. */
@@ -106,11 +108,22 @@ export type Submission = {
   status: SubmissionStatus;
   submittedAt: Timestamp | Date | null;
   lastUpdatedAt: Timestamp | Date | null;
+  reviewDeadline: Timestamp | Date | null;
   assignedEditorId: string | null;
   assignedEditorName: string | null;
   assignedReviewerId: string | null;
   assignedReviewerName: string | null;
   statusNote: string | null;
+};
+
+export type SubmissionStatusEvent = {
+  id: string;
+  registrationId: string;
+  status: SubmissionStatus;
+  note: string | null;
+  createdAt: Timestamp | Date | null;
+  changedByName: string;
+  changedByRole: UserRole;
 };
 
 export type Comment = {

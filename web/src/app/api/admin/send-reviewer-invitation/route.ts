@@ -5,8 +5,8 @@ import {
   getSiteBaseUrl,
   sendReviewerInvitationEmail,
 } from "@/lib/email/reviewer-invitation";
-import { STATUS_LABELS } from "@/types/dashboard";
-import type { SubmissionStatus } from "@/types/dashboard";
+import { STATUS_LABELS, SUBMISSION_PURPOSE_LABELS } from "@/types/dashboard";
+import type { SubmissionPurpose, SubmissionStatus } from "@/types/dashboard";
 
 export const runtime = "nodejs";
 
@@ -74,14 +74,25 @@ export async function POST(request: Request) {
 
   const status = (sub.status as SubmissionStatus) ?? "pending";
   const statusLabel = STATUS_LABELS[status] ?? status;
+  const purpose = (sub.submissionPurpose as SubmissionPurpose) ?? "journal";
+  const submittedAt =
+    typeof sub.submittedAt?.toDate === "function"
+      ? sub.submittedAt.toDate().toLocaleString("en-GB", {
+          dateStyle: "medium",
+          timeStyle: "short",
+          timeZone: "Asia/Kolkata",
+        })
+      : "—";
   const baseUrl = getSiteBaseUrl();
 
   try {
     const { messageId } = await sendReviewerInvitationEmail({
       reviewerEmail,
       reviewerName: String(reviewer.displayName || reviewerEmail),
-      submissionId,
+      registrationId: String(sub.registrationId ?? submissionId),
       title: String(sub.title ?? ""),
+      submittedAt,
+      submissionType: SUBMISSION_PURPOSE_LABELS[purpose],
       abstract: String(sub.abstract ?? ""),
       category: String(sub.category ?? ""),
       status: statusLabel,
@@ -91,6 +102,7 @@ export async function POST(request: Request) {
     await db.collection("email_logs").add({
       type: "reviewer_invitation",
       submissionId,
+      registrationId: String(sub.registrationId ?? submissionId),
       reviewerId,
       recipient: reviewerEmail,
       sentBy: admin.uid,

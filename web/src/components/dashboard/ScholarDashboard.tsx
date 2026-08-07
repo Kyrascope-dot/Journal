@@ -20,11 +20,13 @@ import {
   CONFERENCE_QUARTER_OPTIONS,
   formatConferenceSubmissionMeta,
   RESEARCH_CATEGORIES,
+  STATUS_LABELS,
   SUBMISSION_PURPOSE_LABELS,
   SUBMISSION_PURPOSE_OPTIONS,
 } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
+import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
 import { siteConfig } from "@/lib/site-config";
 
 const ABSTRACT_SUCCESS_HEADING = "Abstract received";
@@ -108,6 +110,11 @@ export function ScholarDashboard({
   const [showManuscriptNotice, setShowManuscriptNotice] = useState(false);
   const [lastSubmittedAwardIntent, setLastSubmittedAwardIntent] =
     useState<ConferenceAwardIntent | null>(null);
+  const [lastSubmission, setLastSubmission] = useState<{
+    id: string;
+    registrationId: string;
+    emailSent: boolean;
+  } | null>(null);
 
   useEffect(() => {
     getSubmissionsByAuthor(profile.uid).then((s) => {
@@ -147,7 +154,7 @@ export function ScholarDashboard({
     setSubmitting(true);
     setSubmitMsg("");
     try {
-      await createSubmission({
+      const created = await createSubmission({
         title: title.trim(),
         abstract: abstract.trim(),
         affiliation: affiliation || profile.affiliation || "",
@@ -162,6 +169,11 @@ export function ScholarDashboard({
         authorId: profile.uid,
         authorName: profile.displayName || profile.email,
         authorEmail: profile.email,
+      });
+      setLastSubmission({
+        id: created.submissionId,
+        registrationId: created.registrationId,
+        emailSent: created.emailSent,
       });
       setTitle("");
       setAbstract("");
@@ -181,8 +193,10 @@ export function ScholarDashboard({
         updated.map((sub) => submissionForViewer(sub, "scholar", profile.uid))
       );
       setTab("submissions");
-    } catch {
-      setSubmitMsg("Submission failed. Please try again.");
+    } catch (error) {
+      setSubmitMsg(
+        error instanceof Error ? error.message : "Submission failed. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -224,6 +238,24 @@ export function ScholarDashboard({
             <p className="font-serif text-base font-semibold text-emerald-900">
               {ABSTRACT_SUCCESS_HEADING}
             </p>
+            {lastSubmission ? (
+              <div className="mt-3 rounded border border-emerald-300 bg-white/70 p-3">
+                <p className="font-semibold text-emerald-950">
+                  Registration ID: {lastSubmission.registrationId}
+                </p>
+                <p className="mt-1 text-xs text-emerald-800">
+                  {lastSubmission.emailSent
+                    ? "A confirmation email has been sent."
+                    : "Your submission is saved. Email delivery is pending; keep this Registration ID."}
+                </p>
+                <Link
+                  href={`/dashboard/acknowledgement/${lastSubmission.id}`}
+                  className="mt-2 inline-block font-medium text-[var(--journal-accent)] underline"
+                >
+                  View acknowledgement receipt
+                </Link>
+              </div>
+            ) : null}
             {lastSubmittedAwardIntent === "best_presenter" ? (
               <p className="mt-2 leading-relaxed text-emerald-950">
                 {BEST_PRESENTER_SUBMISSION_NOTE}
@@ -275,7 +307,12 @@ export function ScholarDashboard({
                   <li key={sub.id} className="py-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-medium text-[var(--journal-heading)]">{sub.title}</p>
+                        <p className="text-sm font-semibold text-[var(--journal-accent)]">
+                          Registration ID: {sub.registrationId}
+                        </p>
+                        <p className="mt-1 font-medium text-[var(--journal-heading)]">
+                          Paper Title: {sub.title}
+                        </p>
                         <p className="mt-1 text-sm text-[var(--journal-muted)]">
                           {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}
                           {conferenceMeta ? ` · ${conferenceMeta}` : ""} · {sub.category} ·
@@ -305,6 +342,39 @@ export function ScholarDashboard({
                         <p className="text-sm text-[var(--journal-body)]">
                           <span className="font-medium">Abstract:</span> {sub.abstract}
                         </p>
+                        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                          <div>
+                            <dt className="font-medium text-[var(--journal-muted)]">
+                              Registration ID
+                            </dt>
+                            <dd>{sub.registrationId}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-medium text-[var(--journal-muted)]">
+                              Submission Date
+                            </dt>
+                            <dd>{formatDate(sub.submittedAt)}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-medium text-[var(--journal-muted)]">
+                              Current Status
+                            </dt>
+                            <dd>{STATUS_LABELS[sub.status]}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-medium text-[var(--journal-muted)]">
+                              Submission Type
+                            </dt>
+                            <dd>{SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}</dd>
+                          </div>
+                        </dl>
+                        <Link
+                          href={`/dashboard/acknowledgement/${sub.id}`}
+                          className="mt-4 inline-block text-sm font-medium text-[var(--journal-accent)] underline"
+                        >
+                          View acknowledgement receipt
+                        </Link>
+                        <SubmissionTimeline submission={sub} />
                         <CommentThread
                           submissionId={sub.id}
                           currentUserId={profile.uid}

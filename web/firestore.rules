@@ -108,14 +108,54 @@ service cloud.firestore {
         || editorCanAccessSubmission()
         || reviewerCanAccessSubmission();
 
-      // Any signed-in user can submit, provided the authorId matches their UID.
-      allow create: if isSignedIn()
-        && request.resource.data.authorId == request.auth.uid;
+      // Submission creation is server-only so Registration IDs can be allocated
+      // atomically and cannot be forged by clients.
+      allow create: if false;
 
-      // Editors can update submissions they handle; admins can update all.
-      allow update: if isAdmin() || editorCanAccessSubmission();
+      // Registration IDs are permanent, including for administrators.
+      allow update: if (isAdmin() || editorCanAccessSubmission())
+        && (
+          (
+            !('registrationId' in resource.data)
+            && !('registrationId' in request.resource.data)
+          )
+          || request.resource.data.registrationId == resource.data.registrationId
+        );
 
       allow delete: if isAdmin();
+
+      match /statusHistory/{eventId} {
+        allow read: if isAdmin()
+          || (isSignedIn() &&
+              submissionDoc(submissionId).authorId == request.auth.uid)
+          || (isEditor() &&
+              (submissionDoc(submissionId).assignedEditorId == request.auth.uid
+               || submissionDoc(submissionId).category in getAssignedCategories()))
+          || (isReviewer() &&
+              submissionDoc(submissionId).assignedReviewerId == request.auth.uid);
+
+        allow create: if isSignedIn()
+          && request.resource.data.changedById == request.auth.uid
+          && (
+            (
+              'registrationId' in submissionDoc(submissionId)
+              && request.resource.data.registrationId
+                 == submissionDoc(submissionId).registrationId
+            )
+            || (
+              !('registrationId' in submissionDoc(submissionId))
+              && request.resource.data.registrationId == submissionId
+            )
+          )
+          && (
+            isAdmin()
+            || (isEditor() &&
+                (submissionDoc(submissionId).assignedEditorId == request.auth.uid
+                 || submissionDoc(submissionId).category in getAssignedCategories()))
+          );
+
+        allow update, delete: if false;
+      }
 
 
       // ── Comments (sub-collection) ────────────────────────────────────────
@@ -147,6 +187,15 @@ service cloud.firestore {
         // Comments are immutable once posted.
         allow update, delete: if isAdmin();
       }
+    }
+
+    // Server-managed uniqueness and sequence records.
+    match /registrationCounters/{counterId} {
+      allow read, write: if false;
+    }
+
+    match /registrationIds/{registrationId} {
+      allow read, write: if false;
     }
 
   }

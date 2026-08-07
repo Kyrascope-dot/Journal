@@ -16,18 +16,26 @@ import {
 } from "@/lib/firestore-users";
 import type {
   Submission,
+  SubmissionPurpose,
   SubmissionStatus,
   UserProfile,
 } from "@/types/dashboard";
 import { RESEARCH_CATEGORIES, STATUS_LABELS, SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMeta } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
+import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
 import { requestSendReviewerInvitation } from "@/lib/client/send-reviewer-invitation";
 
 function formatDate(value: Submission["submittedAt"]): string {
   if (!value) return "—";
   const d = value instanceof Date ? value : (value as { toDate(): Date }).toDate();
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function formatDateInput(value: Submission["reviewDeadline"]): string {
+  if (!value) return "";
+  const date = value instanceof Date ? value : value.toDate();
+  return date.toISOString().slice(0, 10);
 }
 
 const STATUSES: SubmissionStatus[] = [
@@ -52,6 +60,11 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
   // Filters
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<SubmissionStatus | "all">("all");
+  const [filterPurpose, setFilterPurpose] = useState<SubmissionPurpose | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<
+    "registration_date" | "registration_id" | "submission_type" | "status"
+  >("registration_date");
 
   useEffect(() => {
     Promise.all([
@@ -82,11 +95,36 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     setReviewers(revs);
   };
 
-  const filteredSubs = submissions.filter((s) => {
-    if (filterCategory !== "all" && s.category !== filterCategory) return false;
-    if (filterStatus !== "all" && s.status !== filterStatus) return false;
-    return true;
-  });
+  const filteredSubs = submissions
+    .filter((s) => {
+      if (filterCategory !== "all" && s.category !== filterCategory) return false;
+      if (filterStatus !== "all" && s.status !== filterStatus) return false;
+      if (filterPurpose !== "all" && s.submissionPurpose !== filterPurpose) return false;
+      const needle = searchQuery.trim().toLowerCase();
+      if (
+        needle &&
+        ![s.registrationId, s.title, s.authorName, s.authorEmail].some((value) =>
+          value.toLowerCase().includes(needle)
+        )
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "registration_id") {
+        return a.registrationId.localeCompare(b.registrationId);
+      }
+      if (sortBy === "submission_type") {
+        return a.submissionPurpose.localeCompare(b.submissionPurpose);
+      }
+      if (sortBy === "status") return a.status.localeCompare(b.status);
+      const toMs = (value: Submission["submittedAt"]) => {
+        if (!value) return 0;
+        return value instanceof Date ? value.getTime() : value.toMillis();
+      };
+      return toMs(b.submittedAt) - toMs(a.submittedAt);
+    });
 
   const stats = {
     total: submissions.length,
@@ -178,6 +216,18 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
               All Submissions
             </h2>
             <div className="mt-4 flex flex-wrap gap-4">
+              <div className="min-w-64 flex-1">
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Search
+                </label>
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Registration ID, title, author, or email"
+                  className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                />
+              </div>
               <div>
                 <label className="block text-xs font-medium text-[var(--journal-muted)]">
                   Category
@@ -208,6 +258,37 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Submission type
+                </label>
+                <select
+                  value={filterPurpose}
+                  onChange={(e) =>
+                    setFilterPurpose(e.target.value as SubmissionPurpose | "all")
+                  }
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="all">All types</option>
+                  <option value="journal">Journal</option>
+                  <option value="conference">Conference</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Sort by
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="registration_date">Registration date</option>
+                  <option value="registration_id">Registration ID</option>
+                  <option value="submission_type">Submission type</option>
+                  <option value="status">Status</option>
+                </select>
+              </div>
             </div>
             <p className="mt-3 text-sm text-[var(--journal-muted)]">
               Showing {filteredSubs.length} of {submissions.length} submissions
@@ -217,8 +298,11 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                 <li key={sub.id} className="py-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-medium text-[var(--journal-heading)]">
-                        {sub.title}
+                      <p className="text-sm font-semibold text-[var(--journal-accent)]">
+                        Registration ID: {sub.registrationId}
+                      </p>
+                      <p className="mt-1 font-medium text-[var(--journal-heading)]">
+                        Paper Title: {sub.title}
                       </p>
                       <p className="mt-1 text-sm text-[var(--journal-muted)]">
                         {sub.authorName} · {sub.affiliation}
@@ -271,7 +355,6 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
         {!loading && tab === "editors" && (
           <EditorsPanel
             editors={editors}
-            allUsers={users}
             onUpdate={refreshAll}
           />
         )}
@@ -304,6 +387,9 @@ function SubmissionPanel({
   );
   const [status, setStatus] = useState<SubmissionStatus>(submission.status);
   const [statusNote, setStatusNote] = useState(submission.statusNote ?? "");
+  const [reviewDeadline, setReviewDeadline] = useState(
+    formatDateInput(submission.reviewDeadline)
+  );
   const [saving, setSaving] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
   const [emailMsg, setEmailMsg] = useState("");
@@ -313,12 +399,14 @@ function SubmissionPanel({
     setSelectedReviewerId(submission.assignedReviewerId ?? "");
     setStatus(submission.status);
     setStatusNote(submission.statusNote ?? "");
+    setReviewDeadline(formatDateInput(submission.reviewDeadline));
   }, [
     submission.id,
     submission.assignedEditorId,
     submission.assignedReviewerId,
     submission.status,
     submission.statusNote,
+    submission.reviewDeadline,
   ]);
 
   const reviewerOptions =
@@ -341,7 +429,8 @@ function SubmissionPanel({
     await assignReviewer(
       submission.id,
       reviewer.uid,
-      reviewer.displayName || reviewer.email
+      reviewer.displayName || reviewer.email,
+      reviewDeadline ? new Date(`${reviewDeadline}T23:59:59`) : null
     );
   }
 
@@ -352,7 +441,16 @@ function SubmissionPanel({
       if (selectedEditorId && selectedEditorId !== submission.assignedEditorId) {
         const editor = editors.find((e) => e.uid === selectedEditorId);
         if (editor) {
-          await assignEditor(submission.id, editor.uid, editor.displayName || editor.email);
+          await assignEditor(
+            submission.id,
+            editor.uid,
+            editor.displayName || editor.email,
+            {
+              id: adminProfile.uid,
+              name: adminProfile.displayName || adminProfile.email,
+              registrationId: submission.registrationId,
+            }
+          );
         }
       }
       if (selectedReviewerId !== (submission.assignedReviewerId ?? "")) {
@@ -362,8 +460,23 @@ function SubmissionPanel({
           await assignReviewer(submission.id, null, null);
         }
       }
-      if (status !== submission.status || statusNote !== submission.statusNote) {
-        await updateSubmissionStatus(submission.id, status, statusNote || undefined);
+      if (
+        selectedReviewerId &&
+        selectedReviewerId === (submission.assignedReviewerId ?? "") &&
+        reviewDeadline !== formatDateInput(submission.reviewDeadline)
+      ) {
+        await persistReviewerAssignment(selectedReviewerId);
+      }
+      if (
+        status !== submission.status ||
+        statusNote !== (submission.statusNote ?? "")
+      ) {
+        await updateSubmissionStatus(submission.id, status, statusNote || undefined, {
+          id: adminProfile.uid,
+          name: adminProfile.displayName || adminProfile.email,
+          role: "admin",
+          registrationId: submission.registrationId,
+        });
       }
       await onUpdate();
     } finally {
@@ -401,6 +514,30 @@ function SubmissionPanel({
 
   return (
     <div className="mt-4 rounded-lg border border-[var(--journal-border)] bg-zinc-50 p-5">
+      <dl className="mb-5 grid gap-3 border-b border-[var(--journal-border)] pb-5 text-sm sm:grid-cols-2">
+        <div>
+          <dt className="font-medium text-[var(--journal-muted)]">Registration ID</dt>
+          <dd className="font-semibold text-[var(--journal-accent)]">
+            {submission.registrationId}
+          </dd>
+        </div>
+        <div>
+          <dt className="font-medium text-[var(--journal-muted)]">Paper Title</dt>
+          <dd>{submission.title}</dd>
+        </div>
+        <div>
+          <dt className="font-medium text-[var(--journal-muted)]">Submission Date</dt>
+          <dd>{formatDate(submission.submittedAt)}</dd>
+        </div>
+        <div>
+          <dt className="font-medium text-[var(--journal-muted)]">Current Status</dt>
+          <dd>{STATUS_LABELS[submission.status]}</dd>
+        </div>
+        <div>
+          <dt className="font-medium text-[var(--journal-muted)]">Submission Type</dt>
+          <dd>{SUBMISSION_PURPOSE_LABELS[submission.submissionPurpose]}</dd>
+        </div>
+      </dl>
       <p className="text-sm text-[var(--journal-body)]">
         <span className="font-medium">Abstract:</span> {submission.abstract}
       </p>
@@ -456,6 +593,16 @@ function SubmissionPanel({
               </option>
             ))}
           </select>
+          <label className="mt-3 block text-xs font-medium text-[var(--journal-muted)]">
+            Review deadline
+          </label>
+          <input
+            type="date"
+            value={reviewDeadline}
+            onChange={(e) => setReviewDeadline(e.target.value)}
+            disabled={!selectedReviewerId}
+            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none disabled:bg-zinc-100"
+          />
           {reviewerOptions.length === 0 ? (
             <p className="mt-2 text-xs text-amber-800">
               No reviewers yet. Open the <strong>Users</strong> tab and set a user&apos;s role to{" "}
@@ -508,8 +655,9 @@ function SubmissionPanel({
             Peer review invitation email
           </p>
           <p className="mt-1 text-xs text-[var(--journal-muted)]">
-            Sends title, abstract, category, submission ID, and a link to the reviewer dashboard
-            (author identity is not included).
+            Sends the Registration ID, paper title, submission date, submission type, current
+            status, abstract, category, and reviewer-dashboard link. Author identity is not
+            included.
           </p>
           {reviewerPendingSave ? (
             <p className="mt-2 text-xs text-amber-800">
@@ -535,6 +683,7 @@ function SubmissionPanel({
         </div>
       ) : null}
 
+      <SubmissionTimeline submission={submission} />
       <CommentThread
         submissionId={submission.id}
         currentUserId={adminProfile.uid}
@@ -659,11 +808,9 @@ function UsersPanel({
 /* ── Editors panel ── */
 function EditorsPanel({
   editors,
-  allUsers,
   onUpdate,
 }: {
   editors: UserProfile[];
-  allUsers: UserProfile[];
   onUpdate: () => void;
 }) {
   const [searchEmail, setSearchEmail] = useState("");

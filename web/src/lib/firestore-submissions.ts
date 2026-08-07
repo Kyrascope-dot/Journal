@@ -2,13 +2,15 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
   updateDoc,
+  writeBatch,
   where,
 } from "firebase/firestore";
-import { getDb } from "@/lib/firebase";
+import { getDb, getFirebaseAuth } from "@/lib/firebase";
 import type {
   Comment,
   ConferenceAwardIntent,
@@ -16,6 +18,7 @@ import type {
   Submission,
   SubmissionPurpose,
   SubmissionStatus,
+  SubmissionStatusEvent,
   UserRole,
 } from "@/types/dashboard";
 
@@ -25,6 +28,7 @@ function mapSubmission(
 ): Submission {
   return {
     id,
+    registrationId: String(data.registrationId ?? id),
     title: String(data.title ?? ""),
     abstract: String(data.abstract ?? ""),
     authorId: String(data.authorId ?? ""),
@@ -52,6 +56,7 @@ function mapSubmission(
     status: (data.status as SubmissionStatus) ?? "pending",
     submittedAt: data.submittedAt as Submission["submittedAt"],
     lastUpdatedAt: data.lastUpdatedAt as Submission["lastUpdatedAt"],
+    reviewDeadline: (data.reviewDeadline ?? null) as Submission["reviewDeadline"],
     assignedEditorId: data.assignedEditorId
       ? String(data.assignedEditorId)
       : null,
@@ -65,6 +70,21 @@ function mapSubmission(
       ? String(data.assignedReviewerName)
       : null,
     statusNote: data.statusNote ? String(data.statusNote) : null,
+  };
+}
+
+function mapStatusEvent(
+  id: string,
+  data: Record<string, unknown>
+): SubmissionStatusEvent {
+  return {
+    id,
+    registrationId: String(data.registrationId ?? ""),
+    status: (data.status as SubmissionStatus) ?? "pending",
+    note: data.note ? String(data.note) : null,
+    createdAt: data.createdAt as SubmissionStatusEvent["createdAt"],
+    changedByName: String(data.changedByName ?? ""),
+    changedByRole: (data.changedByRole as UserRole) ?? "editor",
   };
 }
 
@@ -91,32 +111,47 @@ export async function createSubmission(payload: {
   authorId: string;
   authorName: string;
   authorEmail: string;
-}): Promise<string> {
-  const isConference = payload.submissionPurpose === "conference";
-  const db = getDb();
-  const ref = await addDoc(collection(db, "submissions"), {
-    title: payload.title,
-    abstract: payload.abstract,
-    affiliation: payload.affiliation,
-    category: payload.category,
-    submissionPurpose: payload.submissionPurpose,
-    conferenceQuarter: isConference ? (payload.conferenceQuarter ?? null) : null,
-    conferenceAwardIntent: isConference
-      ? (payload.conferenceAwardIntent ?? null)
-      : null,
-    authorId: payload.authorId,
-    authorName: payload.authorName,
-    authorEmail: payload.authorEmail,
-    status: "pending" as SubmissionStatus,
-    assignedEditorId: null,
-    assignedEditorName: null,
-    assignedReviewerId: null,
-    assignedReviewerName: null,
-    statusNote: null,
-    submittedAt: serverTimestamp(),
-    lastUpdatedAt: serverTimestamp(),
+}): Promise<{
+  submissionId: string;
+  registrationId: string;
+  submittedAt: string;
+  emailSent: boolean;
+}> {
+  const user = getFirebaseAuth().currentUser;
+  if (!user) throw new Error("You must be signed in to submit.");
+  const idToken = await user.getIdToken();
+  const response = await fetch("/api/submissions/create", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: payload.title,
+      abstract: payload.abstract,
+      affiliation: payload.affiliation,
+      category: payload.category,
+      submissionPurpose: payload.submissionPurpose,
+      conferenceQuarter: payload.conferenceQuarter ?? null,
+      conferenceAwardIntent: payload.conferenceAwardIntent ?? null,
+    }),
   });
-  return ref.id;
+  const data = (await response.json()) as {
+    error?: string;
+    submissionId?: string;
+    registrationId?: string;
+    submittedAt?: string;
+    emailSent?: boolean;
+  };
+  if (!response.ok || !data.submissionId || !data.registrationId || !data.submittedAt) {
+    throw new Error(data.error ?? "Could not register submission.");
+  }
+  return {
+    submissionId: data.submissionId,
+    registrationId: data.registrationId,
+    submittedAt: data.submittedAt,
+    emailSent: Boolean(data.emailSent),
+  };
 }
 
 /** Sort submissions newest-first in memory (avoids composite index requirement). */
@@ -144,6 +179,16 @@ export async function getSubmissionsByAuthor(
     mapSubmission(d.id, d.data() as Record<string, unknown>)
   );
   return sortByDate(results);
+}
+
+export async function getSubmissionById(
+  submissionId: string
+): Promise<Submission | null> {
+  const db = getDb();
+  const snap = await getDoc(doc(db, "submissions", submissionId));
+  return snap.exists()
+    ? mapSubmission(snap.id, snap.data() as Record<string, unknown>)
+    : null;
 }
 
 /** Editor: papers explicitly assigned to this editor. */
@@ -236,42 +281,98 @@ export async function getAllSubmissions(filters?: {
 export async function updateSubmissionStatus(
   submissionId: string,
   status: SubmissionStatus,
-  statusNote?: string
+  statusNote?: string,
+  actor?: { id: string; name: string; role: UserRole; registrationId: string }
 ): Promise<void> {
   const db = getDb();
-  await updateDoc(doc(db, "submissions", submissionId), {
+  const batch = writeBatch(db);
+  batch.update(doc(db, "submissions", submissionId), {
     status,
     statusNote: statusNote ?? null,
     lastUpdatedAt: serverTimestamp(),
   });
+  if (actor) {
+    const historyRef = doc(
+      collection(db, "submissions", submissionId, "statusHistory")
+    );
+    batch.set(historyRef, {
+      registrationId: actor.registrationId,
+      status,
+      note: statusNote ?? null,
+      createdAt: serverTimestamp(),
+      changedById: actor.id,
+      changedByName: actor.name,
+      changedByRole: actor.role,
+    });
+  }
+  await batch.commit();
 }
 
 /** Admin: assign an editor to a submission. */
 export async function assignEditor(
   submissionId: string,
   editorId: string,
-  editorName: string
+  editorName: string,
+  actor?: { id: string; name: string; registrationId: string }
 ): Promise<void> {
   const db = getDb();
-  await updateDoc(doc(db, "submissions", submissionId), {
+  const batch = writeBatch(db);
+  batch.update(doc(db, "submissions", submissionId), {
     assignedEditorId: editorId,
     assignedEditorName: editorName,
     status: "under_review" as SubmissionStatus,
     lastUpdatedAt: serverTimestamp(),
   });
+  if (actor) {
+    const historyRef = doc(
+      collection(db, "submissions", submissionId, "statusHistory")
+    );
+    batch.set(historyRef, {
+      registrationId: actor.registrationId,
+      status: "under_review",
+      note: `Assigned to editor ${editorName}.`,
+      createdAt: serverTimestamp(),
+      changedById: actor.id,
+      changedByName: actor.name,
+      changedByRole: "admin",
+    });
+  }
+  await batch.commit();
 }
 
 /** Admin: assign a peer reviewer (identity visible only to admin and that reviewer). */
 export async function assignReviewer(
   submissionId: string,
   reviewerId: string | null,
-  reviewerName: string | null
+  reviewerName: string | null,
+  reviewDeadline: Date | null = null
 ): Promise<void> {
   const db = getDb();
   await updateDoc(doc(db, "submissions", submissionId), {
     assignedReviewerId: reviewerId,
     assignedReviewerName: reviewerName,
+    reviewDeadline: reviewerId ? reviewDeadline : null,
     lastUpdatedAt: serverTimestamp(),
+  });
+}
+
+export async function getSubmissionStatusHistory(
+  submissionId: string
+): Promise<SubmissionStatusEvent[]> {
+  const db = getDb();
+  const snap = await getDocs(
+    collection(db, "submissions", submissionId, "statusHistory")
+  );
+  const events = snap.docs.map((item) =>
+    mapStatusEvent(item.id, item.data() as Record<string, unknown>)
+  );
+  return events.sort((a, b) => {
+    const toMs = (value: SubmissionStatusEvent["createdAt"]) => {
+      if (!value) return 0;
+      if (value instanceof Date) return value.getTime();
+      return (value as { toMillis(): number }).toMillis();
+    };
+    return toMs(a.createdAt) - toMs(b.createdAt);
   });
 }
 

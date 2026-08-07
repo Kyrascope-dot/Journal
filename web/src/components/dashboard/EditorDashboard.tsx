@@ -7,6 +7,7 @@ import type { Submission, SubmissionStatus, UserProfile } from "@/types/dashboar
 import { STATUS_LABELS, SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMeta } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
+import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
 
 function formatDate(value: Submission["submittedAt"]): string {
   if (!value) return "—";
@@ -28,6 +29,11 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [filterStatus, setFilterStatus] = useState<SubmissionStatus | "all">("all");
+  const [filterPurpose, setFilterPurpose] = useState<"all" | "journal" | "conference">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<
+    "registration_date" | "registration_id" | "submission_type" | "status"
+  >("registration_date");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -60,7 +66,13 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
   ) {
     setUpdatingId(submissionId);
     try {
-      await updateSubmissionStatus(submissionId, status, note);
+      const current = submissions.find((submission) => submission.id === submissionId);
+      await updateSubmissionStatus(submissionId, status, note, {
+        id: profile.uid,
+        name: profile.displayName || profile.email,
+        role: "editor",
+        registrationId: current?.registrationId ?? submissionId,
+      });
       setSubmissions((prev) =>
         prev.map((s) =>
           s.id === submissionId ? { ...s, status, statusNote: note ?? null } : s
@@ -75,10 +87,40 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
     submissionForViewer(s, "editor", profile.uid)
   );
 
-  const displayed =
-    filterStatus === "all"
-      ? visibleSubmissions
-      : visibleSubmissions.filter((s) => s.status === filterStatus);
+  const displayed = visibleSubmissions
+    .filter((submission) => {
+      if (filterStatus !== "all" && submission.status !== filterStatus) return false;
+      if (
+        filterPurpose !== "all" &&
+        submission.submissionPurpose !== filterPurpose
+      ) {
+        return false;
+      }
+      const needle = searchQuery.trim().toLowerCase();
+      return (
+        !needle ||
+        [
+          submission.registrationId,
+          submission.title,
+          submission.authorName,
+          submission.authorEmail,
+        ].some((value) => value.toLowerCase().includes(needle))
+      );
+    })
+    .sort((a, b) => {
+      if (sortBy === "registration_id") {
+        return a.registrationId.localeCompare(b.registrationId);
+      }
+      if (sortBy === "submission_type") {
+        return a.submissionPurpose.localeCompare(b.submissionPurpose);
+      }
+      if (sortBy === "status") return a.status.localeCompare(b.status);
+      const toMs = (value: Submission["submittedAt"]) => {
+        if (!value) return 0;
+        return value instanceof Date ? value.getTime() : value.toMillis();
+      };
+      return toMs(b.submittedAt) - toMs(a.submittedAt);
+    });
 
   const assignedCount = visibleSubmissions.filter(
     (s) => s.assignedEditorId === profile.uid
@@ -116,7 +158,53 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div>
+          <label className="block text-xs font-medium text-[var(--journal-muted)]">
+            Search
+          </label>
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Registration ID, title, author, or email"
+            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[var(--journal-muted)]">
+            Submission type
+          </label>
+          <select
+            value={filterPurpose}
+            onChange={(e) =>
+              setFilterPurpose(e.target.value as typeof filterPurpose)
+            }
+            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+          >
+            <option value="all">All types</option>
+            <option value="journal">Journal</option>
+            <option value="conference">Conference</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[var(--journal-muted)]">
+            Sort by
+          </label>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+          >
+            <option value="registration_date">Registration date</option>
+            <option value="registration_id">Registration ID</option>
+            <option value="submission_type">Submission type</option>
+            <option value="status">Status</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
         <span className="text-sm font-medium text-[var(--journal-heading)]">
           Filter by status:
         </span>
@@ -153,7 +241,12 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
             <li key={sub.id} className="py-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-medium text-[var(--journal-heading)]">{sub.title}</p>
+                  <p className="text-sm font-semibold text-[var(--journal-accent)]">
+                    Registration ID: {sub.registrationId}
+                  </p>
+                  <p className="mt-1 font-medium text-[var(--journal-heading)]">
+                    Paper Title: {sub.title}
+                  </p>
                   {sub.assignedEditorId === profile.uid && (
                     <span className="mt-1 inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-800">
                       Assigned to you
@@ -186,6 +279,36 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
 
               {expandedId === sub.id && (
                 <div className="mt-4 rounded-lg border border-[var(--journal-border)] bg-zinc-50 p-5">
+                  <dl className="mb-5 grid gap-3 border-b border-[var(--journal-border)] pb-5 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">
+                        Registration ID
+                      </dt>
+                      <dd>{sub.registrationId}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">Paper Title</dt>
+                      <dd>{sub.title}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">
+                        Submission Date
+                      </dt>
+                      <dd>{formatDate(sub.submittedAt)}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">
+                        Current Status
+                      </dt>
+                      <dd>{STATUS_LABELS[sub.status]}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">
+                        Submission Type
+                      </dt>
+                      <dd>{SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}</dd>
+                    </div>
+                  </dl>
                   <p className="text-sm text-[var(--journal-body)]">
                     <span className="font-medium">Abstract:</span> {sub.abstract}
                   </p>
@@ -205,6 +328,7 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
                     />
                   </div>
 
+                  <SubmissionTimeline submission={sub} />
                   <CommentThread
                     submissionId={sub.id}
                     currentUserId={profile.uid}

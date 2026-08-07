@@ -4,9 +4,14 @@ import { useEffect, useState } from "react";
 import { getSubmissionsByAssignedReviewer } from "@/lib/firestore-submissions";
 import { submissionForViewer } from "@/lib/dashboard-access";
 import type { Submission, UserProfile } from "@/types/dashboard";
-import { SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMeta } from "@/types/dashboard";
+import {
+  STATUS_LABELS,
+  SUBMISSION_PURPOSE_LABELS,
+  formatConferenceSubmissionMeta,
+} from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
+import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
 
 function formatDate(value: Submission["submittedAt"]): string {
   if (!value) return "—";
@@ -52,13 +57,22 @@ export function ReviewerDashboard({ profile }: { profile: UserProfile }) {
             <li key={sub.id} className="py-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="font-medium text-[var(--journal-heading)]">{sub.title}</p>
+                  <p className="text-sm font-semibold text-[var(--journal-accent)]">
+                    Registration ID: {sub.registrationId}
+                  </p>
+                  <p className="mt-1 font-medium text-[var(--journal-heading)]">
+                    Paper Title: {sub.title}
+                  </p>
                   <p className="mt-1 text-sm text-[var(--journal-muted)]">
                     {SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}
                     {formatConferenceSubmissionMeta(sub)
                       ? ` · ${formatConferenceSubmissionMeta(sub)}`
                       : ""}{" "}
                     · {sub.category} · Submitted {formatDate(sub.submittedAt)}
+                  </p>
+                  <p className="text-xs text-[var(--journal-muted)]">
+                    Status: {STATUS_LABELS[sub.status]} · Review Deadline:{" "}
+                    {formatDate(sub.reviewDeadline)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -74,9 +88,34 @@ export function ReviewerDashboard({ profile }: { profile: UserProfile }) {
               </div>
               {expandedId === sub.id && (
                 <div className="mt-4 rounded-lg border border-[var(--journal-border)] bg-zinc-50 p-5">
+                  <dl className="mb-5 grid gap-3 border-b border-[var(--journal-border)] pb-5 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">
+                        Registration ID
+                      </dt>
+                      <dd>{sub.registrationId}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">Paper Title</dt>
+                      <dd>{sub.title}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">
+                        Current Status
+                      </dt>
+                      <dd>{STATUS_LABELS[sub.status]}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">
+                        Review Deadline
+                      </dt>
+                      <dd>{formatDate(sub.reviewDeadline)}</dd>
+                    </div>
+                  </dl>
                   <p className="text-sm text-[var(--journal-body)]">
                     <span className="font-medium">Abstract:</span> {sub.abstract}
                   </p>
+                  <SubmissionTimeline submission={sub} />
                   <CommentThread
                     submissionId={sub.id}
                     currentUserId={profile.uid}

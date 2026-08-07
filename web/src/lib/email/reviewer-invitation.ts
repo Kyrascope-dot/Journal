@@ -9,8 +9,10 @@ import {
 export type ReviewerInvitationPayload = {
   reviewerEmail: string;
   reviewerName: string;
-  submissionId: string;
+  registrationId: string;
   title: string;
+  submittedAt: string;
+  submissionType: string;
   abstract: string;
   category: string;
   status: string;
@@ -23,8 +25,10 @@ function buildPlainText(p: ReviewerInvitationPayload): string {
     "",
     `You have been invited to peer-review a manuscript for ${siteConfig.name}.`,
     "",
-    `Submission ID: ${p.submissionId}`,
-    `Title: ${p.title}`,
+    `Registration ID: ${p.registrationId}`,
+    `Paper Title: ${p.title}`,
+    `Submission Date: ${p.submittedAt}`,
+    `Submission Type: ${p.submissionType}`,
     `Category: ${p.category}`,
     `Status: ${p.status}`,
     "",
@@ -49,8 +53,10 @@ function buildHtml(p: ReviewerInvitationPayload): string {
   <p>Dear ${escapeHtml(p.reviewerName)},</p>
   <p>You have been invited to peer-review a manuscript for <strong>${escapeHtml(siteConfig.name)}</strong>.</p>
   <table style="margin:16px 0;border-collapse:collapse;width:100%;font-size:14px">
-    <tr><td style="padding:6px 0;color:#666">Submission ID</td><td style="padding:6px 0"><strong>${escapeHtml(p.submissionId)}</strong></td></tr>
-    <tr><td style="padding:6px 0;color:#666;vertical-align:top">Title</td><td style="padding:6px 0">${escapeHtml(p.title)}</td></tr>
+    <tr><td style="padding:6px 0;color:#666">Registration ID</td><td style="padding:6px 0"><strong>${escapeHtml(p.registrationId)}</strong></td></tr>
+    <tr><td style="padding:6px 0;color:#666;vertical-align:top">Paper Title</td><td style="padding:6px 0">${escapeHtml(p.title)}</td></tr>
+    <tr><td style="padding:6px 0;color:#666">Submission Date</td><td style="padding:6px 0">${escapeHtml(p.submittedAt)}</td></tr>
+    <tr><td style="padding:6px 0;color:#666">Submission Type</td><td style="padding:6px 0">${escapeHtml(p.submissionType)}</td></tr>
     <tr><td style="padding:6px 0;color:#666">Category</td><td style="padding:6px 0">${escapeHtml(p.category)}</td></tr>
     <tr><td style="padding:6px 0;color:#666">Status</td><td style="padding:6px 0">${escapeHtml(p.status)}</td></tr>
   </table>
@@ -87,7 +93,7 @@ export async function sendReviewerInvitationEmail(
   );
 
   const resend = new Resend(apiKey);
-  const subject = `Peer review invitation — ${payload.title.slice(0, 80)}${payload.title.length > 80 ? "…" : ""}`;
+  const subject = `Peer review invitation — ${payload.registrationId} — ${payload.title.slice(0, 60)}${payload.title.length > 60 ? "…" : ""}`;
 
   const { data, error } = await resend.emails.send({
     from,
