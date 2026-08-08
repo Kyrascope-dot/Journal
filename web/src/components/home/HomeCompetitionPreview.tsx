@@ -30,12 +30,17 @@ export function HomeCompetitionPreview() {
           <strong>Categories:</strong> {featuredCompetition.categories.join(", ")}
         </p>
         <p className="mt-1 text-sm text-[var(--journal-muted)]">{featuredCompetition.status}</p>
-        <Link
-          href="/research-competitions"
-          className="mt-4 inline-flex rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95"
-        >
-          View competition details
-        </Link>
+        <p className="mt-4 inline-flex rounded border border-[var(--journal-border)] bg-zinc-50 px-4 py-2 text-sm font-medium text-[var(--journal-heading)]">
+          Coming Soon
+        </p>
+        <p className="mt-3">
+          <Link
+            href="/research-competitions"
+            className="text-sm text-[var(--journal-accent)] hover:underline"
+          >
+            Competition overview
+          </Link>
+        </p>
       </div>
     </section>
   );

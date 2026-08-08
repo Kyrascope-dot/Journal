@@ -13,13 +13,65 @@ export default function ConferencePaymentPage() {
           <h1 className="font-serif text-3xl font-semibold text-[var(--journal-heading)]">
             Conference payment
           </h1>
-          <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-            Secure conference payments will be processed server-side through Razorpay when
-            configured. Pricing categories (high-school, undergraduate, postgraduate, professional,
-            international, team, and listener rates) will be managed in the admin settings — not
-            hard-coded here.
-          </p>
-          <p className="mt-4 text-sm font-medium text-[var(--journal-heading)]">
+
+          <h2 className="mt-8 font-serif text-xl font-semibold text-[var(--journal-heading)]">
+            Registration Fee
+          </h2>
+          <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] text-[var(--journal-body)]">
+            <li>
+              <strong>Indian Participants:</strong> ₹14,500
+            </li>
+            <li>
+              <strong>International Participants:</strong> USD 200
+            </li>
+          </ul>
+
+          <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
+            The Registration Fee Includes
+          </h2>
+          <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-[var(--journal-body)]">
+            <li>
+              Participation in the International Multidisciplinary Conference 2026 on 30 August
+              2026
+            </li>
+            <li>
+              Complimentary access to the GCR Research Colloquia &amp; Workshop on 29 August 2026,
+              featuring internationally renowned speakers
+            </li>
+            <li>Exclusive Fireside Chat with the Editors</li>
+            <li>
+              Presentation of accepted research before an international audience of academicians,
+              researchers, and industry experts
+            </li>
+            <li>Double-blind peer review of the submitted manuscript</li>
+            <li>Editorial evaluation and publication processing</li>
+            <li>
+              Opportunity for selected papers to be considered for publication in the Global
+              Confluence Review (ISSN: 3139-6690), subject to peer review and editorial standards
+            </li>
+            <li>Digital Conference Participation Certificate</li>
+            <li>
+              Separate E-Certificate for participation in the GCR Research Colloquia &amp; Workshop
+            </li>
+            <li>Opportunity to compete for Best Paper and Best Presenter Awards</li>
+            <li>
+              Networking opportunities with international researchers, editors, and scholars
+            </li>
+          </ul>
+
+          <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
+            Important Note
+          </h2>
+          <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-[var(--journal-body)]">
+            <li>The registration fee is payable only after the abstract has been accepted.</li>
+            <li>Acceptance of an abstract does not guarantee publication.</li>
+            <li>
+              All full-length manuscripts will be subject to the journal&apos;s applicable
+              peer-review and editorial processes.
+            </li>
+          </ul>
+
+          <p className="mt-8 text-sm font-medium text-[var(--journal-heading)]">
             Payment confirms conference registration only and does not guarantee journal publication.
           </p>
           <FeeWaiverNotice className="mt-8" />

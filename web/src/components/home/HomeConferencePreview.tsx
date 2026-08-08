@@ -10,7 +10,7 @@ export function HomeConferencePreview() {
     <section className="py-12" aria-labelledby="conference-preview-heading">
       <SectionHeading
         id="conference-preview-heading"
-        title="GCR international conference series"
+        title="GCR Conference + Colloquia/Workshop Q3, July–September Issue 2026"
       />
       <div className="rounded-lg border border-[var(--journal-border)] p-6">
         <h3 className="font-serif text-lg font-semibold text-[var(--journal-heading)]">

@@ -18,7 +18,7 @@ export default function ConferencesPage() {
       <div className={`${contentShell} py-12`}>
         <div className={contentProse}>
           <h1 className="font-serif text-3xl font-semibold text-[var(--journal-heading)]">
-            GCR international conference series
+            GCR Conference + Colloquia/Workshop Q3, July–September Issue 2026
           </h1>
           <p className="mt-2 text-lg text-[var(--journal-body)]">
             Connecting researchers. Sharing ideas. Creating impact.

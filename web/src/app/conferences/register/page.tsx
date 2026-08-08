@@ -19,7 +19,7 @@ export default function ConferenceRegisterPage() {
               Registration Deadline
             </p>
             <p className="mt-2 font-serif text-2xl font-semibold text-[var(--journal-heading)]">
-              25 August
+              25 August 2026
             </p>
             <p className="mt-1 text-lg font-semibold text-[var(--journal-heading)]">12:00 PM IST</p>
           </div>

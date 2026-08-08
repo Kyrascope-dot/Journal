@@ -1,11 +1,11 @@
 /** Admin-configurable conference preview — replace with Firestore when CMS ships. */
 export const featuredConference = {
   slug: "gcr-q3-2026",
-  title: "GCR International Conference — Quarter III",
+  title: "GCR Conference + Colloquia/Workshop Q3, July–September Issue 2026",
   theme: "Innovation, Sustainability and Inclusive Development",
   mode: "Online via Zoom",
   datesLabel: "30 August 2026",
-  registrationDeadline: "25 August 2026, 12:00 PM IST",
+  registrationDeadline: "25 August 2026",
   submissionDeadline: "25 August 2026",
 };
 

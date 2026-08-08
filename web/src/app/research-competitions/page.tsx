@@ -63,16 +63,20 @@ export default function ResearchCompetitionsPage() {
               <dd>{featuredCompetition.theme}</dd>
             </div>
             <div>
+              <dt className="font-semibold text-[var(--journal-heading)]">Categories</dt>
+              <dd>{featuredCompetition.categories.join(", ")}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-[var(--journal-heading)]">Registration</dt>
+              <dd>Coming Soon</dd>
+            </div>
+            <div>
               <dt className="font-semibold text-[var(--journal-heading)]">Format</dt>
               <dd>Research paper plus online finalist presentation</dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--journal-heading)]">Participants</dt>
               <dd>{featuredCompetition.eligibility}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-[var(--journal-heading)]">Categories</dt>
-              <dd>{featuredCompetition.categories.join(", ")}</dd>
             </div>
             <div>
               <dt className="font-semibold text-[var(--journal-heading)]">Paper length</dt>
@@ -100,16 +104,22 @@ export default function ResearchCompetitionsPage() {
             approval. Registration, paper upload, payment status, evaluator assignment, and
             certificates will be managed through the competition portal (implementation in progress).
           </p>
-          <p className="mt-8">
-            <Link href="/login" className="text-[var(--journal-accent)] hover:underline">
-              Sign in to register
-            </Link>
-            {" · "}
+          <p className="mt-8 text-sm font-medium text-[var(--journal-heading)]">
+            Registration: Coming Soon
+          </p>
+          <p className="mt-4">
             <Link
               href="/research/young-researchers-hub"
               className="text-[var(--journal-accent)] hover:underline"
             >
               Young Researchers’ Hub
+            </Link>
+            {" · "}
+            <Link
+              href="https://www.globalconfluencereview.in"
+              className="text-[var(--journal-accent)] hover:underline"
+            >
+              globalconfluencereview.in
             </Link>
           </p>
         </div>
