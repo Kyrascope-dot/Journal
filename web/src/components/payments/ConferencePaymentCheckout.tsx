@@ -183,16 +183,6 @@ export function ConferencePaymentCheckout() {
         <h2 className="font-serif text-xl font-semibold text-[var(--journal-heading)]">
           Secure checkout
         </h2>
-        <p className="mt-2 text-sm text-[var(--journal-body)]">
-          Pay with Razorpay. Amounts are fixed on the server and cannot be altered in the browser.
-        </p>
-        <p className="mt-3 rounded border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs leading-relaxed text-amber-950">
-          <strong>USD / international cards:</strong> Razorpay must have{" "}
-          <strong>International payments</strong> activated on your account. If you see
-          &quot;Currency is not supported&quot;, open Razorpay Dashboard → Account &amp; Settings →
-          International payments → Activate International Cards, then wait for approval. Until then,
-          only INR checkout will work.
-        </p>
 
         <fieldset className="mt-5 space-y-3">
           <legend className="text-sm font-semibold text-[var(--journal-heading)]">
@@ -223,7 +213,6 @@ export function ConferencePaymentCheckout() {
                   </span>
                   <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
                     {plan.description}
-                    {id === "international_usd" ? " · International payments enabled" : ""}
                   </span>
                 </span>
               </label>
