@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { AppShell } from "@/components/layout/AppShell";
+import { ConferencePaymentCheckout } from "@/components/payments/ConferencePaymentCheckout";
 import { contentProse, contentShell } from "@/lib/content-layout";
 
 export const metadata = { title: "Conference payment" };
@@ -25,6 +26,8 @@ export default function ConferencePaymentPage() {
               <strong>International Participants:</strong> USD 200
             </li>
           </ul>
+
+          <ConferencePaymentCheckout />
 
           <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
             The Registration Fee Includes

@@ -232,5 +232,10 @@ service cloud.firestore {
       }
     }
 
+    // Razorpay payment records — Admin SDK only (created/verified on the server).
+    match /payments/{paymentId} {
+      allow read, write: if false;
+    }
+
   }
 }
