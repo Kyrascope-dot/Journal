@@ -34,7 +34,7 @@ export default function ShippingAndDeliveryPolicyPage() {
         {
           heading: "Delivery queries",
           paragraphs: [
-            "If an expected digital document has not arrived, contact editorglobalconfluencereview@gmail.com with your name and submission or registration ID.",
+            "If an expected digital document has not arrived, contact editor@globalconfluencereview.in with your name and submission or registration ID.",
           ],
         },
       ]}

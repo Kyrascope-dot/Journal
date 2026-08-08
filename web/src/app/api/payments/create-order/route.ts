@@ -3,6 +3,7 @@ import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { createPaymentIntent } from "@/lib/payments/payment-store";
 import { getPaymentPlan, type PaymentPlanId } from "@/lib/payments/plans";
 import {
+  formatRazorpayError,
   getRazorpayClient,
   getRazorpayPublicKeyId,
   isRazorpayConfigured,
@@ -109,8 +110,8 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[payments/create-order]", error);
-    const message =
-      error instanceof Error ? error.message : "Could not create payment order.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const message = formatRazorpayError(error);
+    const status = /currency is not supported/i.test(message) ? 400 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

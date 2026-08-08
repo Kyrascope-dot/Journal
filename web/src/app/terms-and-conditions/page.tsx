@@ -106,7 +106,7 @@ export default function TermsAndConditionsPage() {
         {
           heading: "16. Contact",
           paragraphs: [
-            "Questions about these terms may be sent to editorglobalconfluencereview@gmail.com. Global Confluence Review is located in New Delhi, India.",
+            "Questions about these terms may be sent to editor@globalconfluencereview.in. Global Confluence Review is located in New Delhi, India.",
           ],
         },
       ]}

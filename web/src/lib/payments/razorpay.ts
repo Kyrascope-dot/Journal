@@ -65,3 +65,29 @@ function timingSafeEqualHex(a: string, b: string): boolean {
 export function paymentReceiptPrefix(): string {
   return siteConfig.shortName.toLowerCase();
 }
+
+/** Normalize Razorpay SDK / API errors into a clear client message. */
+export function formatRazorpayError(error: unknown): string {
+  if (!error || typeof error !== "object") {
+    return error instanceof Error ? error.message : "Payment provider error.";
+  }
+
+  const err = error as {
+    statusCode?: number;
+    error?: { description?: string; code?: string; reason?: string };
+    message?: string;
+  };
+
+  const description =
+    err.error?.description || err.error?.reason || err.message || "";
+
+  if (/currency is not supported/i.test(description)) {
+    return [
+      "USD is not enabled on this Razorpay account yet (Currency is not supported).",
+      "In Razorpay Dashboard go to Account & Settings → International payments and activate International Cards / multi-currency.",
+      "Until Razorpay approves USD, use the Indian Participants (₹14,500) option, or ask Razorpay support to enable international currency.",
+    ].join(" ");
+  }
+
+  return description || "Payment provider error.";
+}

@@ -20,7 +20,7 @@ export const siteConfig = {
   /** Use E.164 for `tel:` (digits after +). */
   publisherMobileTel: "+917678560820",
   publisherMobileDisplay: "+91 76785 60820",
-  email: "editorglobalconfluencereview@gmail.com",
+  email: "editor@globalconfluencereview.in",
   /** Canonical public site URL (also overridable via SITE_URL). */
   siteUrl: "https://www.globalconfluencereview.in",
   instagramUrl:

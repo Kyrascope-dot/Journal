@@ -15,7 +15,7 @@ service cloud.firestore {
     function isBootstrapAdmin() {
       let email = request.auth.token.email.lower();
       return email == 'sonam.dobriyal@athenaeducation.co.in'
-        || email == 'editorglobalconfluencereview@gmail.com';
+        || email == 'editor@globalconfluencereview.in';
     }
 
     // Read the caller's role from their Firestore user profile.

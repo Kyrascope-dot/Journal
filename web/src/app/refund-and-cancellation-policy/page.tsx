@@ -42,7 +42,7 @@ export default function RefundAndCancellationPolicyPage() {
         {
           heading: "How to request a cancellation or refund review",
           paragraphs: [
-            "Email editorglobalconfluencereview@gmail.com with your name, submission or registration ID, payment reference, reason for the request, and proof of payment. Submitting a request does not guarantee approval.",
+            "Email editor@globalconfluencereview.in with your name, submission or registration ID, payment reference, reason for the request, and proof of payment. Submitting a request does not guarantee approval.",
           ],
         },
         {

@@ -40,7 +40,7 @@ export default function CopyrightNoticePage() {
         {
           heading: "Reporting infringement",
           paragraphs: [
-            "To report suspected copyright infringement, email editorglobalconfluencereview@gmail.com with the material’s location, details of the protected work, your contact information, and the basis of your claim.",
+            "To report suspected copyright infringement, email editor@globalconfluencereview.in with the material’s location, details of the protected work, your contact information, and the basis of your claim.",
           ],
         },
       ]}

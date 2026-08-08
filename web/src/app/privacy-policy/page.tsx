@@ -83,7 +83,7 @@ export default function PrivacyPolicyPage() {
         {
           heading: "12. Contact",
           paragraphs: [
-            "For privacy questions or requests, email editorglobalconfluencereview@gmail.com or contact Global Confluence Review at 10/130 Malviya Nagar, New Delhi – 110097, India.",
+            "For privacy questions or requests, email editor@globalconfluencereview.in or contact Global Confluence Review at 10/130 Malviya Nagar, New Delhi – 110097, India.",
           ],
         },
       ]}

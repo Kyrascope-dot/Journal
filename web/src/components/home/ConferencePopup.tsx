@@ -165,9 +165,9 @@ export function ConferencePopup() {
               <strong>Email:</strong>{" "}
               <a
                 className="break-all text-[var(--journal-accent)] underline"
-                href="mailto:editorglobalconfluencereview@gmail.com"
+                href="mailto:editor@globalconfluencereview.in"
               >
-                editorglobalconfluencereview@gmail.com
+                editor@globalconfluencereview.in
               </a>
             </p>
             <p className="mt-1">

@@ -88,7 +88,7 @@ export default function ContactPage() {
                 label: "Email",
                 value: (
                   <span className="flex flex-col gap-1">
-                    <MailLink email="editorglobalconfluencereview@gmail.com" />
+                    <MailLink email="editor@globalconfluencereview.in" />
                     <MailLink email="japjikaur_2k20phdhueco01@dtu.ac.in" />
                   </span>
                 ),

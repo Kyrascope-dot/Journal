@@ -44,7 +44,7 @@ export default function ConferenceFaqsPage() {
         {
           heading: "What happens if I choose Both Awards?",
           paragraphs: [
-            "Prepare a PowerPoint presentation, present during the conference, and email both the blinded manuscript and the separate title page to editorglobalconfluencereview@gmail.com.",
+            "Prepare a PowerPoint presentation, present during the conference, and email both the blinded manuscript and the separate title page to editor@globalconfluencereview.in.",
           ],
         },
         {
