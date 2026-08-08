@@ -21,8 +21,8 @@ export const siteConfig = {
   publisherMobileTel: "+917678560820",
   publisherMobileDisplay: "+91 76785 60820",
   email: "editorglobalconfluencereview@gmail.com",
-  /** Update to your live domain once deployed. */
-  siteUrl: "",
+  /** Canonical public site URL (also overridable via SITE_URL). */
+  siteUrl: "https://www.globalconfluencereview.in",
   instagramUrl:
     "https://www.instagram.com/globalconfluencereview?igsh=MW9ka2ozaXBvY24xYQ==",
   license: "CC BY 4.0",
