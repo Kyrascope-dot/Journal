@@ -70,7 +70,7 @@ export const forAuthorsPages: Record<string, ForAuthorsPageContent> = {
           "Enter all required details, including the paper title, abstract, research category, and affiliation.",
           "Review the information and submit your application.",
           "Format the manuscript according to the template and the limits for your manuscript type under For Authors → Manuscript Templates.",
-          `Send the blinded manuscript and separate title page in Microsoft Word format to ${siteConfig.email}.`,
+          `Send the blinded manuscript and separate title page in Microsoft Word format to ${siteConfig.email}`,
           "Track the application under My Submissions in the author dashboard.",
         ],
       },
