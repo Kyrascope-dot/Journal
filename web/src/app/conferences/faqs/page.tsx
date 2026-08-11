@@ -1,5 +1,7 @@
 import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { StaticContentPage } from "@/components/layout/StaticContentPage";
+import { howToRegisterSteps } from "@/lib/conference-content";
+import { siteConfig } from "@/lib/site-config";
 
 export const metadata = { title: "Conference FAQs" };
 
@@ -11,14 +13,24 @@ export default function ConferenceFaqsPage() {
         {
           heading: "How do I register?",
           paragraphs: [],
-          list: [
-            "Create an account.",
-            "Submit your abstract.",
-            "Editorial screening.",
-            "Status visible in Author Dashboard.",
-            "Acceptance email sent.",
-            "Complete payment.",
-            "Join conference.",
+          list: [...howToRegisterSteps],
+        },
+        {
+          heading: "Important dates",
+          paragraphs: [
+            "Abstract Submission Deadline: 25 August 2026",
+            "Registration Deadline: 25 August 2026",
+            "Conference Date: 30 August 2026",
+            "The Zoom link will be shared with registered participants.",
+          ],
+        },
+        {
+          heading: "Registration fees",
+          paragraphs: [
+            "National Participants: USD 150",
+            "International Participants: USD 200",
+            "Full and Partial need-based fee waivers are available for talented students with demonstrated financial need, subject to eligibility and availability.",
+            `Students seeking financial assistance should email the Editor at ${siteConfig.email}.`,
           ],
         },
         {
@@ -44,7 +56,7 @@ export default function ConferenceFaqsPage() {
         {
           heading: "What happens if I choose Both Awards?",
           paragraphs: [
-            "Prepare a PowerPoint presentation, present during the conference, and email both the blinded manuscript and the separate title page to editor@globalconfluencereview.in.",
+            `Prepare a PowerPoint presentation, present during the conference, and email both the blinded manuscript and the separate title page to ${siteConfig.email}.`,
           ],
         },
         {
@@ -79,6 +91,7 @@ export default function ConferenceFaqsPage() {
           heading: "If I win Best Paper, is publication guaranteed?",
           paragraphs: [
             "No. Winning Best Paper does not guarantee publication. Winning papers are invited for peer review.",
+            "Conference presentation does not automatically guarantee publication.",
             "If accepted, the publication fee is waived.",
             "If not selected as Best Paper, authors may still submit through the regular journal submission process.",
             "Failure to win Best Paper does not indicate poor research quality.",
@@ -125,11 +138,12 @@ export default function ConferenceFaqsPage() {
           ],
         },
         {
-          heading: "Additional Information",
+          heading: "GCR Colloquia / Research Workshop",
           paragraphs: [
-            "Awards may be presented separately for different academic levels (e.g., school students, undergraduate students, postgraduate students, PhD scholars, faculty members) depending on the number and quality of submissions.",
-            "Separate awards may also be presented for qualitative, quantitative, and mixed-methods research, where appropriate.",
-            "The Conference Evaluation Committee reserves the right to modify award categories or withhold an award if no submission meets the required standard.",
+            "The GCR Colloquia/Workshop on 29 August 2026 is available free of charge to registered conference participants.",
+            "No additional fee and no separate registration are required.",
+            "Attendance is optional. Participants may present at the main conference without attending the Colloquia/Workshop.",
+            "Separate e-certificates will be awarded to eligible Colloquia attendees.",
           ],
         },
       ]}

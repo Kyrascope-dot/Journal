@@ -164,8 +164,8 @@ export function ConferencePaymentCheckout() {
           Sign in required for secure checkout
         </p>
         <p className="mt-2 text-sm text-[var(--journal-body)]">
-          International conference registration is USD 200 and is processed securely through
-          Razorpay. Please sign in to continue.
+          Conference registration fees are USD 150 (national) or USD 200 (international) and are
+          processed securely through Razorpay. Please sign in to continue.
         </p>
         <Link
           href="/login?next=/conferences/payment"

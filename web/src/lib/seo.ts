@@ -67,6 +67,8 @@ export function getPublicSitemapEntries(): SitemapEntry[] {
     { path: "/conferences/submit-paper", changeFrequency: "weekly", priority: 0.8 },
     { path: "/conferences/payment", changeFrequency: "monthly", priority: 0.7 },
     { path: "/conferences/faqs", changeFrequency: "monthly", priority: 0.75 },
+    { path: "/conferences/book-of-abstracts", changeFrequency: "monthly", priority: 0.7 },
+    { path: "/search", changeFrequency: "monthly", priority: 0.5 },
     { path: "/for-authors/manuscript-templates", changeFrequency: "monthly", priority: 0.8 },
     { path: "/submissions", changeFrequency: "monthly", priority: 0.75 },
     { path: "/contact", changeFrequency: "yearly", priority: 0.6 },

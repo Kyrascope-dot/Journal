@@ -3,6 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  conferenceRegistrationFees,
+  howToRegisterSteps,
+  importantConferenceDates,
+  publicationOpportunityParagraphs,
+} from "@/lib/conference-content";
+import { siteConfig } from "@/lib/site-config";
 
 const STORAGE_KEY = "gcr-conference-popup-2026-08-30";
 
@@ -77,7 +84,7 @@ export function ConferencePopup() {
           />
           <Image
             src="/poster-colloqium.jpeg"
-            alt="Poster for the GCR PhD Colloquium"
+            alt="Poster for the GCR Colloquia / Research Workshop 2026"
             width={1070}
             height={1600}
             className="mx-auto h-auto w-full max-w-[560px]"
@@ -92,38 +99,54 @@ export function ConferencePopup() {
             id="conference-popup-title"
             className="mt-2 font-serif text-2xl font-semibold text-[var(--journal-heading)] sm:text-3xl"
           >
-            Call for Papers | International Multidisciplinary Conference 2026
+            Call for Papers | GCR Conference Q3 2026
           </h2>
 
-          <p className="mt-5 font-medium">Dear Researchers, Academicians, Industry Professionals, and Students,</p>
+          <p className="mt-5 font-medium">
+            Dear Researchers, Academicians, Industry Professionals, and Students,
+          </p>
           <p className="mt-3">
-            Global Confluence Review (GCR) is pleased to invite original research papers, review
-            papers, case studies, and interdisciplinary research for the International
-            Multidisciplinary Conference 2026.
+            Global Confluence Review (GCR) invites original research for the International
+            Multidisciplinary Conference 2026 and the complimentary GCR Colloquia/Workshop on 29
+            August 2026.
           </p>
 
           <div className="mt-5 rounded border border-[var(--journal-border)] bg-slate-50 p-4">
             <p>
               <strong>Conference Date:</strong> 30 August 2026 (Online via Zoom)
             </p>
-            <p className="mt-1">The Zoom link will be shared with all registered participants.</p>
+            <p className="mt-1">The Zoom link will be shared with registered participants.</p>
           </div>
 
           <h3 className="mt-6 font-serif text-lg font-semibold text-[var(--journal-heading)]">
             Important Dates
           </h3>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Abstract Submission Deadline: 25 August 2026</li>
-            <li>Acceptance Notification: Within One Week of Abstract Submission</li>
+            {importantConferenceDates.map((item) => (
+              <li key={item.label}>
+                {item.label}: {item.value}
+              </li>
+            ))}
           </ul>
 
           <h3 className="mt-6 font-serif text-lg font-semibold text-[var(--journal-heading)]">
-            Registration Process
+            Registration fees
+          </h3>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {conferenceRegistrationFees.map((fee) => (
+              <li key={fee.label}>
+                {fee.label}: {fee.amount}
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="mt-6 font-serif text-lg font-semibold text-[var(--journal-heading)]">
+            How to register
           </h3>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
-            <li>Register on the conference website</li>
-            <li>Submit your abstract</li>
-            <li>Complete the registration payment after acceptance</li>
+            {howToRegisterSteps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
           </ol>
 
           <Link
@@ -135,23 +158,24 @@ export function ConferencePopup() {
           </Link>
 
           <h3 className="mt-6 font-serif text-lg font-semibold text-[var(--journal-heading)]">
-            Publication Opportunity
+            Publication opportunity
           </h3>
-          <p className="mt-2">
-            Selected papers will be considered for publication in Global Confluence Review (ISSN:
-            3139-6690), subject to peer review and editorial standards.
-          </p>
+          {publicationOpportunityParagraphs.map((paragraph) => (
+            <p key={paragraph} className="mt-2">
+              {paragraph}
+            </p>
+          ))}
 
           <h3 className="mt-6 font-serif text-lg font-semibold text-[var(--journal-heading)]">
-            Conference Highlights
+            Conference highlights
           </h3>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>International Keynote Speakers</li>
-            <li>Interdisciplinary Research Presentations</li>
-            <li>PhD Colloquium &amp; Research Workshop</li>
+            <li>Distinguished speakers and research experts</li>
+            <li>GCR Colloquia/Workshop (free for registered participants)</li>
+            <li>Fireside Chat with Editors</li>
             <li>Best Paper &amp; Best Presenter Awards</li>
-            <li>Digital Certificates for All Participants</li>
-            <li>Global Networking Opportunities</li>
+            <li>Separate digital certificates for conference and Colloquia</li>
+            <li>Global networking opportunities</li>
           </ul>
 
           <div className="mt-6 border-t border-[var(--journal-border)] pt-5">
@@ -165,9 +189,9 @@ export function ConferencePopup() {
               <strong>Email:</strong>{" "}
               <a
                 className="break-all text-[var(--journal-accent)] underline"
-                href="mailto:editor@globalconfluencereview.in"
+                href={`mailto:${siteConfig.email}`}
               >
-                editor@globalconfluencereview.in
+                {siteConfig.email}
               </a>
             </p>
             <p className="mt-1">
@@ -182,9 +206,6 @@ export function ConferencePopup() {
           </div>
 
           <p className="mt-6">We look forward to your valuable participation and contributions.</p>
-          <p className="mt-3 font-semibold text-[var(--journal-heading)]">
-            Let&apos;s Collaborate • Innovate • Sustain • Include • Progress Together!
-          </p>
         </div>
       </section>
     </div>

@@ -15,11 +15,17 @@ export function FeeWaiverNotice({ className = "" }: { className?: string }) {
         Need-based Fee Waiver
       </h2>
       <p className="mt-3 text-[15px] leading-relaxed text-[var(--journal-body)]">
-        Global Confluence Review is committed to promoting inclusive academic participation.
-        Need-based partial and full fee waivers are available for both journal publication (APC)
-        and conference registration. Students seeking financial assistance should email the Editor
-        with a brief explanation of their circumstances and supporting information. Each request
-        will be reviewed individually.
+        Full and Partial need-based fee waivers are available for talented students with
+        demonstrated financial need, subject to eligibility and availability. Need-based partial
+        and full fee waivers are also available for journal publication (APC). Each request will be
+        reviewed individually.
+      </p>
+      <p className="mt-3 text-[15px] leading-relaxed text-[var(--journal-body)]">
+        Students seeking financial assistance should email the Editor at{" "}
+        <a href={waiverHref} className="break-all text-[var(--journal-accent)] underline">
+          {siteConfig.email}
+        </a>
+        .
       </p>
       <a
         href={waiverHref}

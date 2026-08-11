@@ -31,14 +31,15 @@ export default function AllArticlesPage() {
         </p>
 
         <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
-          Search (coming soon)
+          Search
         </h2>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          A searchable index of titles, authors, and keywords can be connected to your
-          backend (for example Firestore collection group queries on{" "}
-          <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm">articles</code>
-          ). Until then, your browser&apos;s find-on-page (Ctrl+F / ⌘F) on an issue page
-          can help locate a specific article.
+          Use the{" "}
+          <Link className="text-[var(--journal-accent)] hover:underline" href="/search">
+            site search
+          </Link>{" "}
+          to find conference information, author guidelines, editorial profiles, and other public
+          GCR pages. You can also open search from the header on any page.
         </p>
 
         <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">

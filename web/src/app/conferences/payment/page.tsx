@@ -3,6 +3,7 @@ import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { AppShell } from "@/components/layout/AppShell";
 import { ConferencePaymentCheckout } from "@/components/payments/ConferencePaymentCheckout";
 import { contentProse, contentShell } from "@/lib/content-layout";
+import { conferenceRegistrationFees } from "@/lib/conference-content";
 
 export const metadata = { title: "Conference payment" };
 
@@ -19,12 +20,11 @@ export default function ConferencePaymentPage() {
             Registration Fee
           </h2>
           <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] text-[var(--journal-body)]">
-            <li>
-              <strong>Indian Participants:</strong> ₹14,500
-            </li>
-            <li>
-              <strong>International Participants:</strong> USD 200
-            </li>
+            {conferenceRegistrationFees.map((fee) => (
+              <li key={fee.label}>
+                <strong>{fee.label}:</strong> {fee.amount}
+              </li>
+            ))}
           </ul>
 
           <ConferencePaymentCheckout />
@@ -38,8 +38,12 @@ export default function ConferencePaymentPage() {
               2026
             </li>
             <li>
-              Complimentary access to the GCR Research Colloquia &amp; Workshop on 29 August 2026,
-              featuring internationally renowned speakers
+              Accepted conference abstracts will be published in the GCR Conference Book of
+              Abstracts
+            </li>
+            <li>
+              Complimentary access to the GCR Colloquia/Workshop on 29 August 2026, featuring
+              distinguished research experts
             </li>
             <li>Exclusive Fireside Chat with the Editors</li>
             <li>
@@ -49,12 +53,12 @@ export default function ConferencePaymentPage() {
             <li>Double-blind peer review of the submitted manuscript</li>
             <li>Editorial evaluation and publication processing</li>
             <li>
-              Opportunity for selected papers to be considered for publication in the Global
-              Confluence Review (ISSN: 3139-6690), subject to peer review and editorial standards
+              Opportunity for selected papers to be considered for publication in Global Confluence
+              Review (ISSN: 3139-6690), subject to peer review and editorial standards
             </li>
             <li>Digital Conference Participation Certificate</li>
             <li>
-              Separate E-Certificate for participation in the GCR Research Colloquia &amp; Workshop
+              Separate E-Certificate for participation in the GCR Colloquia/Workshop
             </li>
             <li>Opportunity to compete for Best Paper and Best Presenter Awards</li>
             <li>
@@ -69,6 +73,9 @@ export default function ConferencePaymentPage() {
             <li>The registration fee is payable only after the abstract has been accepted.</li>
             <li>Acceptance of an abstract does not guarantee publication.</li>
             <li>
+              Conference presentation does not automatically guarantee publication in GCR.
+            </li>
+            <li>
               All full-length manuscripts will be subject to the journal&apos;s applicable
               peer-review and editorial processes.
             </li>
@@ -81,6 +88,10 @@ export default function ConferencePaymentPage() {
           <p className="mt-8">
             <Link href="/conferences/register" className="text-[var(--journal-accent)] hover:underline">
               Registration
+            </Link>
+            {" · "}
+            <Link href="/conferences/book-of-abstracts" className="text-[var(--journal-accent)] hover:underline">
+              Book of Abstracts
             </Link>
             {" · "}
             <Link href="/conferences/dashboard" className="text-[var(--journal-accent)] hover:underline">

@@ -85,7 +85,7 @@ export function formatRazorpayError(error: unknown): string {
     return [
       "USD is not enabled on this Razorpay account yet (Currency is not supported).",
       "In Razorpay Dashboard go to Account & Settings → International payments and activate International Cards / multi-currency.",
-      "Until Razorpay approves USD, use the Indian Participants (₹14,500) option, or ask Razorpay support to enable international currency.",
+      "Until Razorpay approves USD, use the National Participants (USD 150) option, or ask Razorpay support to enable international currency.",
     ].join(" ");
   }
 

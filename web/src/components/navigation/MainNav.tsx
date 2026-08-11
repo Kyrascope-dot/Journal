@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { SiteSearchTrigger } from "@/components/search/SiteSearch";
 import { mainNavGroups, topLevelNavLinks } from "@/config/site-navigation";
 import { contentShell } from "@/lib/content-layout";
 import { siteConfig } from "@/lib/site-config";
@@ -63,7 +64,8 @@ export function MainNav() {
           )}
         </svg>
       </button>
-      <nav className="hidden lg:block" aria-label="Primary">
+      <nav className="hidden items-center gap-2 lg:flex" aria-label="Primary">
+        <SiteSearchTrigger />
         <ul className="flex flex-wrap items-center gap-0.5 text-sm">
           {topLevelNavLinks.map((link) =>
             link.href === "/" ? (
@@ -89,6 +91,9 @@ export function MainNav() {
           id="mobile-nav"
           className="absolute left-0 right-0 top-full z-40 max-h-[80vh] overflow-y-auto border-t border-[var(--journal-border)] bg-white lg:hidden"
         >
+          <div className="border-b border-[var(--journal-border)] px-4 py-3">
+            <SiteSearchTrigger className="w-full justify-center" />
+          </div>
           <ul className="space-y-1 px-4 py-3 text-sm">
             {topLevelNavLinks.map((link) => (
               <li key={link.href}>

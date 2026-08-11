@@ -1,17 +1,12 @@
 import Link from "next/link";
 import { SectionHeading } from "@/components/home/HomeSections";
-import {
-  conferencePublicationDisclaimer,
-  featuredConference,
-} from "@/lib/conference-config";
+import { conferencePublicationDisclaimer, featuredConference } from "@/lib/conference-config";
+import { conferenceOverviewTitle, conferenceRegistrationFees } from "@/lib/conference-content";
 
 export function HomeConferencePreview() {
   return (
     <section className="py-12" aria-labelledby="conference-preview-heading">
-      <SectionHeading
-        id="conference-preview-heading"
-        title="GCR Conference + Colloquia/Workshop Q3, July–September Issue 2026"
-      />
+      <SectionHeading id="conference-preview-heading" title={conferenceOverviewTitle} />
       <div className="rounded-lg border border-[var(--journal-border)] p-6">
         <h3 className="font-serif text-lg font-semibold text-[var(--journal-heading)]">
           {featuredConference.title}
@@ -24,13 +19,18 @@ export function HomeConferencePreview() {
             <strong>Mode:</strong> {featuredConference.mode}
           </li>
           <li>
-            <strong>Schedule:</strong> {featuredConference.datesLabel}
+            <strong>Conference:</strong> {featuredConference.datesLabel}, 9:30am IST
           </li>
           <li>
-            <strong>Registration deadline:</strong> {featuredConference.registrationDeadline}
+            <strong>Colloquia/Workshop:</strong> 29 August 2026, 9:30am IST
           </li>
           <li>
-            <strong>Submission deadline:</strong> {featuredConference.submissionDeadline}
+            <strong>Abstract &amp; registration deadline:</strong>{" "}
+            {featuredConference.registrationDeadline}
+          </li>
+          <li>
+            <strong>Fees:</strong>{" "}
+            {conferenceRegistrationFees.map((f) => `${f.label} ${f.amount}`).join(" · ")}
           </li>
         </ul>
         <div className="mt-6 flex flex-wrap gap-3">

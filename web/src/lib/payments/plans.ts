@@ -1,23 +1,32 @@
-export type PaymentPlanId = "international_usd" | "indian_inr";
+export type PaymentPlanId = "international_usd" | "national_usd";
 
 export type PaymentPlan = {
   id: PaymentPlanId;
   label: string;
   description: string;
   /** ISO currency code accepted by Razorpay */
-  currency: "USD" | "INR";
+  currency: "USD";
   /** Major units (e.g. 200 for USD 200) */
   amountMajor: number;
-  /** Smallest currency unit for Razorpay (cents / paise) */
+  /** Smallest currency unit for Razorpay (cents) */
   amountMinor: number;
   displayAmount: string;
 };
 
 /**
  * Server-authoritative conference fee plans.
- * Never trust client-supplied amounts — always resolve via plan id.
+ * Never trust client-supplied amounts — resolve via plan id only.
  */
 export const CONFERENCE_PAYMENT_PLANS: Record<PaymentPlanId, PaymentPlan> = {
+  national_usd: {
+    id: "national_usd",
+    label: "National Participants",
+    description: "Conference registration fee for national participants",
+    currency: "USD",
+    amountMajor: 150,
+    amountMinor: 15000,
+    displayAmount: "USD 150",
+  },
   international_usd: {
     id: "international_usd",
     label: "International Participants",
@@ -27,21 +36,18 @@ export const CONFERENCE_PAYMENT_PLANS: Record<PaymentPlanId, PaymentPlan> = {
     amountMinor: 20000,
     displayAmount: "USD 200",
   },
-  indian_inr: {
-    id: "indian_inr",
-    label: "Indian Participants",
-    description: "Conference registration fee for Indian participants",
-    currency: "INR",
-    amountMajor: 14500,
-    amountMinor: 1_450_000,
-    displayAmount: "₹14,500",
-  },
+};
+
+/** Legacy plan id from earlier INR checkout — maps to national USD 150. */
+const LEGACY_PLAN_ALIASES: Record<string, PaymentPlanId> = {
+  indian_inr: "national_usd",
 };
 
 export function getPaymentPlan(planId: string | null | undefined): PaymentPlan | null {
   if (!planId) return null;
-  if (planId === "international_usd" || planId === "indian_inr") {
-    return CONFERENCE_PAYMENT_PLANS[planId];
+  const resolved = (LEGACY_PLAN_ALIASES[planId] ?? planId) as PaymentPlanId;
+  if (resolved === "international_usd" || resolved === "national_usd") {
+    return CONFERENCE_PAYMENT_PLANS[resolved];
   }
   return null;
 }

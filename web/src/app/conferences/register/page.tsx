@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HowToRegisterSection, ImportantDatesSection } from "@/components/conferences/ConferenceContentSections";
 import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { AppShell } from "@/components/layout/AppShell";
 import { contentProse, contentShell } from "@/lib/content-layout";
@@ -21,7 +22,6 @@ export default function ConferenceRegisterPage() {
             <p className="mt-2 font-serif text-2xl font-semibold text-[var(--journal-heading)]">
               25 August 2026
             </p>
-            <p className="mt-1 text-lg font-semibold text-[var(--journal-heading)]">12:00 PM IST</p>
           </div>
           <p className="mt-6 text-[15px] leading-relaxed text-[var(--journal-body)]">
             Sign in to your account, open New Submission, select Submit for Conference, and submit
@@ -34,6 +34,10 @@ export default function ConferenceRegisterPage() {
             </Link>{" "}
             carefully.
           </p>
+
+          <HowToRegisterSection />
+          <ImportantDatesSection />
+
           <p className="mt-8">
             <Link href="/login" className="text-[var(--journal-accent)] hover:underline">
               Sign in
