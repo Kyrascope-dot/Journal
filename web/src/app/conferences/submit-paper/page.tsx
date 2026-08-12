@@ -18,9 +18,13 @@ export default function ConferenceSubmitPaperPage() {
             and submit your abstract. Read the Conference FAQs before submitting.
           </p>
           <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-            Best Presenter-only participants do not need to email a manuscript. Best Paper, Both
-            Awards, and conference submissions being considered for journal publication must follow
-            the blinded manuscript requirements below.
+            Best Presenter participants prepare a PPT and present during the conference. Best Paper
+            participants may submit a manuscript by email after acceptance; oral presentation is
+            optional. See the{" "}
+            <Link href="/conferences/faqs" className="text-[var(--journal-accent)] hover:underline">
+              Conference FAQs
+            </Link>{" "}
+            for award category details and accepted manuscript types.
           </p>
           <BlindedManuscriptNotice className="mt-8" />
           <p className="mt-8">

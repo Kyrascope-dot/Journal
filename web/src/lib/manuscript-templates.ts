@@ -53,3 +53,19 @@ export const manuscriptTemplateDownloads: { label: string; href: string }[] = [
     href: templateHref("12_Research_Note_Short_Communication.docx"),
   },
 ];
+
+/** Manuscript types accepted for journal and conference submissions (see word limit table). */
+export const manuscriptSubmissionTypes = [
+  "Original Research Article",
+  "Narrative Review Article",
+  "Systematic Review",
+  "Bibliometric / Scientometric Study",
+  "Policy Paper",
+  "Research Essay",
+  "Conceptual / Theoretical Paper",
+  "Case Study",
+  "Commentary / Perspective",
+  "Book Review",
+  "Research Proposal",
+  "Research Note / Short Communication",
+] as const;

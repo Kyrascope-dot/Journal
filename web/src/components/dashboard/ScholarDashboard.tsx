@@ -27,12 +27,15 @@ import {
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
+import {
+  bestPaperAwardPolicyNote,
+  bestPaperAwardPolicyParagraphs,
+} from "@/lib/conference-content";
 import { siteConfig } from "@/lib/site-config";
 
 const ABSTRACT_SUCCESS_HEADING = "Abstract received";
 
-const BEST_PAPER_GCR_PUBLICATION_NOTE =
-  "Winners of the Best Paper Award in their track will be offered a publication opportunity in an upcoming issue of Global Confluence Review (GCR), subject to rigorous journal peer review. After winning, you must submit the full paper using the GCR journal manuscript template; it will then receive full consideration for publication in the upcoming GCR issue.";
+const BEST_PAPER_AWARD_NOTE = bestPaperAwardPolicyParagraphs.join(" ");
 
 const BEST_PRESENTER_NOTE =
   "In this category you may present your paper at the GCR conference via PowerPoint (PPT). This track does not include publication in Global Confluence Review (GCR). Authors whose work is already published in another journal, or is under consideration elsewhere, may present at the GCR conference but will not receive GCR journal publication through this category.";
@@ -548,12 +551,20 @@ export function ScholarDashboard({
                         {conferenceShowsPaperSubmission(conferenceAwardIntent) && (
                           <div className="mt-4 rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3">
                             <p className="text-sm leading-relaxed text-[var(--journal-body)]">
-                              {BEST_PAPER_GCR_PUBLICATION_NOTE}{" "}
+                              {BEST_PAPER_AWARD_NOTE}{" "}
+                              <span className="font-medium">{bestPaperAwardPolicyNote}</span>{" "}
                               <Link
                                 href="/for-authors/manuscript-templates"
                                 className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
                               >
-                                Journal manuscript templates
+                                Manuscript templates
+                              </Link>
+                              {" · "}
+                              <Link
+                                href="/conferences/faqs"
+                                className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
+                              >
+                                Conference FAQs
                               </Link>
                               .
                             </p>

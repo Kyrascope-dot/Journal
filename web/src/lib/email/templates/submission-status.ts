@@ -57,29 +57,35 @@ function conferenceAcceptedContent(
 ): TemplateContent {
   const nextSteps = [
     "Complete conference registration payment.",
-    "Prepare a PowerPoint presentation.",
+    "Prepare a PowerPoint presentation if you plan to present (optional for Best Paper-only participants).",
     "The Zoom meeting link will be shared before the conference.",
+    `Scholars in different time zones with timing constraints may request to present first by emailing ${siteConfig.email}.`,
   ];
 
   if (context.conferenceAwardIntent === "best_presenter") {
     nextSteps.push(
       "Best Presenter category: you only need to prepare your presentation.",
-      "No manuscript submission is required."
+      "No manuscript submission is required.",
+      "A Certificate of Participation will be given whether or not you receive the award."
     );
   } else if (context.conferenceAwardIntent === "best_paper") {
     nextSteps.push(
       `Best Paper category: please email your paper to ${siteConfig.email}.`,
+      "Oral presentation at the conference is optional for the Best Paper Award category.",
       "If your paper is already published, please send the PDF version.",
-      "If your paper is unpublished, please send the manuscript.",
+      "If your paper is unpublished, please send the blinded manuscript and separate title page.",
       "Formatting according to the journal template is OPTIONAL at this stage.",
-      "If your paper receives the Best Paper Award and is invited for journal publication, you will later be required to submit the paper again using the official GCR manuscript template before peer review."
+      "Top 10% of Best Paper submissions may be offered a publication opportunity in GCR, subject to peer review; publication is optional.",
+      "A Certificate of Participation will be given whether or not you receive the award.",
+      "If invited for journal publication, you will later submit using the official GCR manuscript template before peer review."
     );
   } else if (context.conferenceAwardIntent === "both") {
     nextSteps.push(
-      "Best Paper + Best Presenter: please prepare your presentation.",
-      "Please also email a blinded manuscript and a separate title page.",
-      "Published papers may instead send the published PDF.",
-      "Formatting using the journal template is optional during conference evaluation."
+      "Best Paper + Best Presenter: please prepare your presentation for the Best Presenter component.",
+      "Please also email a blinded manuscript and a separate title page for the Best Paper component (or send the published PDF if already published).",
+      "Oral presentation is required for the Best Presenter component.",
+      "Formatting using the journal template is optional during conference evaluation.",
+      "A Certificate of Participation will be given whether or not you receive an award."
     );
   }
 

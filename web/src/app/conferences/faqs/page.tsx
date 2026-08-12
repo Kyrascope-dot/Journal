@@ -1,6 +1,13 @@
 import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { StaticContentPage } from "@/components/layout/StaticContentPage";
-import { howToRegisterSteps } from "@/lib/conference-content";
+import {
+  bestPaperAwardPolicyNote,
+  bestPaperAwardPolicyParagraphs,
+  conferenceParticipationCertificatesNote,
+  howToRegisterSteps,
+  timezonePresentationRequestNote,
+} from "@/lib/conference-content";
+import { manuscriptSubmissionTypes } from "@/lib/manuscript-templates";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata = { title: "Conference FAQs" };
@@ -34,29 +41,44 @@ export default function ConferenceFaqsPage() {
           ],
         },
         {
+          heading: "What can be submitted to the conference?",
+          paragraphs: [
+            "The conference accepts the same manuscript types listed under Manuscript Templates on the GCR website, including but not limited to:",
+          ],
+          list: [...manuscriptSubmissionTypes],
+        },
+        {
+          heading: "Time zones and presentation timing",
+          paragraphs: [timezonePresentationRequestNote],
+        },
+        {
+          heading: "Certificates of participation",
+          paragraphs: [conferenceParticipationCertificatesNote],
+        },
+        {
           heading: "What happens if I choose Best Presenter Award?",
           paragraphs: [],
           list: [
             "Prepare a PowerPoint presentation (PPT).",
             "Present during the conference.",
             "No manuscript needs to be emailed.",
+            conferenceParticipationCertificatesNote,
           ],
         },
         {
           heading: "What happens if I choose Best Paper Award?",
-          paragraphs: [],
+          paragraphs: [...bestPaperAwardPolicyParagraphs, bestPaperAwardPolicyNote],
           list: [
-            "Prepare a PowerPoint presentation (PPT).",
-            "Present during the conference.",
-            "Submit the paper by email.",
-            "Send a blinded manuscript.",
-            "Send the title page separately.",
+            "Submit your paper by email after abstract acceptance.",
+            "Send a blinded manuscript and separate title page for unpublished work, or the published PDF if already published.",
+            "Oral presentation at the conference is optional.",
           ],
         },
         {
           heading: "What happens if I choose Both Awards?",
           paragraphs: [
-            `Prepare a PowerPoint presentation, present during the conference, and email both the blinded manuscript and the separate title page to ${siteConfig.email}.`,
+            `Prepare a PowerPoint presentation for the Best Presenter component. For the Best Paper component, email the blinded manuscript and separate title page (or published PDF) to ${siteConfig.email}. Oral presentation is required for the Best Presenter component; see the Best Paper Award section above for paper submission details.`,
+            conferenceParticipationCertificatesNote,
           ],
         },
         {
@@ -90,11 +112,12 @@ export default function ConferenceFaqsPage() {
         {
           heading: "If I win Best Paper, is publication guaranteed?",
           paragraphs: [
-            "No. Winning Best Paper does not guarantee publication. Winning papers are invited for peer review.",
+            "No. Winning Best Paper does not guarantee publication. Top 10% of Best Paper submissions may be offered a publication opportunity, subject to peer review.",
+            "Publication is optional for the author.",
             "Conference presentation does not automatically guarantee publication.",
-            "If accepted, the publication fee is waived.",
-            "If not selected as Best Paper, authors may still submit through the regular journal submission process.",
+            "If not selected for Best Paper, authors may still submit through the regular journal submission process.",
             "Failure to win Best Paper does not indicate poor research quality.",
+            bestPaperAwardPolicyNote,
           ],
         },
         {
@@ -107,12 +130,15 @@ export default function ConferenceFaqsPage() {
         {
           heading: "How are submissions evaluated?",
           paragraphs: [
-            "All award nominations are assessed independently by the Conference Evaluation Committee. Evaluation is based on the overall quality of the research and presentation. The committee’s decision is final.",
+            "All award nominations are assessed independently by the Conference Evaluation Committee. Evaluation is based on the overall quality of the research and, where applicable, the presentation. The committee’s decision is final.",
           ],
         },
         {
           heading: "Best Paper Award evaluation",
-          paragraphs: ["The committee may consider factors such as:"],
+          paragraphs: [
+            "All eligible Best Paper submissions are evaluated by the Conference Review Committee based on originality, research quality, methodology, relevance, clarity, and overall academic contribution.",
+            "The committee may also consider factors such as:",
+          ],
           list: [
             "Originality and novelty of the research",
             "Significance and contribution to the field",
@@ -144,6 +170,7 @@ export default function ConferenceFaqsPage() {
             "No additional fee and no separate registration are required.",
             "Attendance is optional. Participants may present at the main conference without attending the Colloquia/Workshop.",
             "Separate e-certificates will be awarded to eligible Colloquia attendees.",
+            "Scholars in the Best Paper Award category may attend the Colloquia/Workshop and will receive digital certificates.",
           ],
         },
       ]}

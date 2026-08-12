@@ -90,9 +90,27 @@ export const conferenceAwards = [
 ] as const;
 
 export const conferenceAwardsNotes = [
-  "Digital certificates are provided separately for eligible conference and workshop/colloquia participation.",
-  "Selected Best Paper Awardees will receive complimentary publication consideration in GCR, subject to the journal's editorial and peer-review standards.",
+  "Digital certificates are provided separately for eligible conference and Colloquia/Workshop participation.",
+  "A Certificate of Participation will be given to all participants in the Best Paper, Best Presenter, and Both award categories, whether or not they receive an award.",
+  "Top 10% of Best Paper Award submissions may be offered an opportunity to publish in GCR, subject to peer review; publication is optional for the author.",
 ] as const;
+
+/** Best Paper Award policy — used on FAQs, dashboard, and acceptance emails. */
+export const bestPaperAwardPolicyParagraphs = [
+  "Authors may submit their papers for consideration for the Best Paper Award without being required to present the paper at the conference. It is optional to present.",
+  "All eligible submissions will be evaluated by the Conference Review Committee based on originality, research quality, methodology, relevance, clarity, and overall academic contribution.",
+  "The selected Best Paper Award winner(s) will receive an official Best Paper Award Certificate. Participation in the award category does not require an oral presentation. Published and unpublished research will be accepted.",
+  "The top 10% of research will be chosen for the Best Paper Awards and will be offered an opportunity to publish, subject to peer review. However, it is optional for the author to publish or not publish.",
+  "Scholars in the Best Paper Award category may attend the GCR Colloquia/Workshop and will receive digital certificates. If a scholar does not receive an award, a Certificate of Participation will still be given.",
+] as const;
+
+export const bestPaperAwardPolicyNote =
+  "Note: Submission for the Best Paper Award does not guarantee selection. The award will be granted solely on the basis of the quality and merit of the submitted research.";
+
+export const conferenceParticipationCertificatesNote =
+  "A Certificate of Participation will be given to all participants in the Best Paper, Best Presenter, and Both award categories, whether or not they receive an award.";
+
+export const timezonePresentationRequestNote = `Scholars in different time zones who have timing constraints may request to present first in the programme. Please write to ${siteConfig.email}.`;
 
 export const onlineConferenceBenefits = [
   "Build global academic networks",
