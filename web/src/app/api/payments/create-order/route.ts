@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { createPaymentIntent } from "@/lib/payments/payment-store";
-import { getPaymentPlan, type PaymentPlanId } from "@/lib/payments/plans";
+import { getPaymentPlan, isGatewayTestPlan, type PaymentPlanId } from "@/lib/payments/plans";
 import {
   formatRazorpayError,
   getRazorpayClient,
@@ -52,8 +52,15 @@ export async function POST(request: Request) {
     // Default to international USD 200 as requested.
     const plan = getPaymentPlan(body.planId ?? "international_usd");
     if (!plan) {
-      return NextResponse.json({ error: "Invalid payment plan." }, { status: 400 });
+      const message = isGatewayTestPlan(body.planId)
+        ? "Payment test page is disabled. Set ENABLE_PAYMENT_TEST_PAGE=true to enable it."
+        : "Invalid payment plan.";
+      return NextResponse.json({ error: message }, { status: 400 });
     }
+
+    const paymentPurpose = isGatewayTestPlan(plan.id)
+      ? "gateway_test"
+      : "conference_registration";
 
     const registrationId =
       typeof body.registrationId === "string" && body.registrationId.trim()
@@ -68,7 +75,7 @@ export async function POST(request: Request) {
       currency: plan.currency,
       receipt,
       notes: {
-        purpose: "conference_registration",
+        purpose: paymentPurpose,
         planId: plan.id,
         userId: user.uid,
         userEmail: user.email,
@@ -88,7 +95,7 @@ export async function POST(request: Request) {
       razorpayOrderId: order.id,
       registrationId,
       notes: {
-        purpose: "conference_registration",
+        purpose: paymentPurpose,
         planId: plan.id,
       },
     });
@@ -106,7 +113,9 @@ export async function POST(request: Request) {
         email: user.email,
       },
       name: siteConfig.name,
-      description: `${plan.label} — Conference registration`,
+      description: isGatewayTestPlan(plan.id)
+        ? "Payment gateway test — USD 1"
+        : `${plan.label} — Conference registration`,
     });
   } catch (error) {
     console.error("[payments/create-order]", error);

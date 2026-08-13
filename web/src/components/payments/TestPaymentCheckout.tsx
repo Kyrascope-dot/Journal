@@ -9,12 +9,7 @@ import {
   requestVerifyPayment,
   type PaymentHistoryItem,
 } from "@/lib/client/payments";
-import {
-  CONFERENCE_PAYMENT_PLANS,
-  type PaymentPlanId,
-} from "@/lib/payments/plans";
-
-type ConferencePaymentPlanId = Exclude<PaymentPlanId, "gateway_test_usd">;
+import { GATEWAY_TEST_PAYMENT_PLAN } from "@/lib/payments/plans";
 
 function loadRazorpayScript(): Promise<boolean> {
   if (typeof window === "undefined") return Promise.resolve(false);
@@ -39,10 +34,8 @@ function loadRazorpayScript(): Promise<boolean> {
   });
 }
 
-export function ConferencePaymentCheckout() {
+export function TestPaymentCheckout() {
   const { user, loading } = useAuth();
-  const [planId, setPlanId] = useState<ConferencePaymentPlanId>("international_usd");
-  const [registrationId, setRegistrationId] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -55,9 +48,11 @@ export function ConferencePaymentCheckout() {
     }
     try {
       const payments = await requestMyPayments();
-      setHistory(payments);
+      setHistory(
+        payments.filter((payment) => payment.planId === GATEWAY_TEST_PAYMENT_PLAN.id)
+      );
     } catch {
-      // History is optional UX; checkout can still proceed.
+      // Optional UX.
     }
   }, [user]);
 
@@ -81,8 +76,7 @@ export function ConferencePaymentCheckout() {
       }
 
       const order = await requestCreatePaymentOrder({
-        planId,
-        registrationId: registrationId.trim() || undefined,
+        planId: GATEWAY_TEST_PAYMENT_PLAN.id,
       });
 
       const rzp = new window.Razorpay({
@@ -98,7 +92,7 @@ export function ConferencePaymentCheckout() {
         },
         notes: {
           planId: order.planId,
-          registrationId: registrationId.trim(),
+          purpose: "gateway_test",
         },
         theme: { color: "#0f4c81" },
         handler: (response) => {
@@ -111,15 +105,15 @@ export function ConferencePaymentCheckout() {
               });
               setMessage(
                 verified.alreadyPaid
-                  ? `Payment already recorded. Payment ID: ${response.razorpay_payment_id}`
-                  : `Payment successful. Payment ID: ${response.razorpay_payment_id}. Keep this reference for your records.`
+                  ? `Test payment already recorded. Payment ID: ${response.razorpay_payment_id}`
+                  : `Test payment successful. Payment ID: ${response.razorpay_payment_id}`
               );
               await reloadHistory();
             } catch (verifyError) {
               setError(
                 verifyError instanceof Error
                   ? verifyError.message
-                  : "Payment was taken but verification failed. Contact the editorial office with your Razorpay payment ID."
+                  : "Payment was taken but verification failed. Contact support with your Razorpay payment ID."
               );
             } finally {
               setBusy(false);
@@ -153,8 +147,6 @@ export function ConferencePaymentCheckout() {
     }
   }
 
-  const selectedPlan = CONFERENCE_PAYMENT_PLANS[planId];
-
   if (loading) {
     return <p className="mt-8 text-sm text-[var(--journal-muted)]">Loading…</p>;
   }
@@ -162,18 +154,15 @@ export function ConferencePaymentCheckout() {
   if (!user) {
     return (
       <div className="mt-10 rounded-lg border border-[var(--journal-border)] bg-sky-50/60 p-5">
-        <p className="text-sm font-medium text-[var(--journal-heading)]">
-          Sign in required for secure checkout
-        </p>
+        <p className="text-sm font-medium text-[var(--journal-heading)]">Sign in required</p>
         <p className="mt-2 text-sm text-[var(--journal-body)]">
-          Conference registration fees are USD 150 (national) or USD 200 (international) and are
-          processed securely through Razorpay. Please sign in to continue.
+          Sign in to run a {GATEWAY_TEST_PAYMENT_PLAN.displayAmount} Razorpay test payment.
         </p>
         <Link
-          href="/login?next=/conferences/payment"
+          href="/login?next=/payments/test"
           className="mt-4 inline-flex rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95"
         >
-          Sign in to pay
+          Sign in to test payment
         </Link>
       </div>
     );
@@ -181,81 +170,34 @@ export function ConferencePaymentCheckout() {
 
   return (
     <div className="mt-10 space-y-6">
+      <div className="rounded-lg border border-amber-300 bg-amber-50 p-5">
+        <p className="text-sm font-semibold text-amber-950">Test mode only</p>
+        <p className="mt-2 text-sm text-amber-950">
+          This page charges <strong>{GATEWAY_TEST_PAYMENT_PLAN.displayAmount}</strong> through your
+          configured Razorpay keys. Use Razorpay <strong>test mode</strong> keys (
+          <code className="rounded bg-white/80 px-1">rzp_test_…</code>) and official test cards
+          (e.g. <code className="rounded bg-white/80 px-1">4111 1111 1111 1111</code>) while
+          testing. Disable this page in production by removing{" "}
+          <code className="rounded bg-white/80 px-1">ENABLE_PAYMENT_TEST_PAGE</code>.
+        </p>
+      </div>
+
       <div className="rounded-lg border border-[var(--journal-border)] bg-white p-5">
         <h2 className="font-serif text-xl font-semibold text-[var(--journal-heading)]">
-          Secure checkout
+          Pay {GATEWAY_TEST_PAYMENT_PLAN.displayAmount}
         </h2>
-
-        <fieldset className="mt-5 space-y-3">
-          <legend className="text-sm font-semibold text-[var(--journal-heading)]">
-            Select fee category
-          </legend>
-          {(Object.keys(CONFERENCE_PAYMENT_PLANS) as ConferencePaymentPlanId[]).map((id) => {
-            const plan = CONFERENCE_PAYMENT_PLANS[id];
-            return (
-              <label
-                key={id}
-                className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
-                  planId === id
-                    ? "border-[var(--journal-accent)] bg-sky-50"
-                    : "border-[var(--journal-border)] bg-white"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="plan"
-                  value={id}
-                  checked={planId === id}
-                  onChange={() => setPlanId(id)}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="font-medium text-[var(--journal-heading)]">
-                    {plan.label}: {plan.displayAmount}
-                  </span>
-                  <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
-                    {plan.description}
-                  </span>
-                </span>
-              </label>
-            );
-          })}
-        </fieldset>
-
-        <label className="mt-5 block text-sm">
-          <span className="font-medium text-[var(--journal-heading)]">
-            Registration ID (optional)
-          </span>
-          <input
-            value={registrationId}
-            onChange={(e) => setRegistrationId(e.target.value)}
-            placeholder="e.g. GCRC-2026-000123"
-            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm"
-          />
-          <span className="mt-1 block text-xs text-[var(--journal-muted)]">
-            Add your conference Registration ID if you already have one.
-          </span>
-        </label>
-
-        <div className="mt-5 rounded border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm">
-          <p className="font-medium text-[var(--journal-heading)]">Payable now</p>
-          <p className="mt-1 text-lg font-semibold text-[var(--journal-accent)]">
-            {selectedPlan.displayAmount}
-          </p>
-          <p className="mt-1 text-xs text-[var(--journal-muted)]">
-            Signed in as {user.email}
-          </p>
-        </div>
-
+        <p className="mt-2 text-sm text-[var(--journal-body)]">
+          {GATEWAY_TEST_PAYMENT_PLAN.description}
+        </p>
+        <p className="mt-4 text-xs text-[var(--journal-muted)]">Signed in as {user.email}</p>
         <button
           type="button"
           disabled={busy}
           onClick={() => void handlePay()}
           className="mt-5 rounded bg-[var(--journal-accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
         >
-          {busy ? "Processing…" : `Pay ${selectedPlan.displayAmount} securely`}
+          {busy ? "Processing…" : `Pay ${GATEWAY_TEST_PAYMENT_PLAN.displayAmount} (test)`}
         </button>
-
         {message ? (
           <p className="mt-4 text-sm text-emerald-700" role="status">
             {message}
@@ -271,7 +213,7 @@ export function ConferencePaymentCheckout() {
       {history.length > 0 ? (
         <div className="rounded-lg border border-[var(--journal-border)] bg-white p-5">
           <h3 className="text-sm font-semibold text-[var(--journal-heading)]">
-            Your recent payments
+            Your test payments
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
             {history.map((payment) => (
@@ -284,12 +226,7 @@ export function ConferencePaymentCheckout() {
                 </p>
                 <p className="text-xs text-[var(--journal-muted)]">
                   Order: {payment.razorpayOrderId}
-                  {payment.razorpayPaymentId
-                    ? ` · Payment: ${payment.razorpayPaymentId}`
-                    : ""}
-                  {payment.paidAt
-                    ? ` · ${new Date(payment.paidAt).toLocaleString("en-GB")}`
-                    : ""}
+                  {payment.razorpayPaymentId ? ` · Payment: ${payment.razorpayPaymentId}` : ""}
                 </p>
               </li>
             ))}
