@@ -193,15 +193,15 @@ export const editorialTeam: EditorialMember[] = [
     headline: "Associate Editor",
     qualification: "Ph.D., Delhi Technological University",
     designation:
-      "Guest Faculty (Economics), Delhi Technological University\nBawana Rd, Delhi Technological University, Shahbad Daulatpur Village, Rohini, New Delhi, Delhi 110042, India",
-    emails: ["dikshaarora_2k21phdhueco02@dtu.ac.in"],
+      "Adjunct Professor — Economics, Bergen Community College\nParamus, New Jersey, USA\n\nGuest Faculty (Economics), Delhi Technological University\nBawana Rd, Delhi Technological University, Shahbad Daulatpur Village, Rohini, New Delhi, Delhi 110042, India",
+    emails: ["darora@bergen.edu", "dikshaarora_2k21phdhueco02@dtu.ac.in"],
     linkedinUrl: "https://www.linkedin.com/in/dr-diksha-arora-a31661146",
     researchGateUrl: "https://www.researchgate.net/profile/Diksha-Arora-4",
     phdAwardedUrl: DTU_HUMANITIES_PHD_AWARDED_URL,
     phdAwardedUrlLabel: "PhD awarded — DTU Humanities",
     imageSrc: "/editorial/diksha-arora.jpg",
     bioParagraphs: [
-      "Dr. Diksha Arora is an accomplished Economics educator and researcher who holds a Ph.D. from Delhi Technological University, with a focus on tech startups in the Delhi-NCR region. She has served as faculty at DTU and the University of Delhi, demonstrating strong teaching capability across diverse domains of economics. With top-tier academic achievements including a Junior Research Fellowship (AIR 4) and multiple research publications, Dr. Arora combines deep subject knowledge with practical experience. She is also certified in UGC-NET and CTET, proficient in digital teaching tools, and actively engaged in academic development through workshops, internships, and extracurricular activities. Known for her collaborative spirit and interdisciplinary outlook, she contributes effectively to diverse academic and research initiatives.",
+      "Dr. Diksha Arora is an accomplished Economics educator and researcher who holds a Ph.D. from Delhi Technological University, with a focus on tech startups in the Delhi-NCR region. She is Adjunct Professor of Economics at Bergen Community College, Paramus, New Jersey. She has served as faculty at DTU and the University of Delhi, demonstrating strong teaching capability across diverse domains of economics. With top-tier academic achievements including a Junior Research Fellowship (AIR 4) and multiple research publications, Dr. Arora combines deep subject knowledge with practical experience. She is also certified in UGC-NET and CTET, proficient in digital teaching tools, and actively engaged in academic development through workshops, internships, and extracurricular activities. Known for her collaborative spirit and interdisciplinary outlook, she contributes effectively to diverse academic and research initiatives.",
     ],
   },
 ];
