@@ -118,24 +118,12 @@ function TestPaymentCheckoutSignedIn() {
 
   return (
     <div className="mt-10 space-y-6">
-      <div className="rounded-lg border border-amber-300 bg-amber-50 p-5">
-        <p className="text-sm font-semibold text-amber-950">International USD test</p>
-        <p className="mt-2 text-sm text-amber-950">
-          This page uses the same USD Razorpay checkout flow as conference payments. It charges{" "}
-          <strong>{GATEWAY_TEST_PAYMENT_PLAN.displayAmount}</strong> to verify international cards.
-          Use Razorpay <strong>test keys</strong> (<code className="rounded bg-white/80 px-1">rzp_test_…</code>
-          ) and test card <code className="rounded bg-white/80 px-1">4111 1111 1111 1111</code>{" "}
-          while testing. Live keys reject test cards.
-        </p>
-      </div>
-
       <div className="rounded-lg border border-[var(--journal-border)] bg-white p-5">
         <h2 className="font-serif text-xl font-semibold text-[var(--journal-heading)]">
           Pay {GATEWAY_TEST_PAYMENT_PLAN.displayAmount}
         </h2>
         <p className="mt-2 text-sm text-[var(--journal-body)]">
-          {GATEWAY_TEST_PAYMENT_PLAN.description}. Same international checkout settings as the
-          conference payment page.
+          {GATEWAY_TEST_PAYMENT_PLAN.description}
         </p>
 
         <label className="mt-5 block text-sm">
@@ -184,18 +172,6 @@ function TestPaymentCheckoutSignedIn() {
           </p>
         ) : null}
       </div>
-
-      <section className="rounded-lg border border-sky-200 bg-sky-50/70 p-5">
-        <h3 className="font-serif text-lg font-semibold text-[var(--journal-heading)]">
-          International card checklist
-        </h3>
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--journal-body)]">
-          <li>Razorpay Dashboard → Account &amp; Settings → International payments → International Cards must be active.</li>
-          <li>Use a valid email (from your signed-in account) and real mobile number with country code.</li>
-          <li>International testers should use Visa/Mastercard issued outside India.</li>
-          <li>If this test succeeds, conference USD 200 checkout uses the same flow.</li>
-        </ul>
-      </section>
 
       {history.length > 0 ? (
         <div className="rounded-lg border border-[var(--journal-border)] bg-white p-5">

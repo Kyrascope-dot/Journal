@@ -22,9 +22,8 @@ export default function PaymentTestPage() {
             Payment gateway test
           </h1>
           <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-            Use this page to verify international USD card payments through Razorpay with a
-            one-dollar test charge. It uses the same checkout flow as conference payments. This is
-            not conference registration.
+            Use this page to verify Razorpay checkout with a one-dollar test charge. This is not
+            conference registration.
           </p>
           <TestPaymentCheckout />
         </div>
