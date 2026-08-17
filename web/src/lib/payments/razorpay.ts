@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import Razorpay from "razorpay";
+import { formatRazorpayOrderError } from "@/lib/payments/checkout-errors";
 import { siteConfig } from "@/lib/site-config";
 
 export function isRazorpayConfigured(): boolean {
@@ -20,6 +21,10 @@ export function getRazorpayPublicKeyId(): string {
     process.env.RAZORPAY_KEY_ID?.trim() ||
     ""
   );
+}
+
+export function isRazorpayLiveMode(): boolean {
+  return getRazorpayPublicKeyId().startsWith("rzp_live_");
 }
 
 export function getRazorpayClient(): Razorpay {
@@ -66,28 +71,7 @@ export function paymentReceiptPrefix(): string {
   return siteConfig.shortName.toLowerCase();
 }
 
-/** Normalize Razorpay SDK / API errors into a clear client message. */
+/** Backwards-compatible alias for order creation errors. */
 export function formatRazorpayError(error: unknown): string {
-  if (!error || typeof error !== "object") {
-    return error instanceof Error ? error.message : "Payment provider error.";
-  }
-
-  const err = error as {
-    statusCode?: number;
-    error?: { description?: string; code?: string; reason?: string };
-    message?: string;
-  };
-
-  const description =
-    err.error?.description || err.error?.reason || err.message || "";
-
-  if (/currency is not supported/i.test(description)) {
-    return [
-      "USD is not enabled on this Razorpay account yet (Currency is not supported).",
-      "In Razorpay Dashboard go to Account & Settings → International payments and activate International Cards / multi-currency.",
-      "Until Razorpay approves USD, use the National Participants (USD 150) option, or ask Razorpay support to enable international currency.",
-    ].join(" ");
-  }
-
-  return description || "Payment provider error.";
+  return formatRazorpayOrderError(error);
 }

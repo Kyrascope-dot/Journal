@@ -1,44 +1,37 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { RequireSignIn } from "@/components/auth/RequireSignIn";
 import { useAuth } from "@/context/AuthContext";
 import {
   requestCreatePaymentOrder,
   requestMyPayments,
-  requestVerifyPayment,
   type PaymentHistoryItem,
 } from "@/lib/client/payments";
+import { formatCheckoutPaymentError } from "@/lib/payments/checkout-errors";
 import { GATEWAY_TEST_PAYMENT_PLAN } from "@/lib/payments/plans";
-
-function loadRazorpayScript(): Promise<boolean> {
-  if (typeof window === "undefined") return Promise.resolve(false);
-  if (window.Razorpay) return Promise.resolve(true);
-
-  return new Promise((resolve) => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
-    );
-    if (existing) {
-      existing.addEventListener("load", () => resolve(true));
-      existing.addEventListener("error", () => resolve(false));
-      if (window.Razorpay) resolve(true);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
+import {
+  openRazorpayCheckout,
+  validateInternationalCheckoutContact,
+} from "@/lib/payments/razorpay-checkout-client";
 
 export function TestPaymentCheckout() {
-  const { user, loading } = useAuth();
+  return (
+    <RequireSignIn
+      nextPath="/payments/test"
+      message="You must sign in before running a payment gateway test."
+    >
+      <TestPaymentCheckoutSignedIn />
+    </RequireSignIn>
+  );
+}
+
+function TestPaymentCheckoutSignedIn() {
+  const { user } = useAuth();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
   const [history, setHistory] = useState<PaymentHistoryItem[]>([]);
 
   const reloadHistory = useCallback(async () => {
@@ -68,117 +61,71 @@ export function TestPaymentCheckout() {
       return;
     }
 
+    const contactError = validateInternationalCheckoutContact(contactPhone);
+    if (contactError) {
+      setError(contactError);
+      return;
+    }
+
     setBusy(true);
     try {
-      const ready = await loadRazorpayScript();
-      if (!ready || !window.Razorpay) {
-        throw new Error("Could not load Razorpay Checkout. Please try again.");
-      }
-
       const order = await requestCreatePaymentOrder({
         planId: GATEWAY_TEST_PAYMENT_PLAN.id,
       });
 
-      const rzp = new window.Razorpay({
-        key: order.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        name: order.name,
-        description: order.description,
-        order_id: order.orderId,
+      await openRazorpayCheckout({
+        order,
         prefill: {
           email: order.prefill.email || user.email || "",
           name: user.displayName || "",
+          contact: contactPhone.trim(),
         },
         notes: {
           planId: order.planId,
           purpose: "gateway_test",
         },
-        theme: { color: "#0f4c81" },
-        handler: (response) => {
-          void (async () => {
-            try {
-              const verified = await requestVerifyPayment({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              });
-              setMessage(
-                verified.alreadyPaid
-                  ? `Test payment already recorded. Payment ID: ${response.razorpay_payment_id}`
-                  : `Test payment successful. Payment ID: ${response.razorpay_payment_id}`
-              );
-              await reloadHistory();
-            } catch (verifyError) {
-              setError(
-                verifyError instanceof Error
-                  ? verifyError.message
-                  : "Payment was taken but verification failed. Contact support with your Razorpay payment ID."
-              );
-            } finally {
-              setBusy(false);
-            }
-          })();
+        onSuccess: async (verified) => {
+          setMessage(
+            verified.alreadyPaid
+              ? `Test payment already recorded. Payment ID: ${verified.razorpay_payment_id}`
+              : `Test payment successful. Payment ID: ${verified.razorpay_payment_id}`
+          );
+          await reloadHistory();
+          setBusy(false);
         },
-        modal: {
-          ondismiss: () => {
-            setBusy(false);
-            setMessage("Payment window closed. No charge was completed.");
-          },
+        onDismiss: () => {
+          setBusy(false);
+          setMessage("Payment window closed. No charge was completed.");
+        },
+        onFailure: (failureMessage) => {
+          setError(failureMessage);
+          setBusy(false);
         },
       });
-
-      rzp.on("payment.failed", (response: unknown) => {
-        const details = response as {
-          error?: { description?: string; reason?: string };
-        };
-        setError(
-          details.error?.description ||
-            details.error?.reason ||
-            "Payment failed. Please try again."
-        );
-        setBusy(false);
-      });
-
-      rzp.open();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not start payment.");
+      setError(
+        err instanceof Error
+          ? formatCheckoutPaymentError(err.message)
+          : "Could not start payment."
+      );
       setBusy(false);
     }
   }
 
-  if (loading) {
-    return <p className="mt-8 text-sm text-[var(--journal-muted)]">Loading…</p>;
-  }
-
   if (!user) {
-    return (
-      <div className="mt-10 rounded-lg border border-[var(--journal-border)] bg-sky-50/60 p-5">
-        <p className="text-sm font-medium text-[var(--journal-heading)]">Sign in required</p>
-        <p className="mt-2 text-sm text-[var(--journal-body)]">
-          Sign in to run a {GATEWAY_TEST_PAYMENT_PLAN.displayAmount} Razorpay test payment.
-        </p>
-        <Link
-          href="/login?next=/payments/test"
-          className="mt-4 inline-flex rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95"
-        >
-          Sign in to test payment
-        </Link>
-      </div>
-    );
+    return null;
   }
 
   return (
     <div className="mt-10 space-y-6">
       <div className="rounded-lg border border-amber-300 bg-amber-50 p-5">
-        <p className="text-sm font-semibold text-amber-950">Test mode only</p>
+        <p className="text-sm font-semibold text-amber-950">International USD test</p>
         <p className="mt-2 text-sm text-amber-950">
-          This page charges <strong>{GATEWAY_TEST_PAYMENT_PLAN.displayAmount}</strong> through your
-          configured Razorpay keys. Use Razorpay <strong>test mode</strong> keys (
-          <code className="rounded bg-white/80 px-1">rzp_test_…</code>) and official test cards
-          (e.g. <code className="rounded bg-white/80 px-1">4111 1111 1111 1111</code>) while
-          testing. Disable this page in production by removing{" "}
-          <code className="rounded bg-white/80 px-1">ENABLE_PAYMENT_TEST_PAGE</code>.
+          This page uses the same USD Razorpay checkout flow as conference payments. It charges{" "}
+          <strong>{GATEWAY_TEST_PAYMENT_PLAN.displayAmount}</strong> to verify international cards.
+          Use Razorpay <strong>test keys</strong> (<code className="rounded bg-white/80 px-1">rzp_test_…</code>
+          ) and test card <code className="rounded bg-white/80 px-1">4111 1111 1111 1111</code>{" "}
+          while testing. Live keys reject test cards.
         </p>
       </div>
 
@@ -187,9 +134,36 @@ export function TestPaymentCheckout() {
           Pay {GATEWAY_TEST_PAYMENT_PLAN.displayAmount}
         </h2>
         <p className="mt-2 text-sm text-[var(--journal-body)]">
-          {GATEWAY_TEST_PAYMENT_PLAN.description}
+          {GATEWAY_TEST_PAYMENT_PLAN.description}. Same international checkout settings as the
+          conference payment page.
         </p>
-        <p className="mt-4 text-xs text-[var(--journal-muted)]">Signed in as {user.email}</p>
+
+        <label className="mt-5 block text-sm">
+          <span className="font-medium text-[var(--journal-heading)]">
+            Mobile number <span className="text-red-500">*</span>
+          </span>
+          <input
+            value={contactPhone}
+            onChange={(e) => setContactPhone(e.target.value)}
+            placeholder="e.g. +1 555 123 4567 or +91 98765 43210"
+            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm"
+            autoComplete="tel"
+          />
+          <span className="mt-1 block text-xs text-[var(--journal-muted)]">
+            Required for international USD card payments. Use a real number with country code.
+          </span>
+        </label>
+
+        <div className="mt-5 rounded border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm">
+          <p className="font-medium text-[var(--journal-heading)]">Payable now</p>
+          <p className="mt-1 text-lg font-semibold text-[var(--journal-accent)]">
+            {GATEWAY_TEST_PAYMENT_PLAN.displayAmount}
+          </p>
+          <p className="mt-1 text-xs text-[var(--journal-muted)]">
+            Charged in USD via Razorpay · Signed in as {user.email}
+          </p>
+        </div>
+
         <button
           type="button"
           disabled={busy}
@@ -198,6 +172,7 @@ export function TestPaymentCheckout() {
         >
           {busy ? "Processing…" : `Pay ${GATEWAY_TEST_PAYMENT_PLAN.displayAmount} (test)`}
         </button>
+
         {message ? (
           <p className="mt-4 text-sm text-emerald-700" role="status">
             {message}
@@ -209,6 +184,18 @@ export function TestPaymentCheckout() {
           </p>
         ) : null}
       </div>
+
+      <section className="rounded-lg border border-sky-200 bg-sky-50/70 p-5">
+        <h3 className="font-serif text-lg font-semibold text-[var(--journal-heading)]">
+          International card checklist
+        </h3>
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--journal-body)]">
+          <li>Razorpay Dashboard → Account &amp; Settings → International payments → International Cards must be active.</li>
+          <li>Use a valid email (from your signed-in account) and real mobile number with country code.</li>
+          <li>International testers should use Visa/Mastercard issued outside India.</li>
+          <li>If this test succeeds, conference USD 200 checkout uses the same flow.</li>
+        </ul>
+      </section>
 
       {history.length > 0 ? (
         <div className="rounded-lg border border-[var(--journal-border)] bg-white p-5">

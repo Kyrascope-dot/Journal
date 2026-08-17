@@ -71,6 +71,39 @@ export async function createPaymentIntent(input: {
   return ref.id;
 }
 
+export async function getPaymentByRazorpayOrderId(
+  razorpayOrderId: string
+): Promise<PaymentRecord | null> {
+  const snap = await getAdminFirestore()
+    .collection("payments")
+    .where("razorpayOrderId", "==", razorpayOrderId)
+    .limit(1)
+    .get();
+
+  if (snap.empty) return null;
+  const doc = snap.docs[0]!;
+  const data = doc.data();
+  return {
+    id: doc.id,
+    userId: String(data.userId ?? ""),
+    userEmail: String(data.userEmail ?? ""),
+    purpose: "conference_registration" as const,
+    planId: data.planId as PaymentPlanId,
+    currency: data.currency as "USD" | "INR",
+    amountMinor: Number(data.amountMinor ?? 0),
+    amountMajor: Number(data.amountMajor ?? 0),
+    displayAmount: String(data.displayAmount ?? ""),
+    status: data.status as PaymentStatus,
+    razorpayOrderId: String(data.razorpayOrderId ?? ""),
+    razorpayPaymentId: data.razorpayPaymentId ? String(data.razorpayPaymentId) : null,
+    razorpaySignature: data.razorpaySignature ? String(data.razorpaySignature) : null,
+    registrationId: data.registrationId ? String(data.registrationId) : null,
+    notes: (data.notes ?? {}) as Record<string, string>,
+    createdAt: toIso(data.createdAt),
+    paidAt: toIso(data.paidAt),
+  };
+}
+
 export async function markPaymentPaid(input: {
   razorpayOrderId: string;
   razorpayPaymentId: string;

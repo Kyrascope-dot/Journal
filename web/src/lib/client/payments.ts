@@ -30,7 +30,7 @@ export type VerifyPaymentResponse = {
 async function authFetch(path: string, init?: RequestInit) {
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new Error("Please sign in to continue with payment.");
-  const token = await user.getIdToken();
+  const token = await user.getIdToken(/* forceRefresh */ true);
   return fetch(path, {
     ...init,
     headers: {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
-import { markPaymentPaid } from "@/lib/payments/payment-store";
+import { markPaymentPaid, getPaymentByRazorpayOrderId } from "@/lib/payments/payment-store";
 import {
   isRazorpayConfigured,
   verifyCheckoutSignature,
@@ -29,7 +29,10 @@ export async function POST(request: Request) {
 
     const user = await verifyUserIdToken(request.headers.get("authorization"));
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+      return NextResponse.json(
+        { error: "Please sign in to continue with payment." },
+        { status: 401 }
+      );
     }
 
     let body: Body;
@@ -62,6 +65,23 @@ export async function POST(request: Request) {
       );
     }
 
+    const payment = await getPaymentByRazorpayOrderId(orderId);
+    if (!payment) {
+      return NextResponse.json(
+        {
+          error:
+            "Payment order was not found. Contact the editorial office with your payment ID.",
+        },
+        { status: 404 }
+      );
+    }
+    if (payment.userId !== user.uid) {
+      return NextResponse.json(
+        { error: "This payment does not belong to your signed-in account." },
+        { status: 403 }
+      );
+    }
+
     const result = await markPaymentPaid({
       razorpayOrderId: orderId,
       razorpayPaymentId: paymentId,
@@ -71,8 +91,8 @@ export async function POST(request: Request) {
 
     if (!result) {
       return NextResponse.json(
-        { error: "Payment order was not found. Contact the editorial office with your payment ID." },
-        { status: 404 }
+        { error: "Could not update payment status. Contact the editorial office." },
+        { status: 500 }
       );
     }
 

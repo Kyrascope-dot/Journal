@@ -1,16 +1,20 @@
-export type PaymentPlanId = "international_usd" | "national_usd" | "gateway_test_usd";
+export type PaymentPlanId =
+  | "international_usd"
+  | "national_usd"
+  | "gateway_test_usd";
 
 export type PaymentPlan = {
   id: PaymentPlanId;
   label: string;
   description: string;
-  /** ISO currency code accepted by Razorpay */
+  /** ISO currency code sent to Razorpay */
   currency: "USD";
   /** Major units (e.g. 200 for USD 200) */
   amountMajor: number;
   /** Smallest currency unit for Razorpay (cents) */
   amountMinor: number;
   displayAmount: string;
+  checkoutHint: string;
 };
 
 /** USD 1 plan for Razorpay gateway testing only. */
@@ -22,12 +26,10 @@ export const GATEWAY_TEST_PAYMENT_PLAN: PaymentPlan = {
   amountMajor: 1,
   amountMinor: 100,
   displayAmount: "USD 1",
+  checkoutHint: "Uses USD checkout. International cards require Razorpay International Payments.",
 };
 
-/**
- * Server-authoritative conference fee plans.
- * Never trust client-supplied amounts — resolve via plan id only.
- */
+/** Server-authoritative conference fee plans (USD only). */
 export const CONFERENCE_PAYMENT_PLANS: Record<
   Exclude<PaymentPlanId, "gateway_test_usd">,
   PaymentPlan
@@ -40,6 +42,7 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
     amountMajor: 150,
     amountMinor: 15000,
     displayAmount: "USD 150",
+    checkoutHint: "For participants based in India.",
   },
   international_usd: {
     id: "international_usd",
@@ -49,12 +52,14 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
     amountMajor: 200,
     amountMinor: 20000,
     displayAmount: "USD 200",
+    checkoutHint: "For participants based outside India.",
   },
 };
 
-/** Legacy plan id from earlier INR checkout — maps to national USD 150. */
+/** Older plan ids still stored on past payment records. */
 const LEGACY_PLAN_ALIASES: Record<string, PaymentPlanId> = {
   indian_inr: "national_usd",
+  national_inr: "national_usd",
 };
 
 /** True in local dev, or when ENABLE_PAYMENT_TEST_PAGE=true on the server. */
@@ -67,6 +72,10 @@ export function isPaymentTestPageEnabled(): boolean {
 
 export function isGatewayTestPlan(planId: string | null | undefined): boolean {
   return planId === "gateway_test_usd";
+}
+
+export function isInternationalUsdPlan(planId: string | null | undefined): boolean {
+  return planId === "international_usd";
 }
 
 export function getPaymentPlan(planId: string | null | undefined): PaymentPlan | null {

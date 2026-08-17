@@ -27,7 +27,42 @@ export default function ConferencePaymentPage() {
             ))}
           </ul>
 
+          <p className="mt-6 text-[15px] leading-relaxed text-[var(--journal-body)]">
+            Sign in is required before you can pay. After abstract acceptance, complete your
+            registration fee here using secure Razorpay checkout.
+          </p>
+
           <ConferencePaymentCheckout />
+
+          <section
+            className="mt-10 rounded-lg border border-sky-200 bg-sky-50/70 p-5"
+            aria-labelledby="payment-troubleshooting-heading"
+          >
+            <h2
+              id="payment-troubleshooting-heading"
+              className="font-serif text-lg font-semibold text-[var(--journal-heading)]"
+            >
+              Payment not working?
+            </h2>
+            <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--journal-body)]">
+              <li>
+                <strong>National Participants:</strong> USD 150
+              </li>
+              <li>
+                <strong>International Participants:</strong> USD 200 — enter a valid mobile number
+                and use Visa/Mastercard.
+              </li>
+              <li>
+                <strong>International payments failing:</strong> activate International Payments in
+                Razorpay Dashboard → Account &amp; Settings → International payments →
+                International Cards.
+              </li>
+              <li>
+                <strong>Testing:</strong> use Razorpay test keys (<code>rzp_test_…</code>) and test
+                card <code>4111 1111 1111 1111</code>.
+              </li>
+            </ul>
+          </section>
 
           <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
             The Registration Fee Includes
