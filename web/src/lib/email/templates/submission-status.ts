@@ -37,11 +37,20 @@ export type RenderedSubmissionEmail = {
   text: string;
 };
 
+type TemplateSection = {
+  heading?: string;
+  paragraphs?: string[];
+  list?: string[];
+};
+
 type TemplateContent = {
   subject: string;
   opening: string[];
-  nextSteps: string[];
+  sections?: TemplateSection[];
+  nextSteps?: string[];
   closing: string[];
+  includeMetadataTable?: boolean;
+  includeRegards?: boolean;
 };
 
 function escapeHtml(value: string): string {
@@ -55,49 +64,74 @@ function escapeHtml(value: string): string {
 function conferenceAcceptedContent(
   context: SubmissionEmailContext
 ): TemplateContent {
-  const nextSteps = [
-    "Complete conference registration payment.",
-    "Prepare a PowerPoint presentation if you plan to present (optional for Best Paper-only participants).",
-    "The Zoom meeting link will be shared before the conference.",
-    `Scholars in different time zones with timing constraints may request to present first by emailing ${siteConfig.email}.`,
+  const sections: TemplateSection[] = [
+    {
+      heading: "Important Information",
+      list: [
+        "Conference: GCR International Conference Q3 2026",
+        "Date: 30th August 2026",
+        "Time: 9:30 AM IST",
+      ],
+      paragraphs: [
+        "Workshop: 29th August 2026",
+        "Time: 9:30 AM IST",
+        "The workshop is optional and not mandatory. Scholars who participate in the workshop will receive a separate certificate of participation.",
+      ],
+    },
+    {
+      heading: "Presentation Guidelines",
+      paragraphs: [
+        "Please prepare a presentation of approximately 10–15 slides, keeping your presentation within 10 minutes.",
+        "If you have any timing constraints and would prefer to present earlier in the conference, please let us know by replying to this email. We will do our best to make the necessary adjustment to the presentation schedule.",
+      ],
+    },
   ];
 
-  if (context.conferenceAwardIntent === "best_presenter") {
-    nextSteps.push(
-      "Best Presenter category: you only need to prepare your presentation.",
-      "No manuscript submission is required.",
-      "A Certificate of Participation will be given whether or not you receive the award."
-    );
-  } else if (context.conferenceAwardIntent === "best_paper") {
-    nextSteps.push(
-      `Best Paper category: please email your paper to ${siteConfig.email}.`,
-      "Oral presentation at the conference is optional for the Best Paper Award category.",
-      "If your paper is already published, please send the PDF version.",
-      "If your paper is unpublished, please send the blinded manuscript and separate title page.",
-      "Formatting according to the journal template is OPTIONAL at this stage.",
-      "Top 10% of Best Paper submissions may be offered a publication opportunity in GCR, subject to peer review; publication is optional.",
-      "A Certificate of Participation will be given whether or not you receive the award.",
-      "If invited for journal publication, you will later submit using the official GCR manuscript template before peer review."
-    );
-  } else if (context.conferenceAwardIntent === "both") {
-    nextSteps.push(
-      "Best Paper + Best Presenter: please prepare your presentation for the Best Presenter component.",
-      "Please also email a blinded manuscript and a separate title page for the Best Paper component (or send the published PDF if already published).",
-      "Oral presentation is required for the Best Presenter component.",
-      "Formatting using the journal template is optional during conference evaluation.",
-      "A Certificate of Participation will be given whether or not you receive an award."
-    );
+  if (
+    context.conferenceAwardIntent === "best_paper" ||
+    context.conferenceAwardIntent === "both"
+  ) {
+    sections.push({
+      heading: "Best Paper Award",
+      paragraphs: [
+        `For scholars who have opted for the Best Paper Award, please submit your title page and blinded manuscript to the Editorial Office at ${siteConfig.email} for further consideration.`,
+      ],
+    });
   }
 
+  sections.push(
+    {
+      heading: "Payment & Fee Waivers",
+      paragraphs: [
+        "The payment link will be shared with you shortly. Kindly watch your email for further instructions.",
+        "For scholars who have applied for a need-based fee waiver, please respond to this email so that we can take your request into consideration before proceeding with the payment.",
+        "The Zoom links for both the workshop and the conference will be shared with registered participants after confirmation of payment.",
+      ],
+    },
+    {
+      heading: "Confirmation of Attendance",
+      paragraphs: [
+        "Please confirm your availability for both the workshop and the conference by 25th August 2026 by replying to this email.",
+        "While the workshop is optional, we encourage you to participate as it provides an additional opportunity for academic engagement. A separate certificate will be provided to scholars who attend the workshop.",
+      ],
+    }
+  );
+
   return {
-    subject: `Conference Abstract Accepted | Registration ID ${context.registrationId}`,
+    subject: `Abstract Accepted | GCR International Conference Q3 2026 | ${context.registrationId}`,
+    includeMetadataTable: false,
+    includeRegards: false,
     opening: [
       "Congratulations!",
-      "Your abstract has been accepted for presentation at the Global Confluence Review International Conference.",
-      "We look forward to your participation.",
+      `We are pleased to inform you that your abstract, “${context.paperTitle}”, has been accepted for presentation at the GCR International Conference Q3 2026, scheduled to be held on 30th August 2026 at 9:30 AM IST.`,
+      "We are delighted to have your research as part of the conference and look forward to your participation.",
     ],
-    nextSteps,
-    closing: ["We look forward to welcoming you."],
+    sections,
+    closing: [
+      "For any further queries related to the conference or workshop, please feel free to reach out to us by replying to this email.",
+      "We look forward to welcoming you to the GCR International Conference Q3 2026 and to an engaging exchange of ideas.",
+      "Thanking you,",
+    ],
   };
 }
 
@@ -234,6 +268,19 @@ export function resolveSubmissionEmailTemplate(
   return null;
 }
 
+function renderSectionHtml(section: TemplateSection): string {
+  const heading = section.heading
+    ? `<h2 style="font-family:Georgia,serif;font-size:18px;color:#0f172a;margin:24px 0 12px">${escapeHtml(section.heading)}</h2>`
+    : "";
+  const paragraphs = (section.paragraphs ?? [])
+    .map((line) => `<p>${escapeHtml(line)}</p>`)
+    .join("");
+  const list = section.list?.length
+    ? `<ul style="padding-left:22px">${section.list.map((item) => `<li style="margin:8px 0">${escapeHtml(item)}</li>`).join("")}</ul>`
+    : "";
+  return `${heading}${paragraphs}${list}`;
+}
+
 function renderHtml(
   context: SubmissionEmailContext,
   content: TemplateContent
@@ -245,6 +292,17 @@ function renderHtml(
     ["Submission Date", context.submissionDate],
     ["Current Status", context.currentStatus],
   ];
+  const metadataTable =
+    content.includeMetadataTable === false
+      ? ""
+      : `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;background:#f8fafc;border:1px solid #e2e8f0">
+            ${rows.map(([label, value]) => `<tr><td style="padding:8px 12px;color:#64748b;width:34%">${escapeHtml(label)}</td><td style="padding:8px 12px;color:#0f172a;font-weight:600">${escapeHtml(value)}</td></tr>`).join("")}
+          </table>`;
+  const sectionsHtml = (content.sections ?? []).map(renderSectionHtml).join("");
+  const nextStepsHtml = content.nextSteps?.length
+    ? `<h2 style="font-family:Georgia,serif;font-size:18px;color:#0f172a">Next Steps</h2>
+          <ul style="padding-left:22px">${content.nextSteps.map((step) => `<li style="margin:8px 0">${escapeHtml(step)}</li>`).join("")}</ul>`
+    : "";
   return `<!DOCTYPE html>
 <html><body style="margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#1f2937">
   <div style="display:none;max-height:0;overflow:hidden">${escapeHtml(content.subject)}</div>
@@ -258,13 +316,11 @@ function renderHtml(
         <tr><td style="padding:28px">
           <p>Dear ${escapeHtml(context.authorName)},</p>
           ${content.opening.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;background:#f8fafc;border:1px solid #e2e8f0">
-            ${rows.map(([label, value]) => `<tr><td style="padding:8px 12px;color:#64748b;width:34%">${escapeHtml(label)}</td><td style="padding:8px 12px;color:#0f172a;font-weight:600">${escapeHtml(value)}</td></tr>`).join("")}
-          </table>
-          <h2 style="font-family:Georgia,serif;font-size:18px;color:#0f172a">Next Steps</h2>
-          <ul style="padding-left:22px">${content.nextSteps.map((step) => `<li style="margin:8px 0">${escapeHtml(step)}</li>`).join("")}</ul>
+          ${metadataTable}
+          ${sectionsHtml}
+          ${nextStepsHtml}
           ${content.closing.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
-          <p>Regards<br><strong>Editorial Office</strong><br>Global Confluence Review</p>
+          <p>${content.includeRegards === false ? "" : "Regards<br>"}<strong>Editorial Office</strong><br>Global Confluence Review</p>
           <p><a href="${escapeHtml(context.dashboardUrl)}" style="display:inline-block;background:#1e3a5f;color:#fff;padding:10px 16px;text-decoration:none">Open Author Dashboard</a></p>
         </td></tr>
         <tr><td style="padding:20px;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#64748b">
@@ -282,28 +338,45 @@ function renderText(
   context: SubmissionEmailContext,
   content: TemplateContent
 ): string {
-  return [
-    `Dear ${context.authorName},`,
-    "",
-    ...content.opening,
-    "",
-    `Registration ID: ${context.registrationId}`,
-    `Paper Title: ${context.paperTitle}`,
-    `Author Name: ${context.authorName}`,
-    `Submission Date: ${context.submissionDate}`,
-    `Current Status: ${context.currentStatus}`,
-    "",
-    "Next Steps",
-    ...content.nextSteps.map((step) => `- ${step}`),
-    "",
+  const lines = [`Dear ${context.authorName},`, "", ...content.opening, ""];
+
+  if (content.includeMetadataTable !== false) {
+    lines.push(
+      `Registration ID: ${context.registrationId}`,
+      `Paper Title: ${context.paperTitle}`,
+      `Author Name: ${context.authorName}`,
+      `Submission Date: ${context.submissionDate}`,
+      `Current Status: ${context.currentStatus}`,
+      ""
+    );
+  }
+
+  for (const section of content.sections ?? []) {
+    if (section.heading) {
+      lines.push(section.heading);
+    }
+    lines.push(...(section.paragraphs ?? []));
+    for (const item of section.list ?? []) {
+      lines.push(`- ${item}`);
+    }
+    lines.push("");
+  }
+
+  if (content.nextSteps?.length) {
+    lines.push("Next Steps", ...content.nextSteps.map((step) => `- ${step}`), "");
+  }
+
+  lines.push(
     ...content.closing,
     "",
-    "Regards",
+    ...(content.includeRegards === false ? [] : ["Regards"]),
     "Editorial Office",
     "Global Confluence Review",
     siteConfig.email,
-    "https://www.globalconfluencereview.in",
-  ].join("\n");
+    "https://www.globalconfluencereview.in"
+  );
+
+  return lines.join("\n");
 }
 
 export function renderSubmissionEmail(
