@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BulkEmailComposer } from "@/components/dashboard/communications/BulkEmailComposer";
 import {
   requestCommunicationCampaigns,
@@ -44,6 +44,12 @@ export function CommunicationsPanel({
     bodyHtml: "",
   });
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
+  const templateEditorRef = useRef<HTMLDivElement>(null);
+
+  const conferenceTemplates = templates.filter(
+    (t) => t.audience === "conference" || t.audience === "both"
+  );
 
   const reload = useCallback(async () => {
     setError("");
@@ -86,15 +92,31 @@ export function CommunicationsPanel({
       setTemplateForm({
         name: "",
         description: "",
-        audience: "both",
+        audience: "conference",
         subject: "",
         bodyHtml: "<p>Dear {{authorName}},</p>\n<p></p>",
       });
     }
-    setTab("templates");
+    setTemplateEditorOpen(true);
   }
 
+  function closeTemplateEditor() {
+    setTemplateEditorOpen(false);
+    setEditTemplate(null);
+  }
+
+  useEffect(() => {
+    if (!templateEditorOpen) return;
+    requestAnimationFrame(() => {
+      templateEditorRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  }, [templateEditorOpen, editTemplate?.id]);
+
   async function saveTemplate() {
+    if (!templateForm.name.trim() || !templateForm.subject.trim() || !templateForm.bodyHtml.trim()) {
+      setError("Name, subject, and body are required.");
+      return;
+    }
     setSavingTemplate(true);
     setError("");
     try {
@@ -102,7 +124,7 @@ export function CommunicationsPanel({
         id: editTemplate?.id,
         ...templateForm,
       });
-      setEditTemplate(null);
+      closeTemplateEditor();
       await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save template.");
@@ -254,6 +276,24 @@ export function CommunicationsPanel({
           >
             Open conference composer
           </button>
+          <div className="mt-8">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold text-[var(--journal-heading)]">
+                Conference email templates
+              </h3>
+              <button
+                type="button"
+                onClick={() => startEditTemplate()}
+                className="text-xs font-medium text-[var(--journal-accent)] hover:underline"
+              >
+                New template
+              </button>
+            </div>
+            <TemplateTable
+              templates={conferenceTemplates}
+              onEdit={(template) => startEditTemplate(template)}
+            />
+          </div>
           <CampaignTable
             campaigns={campaigns.filter((c) => c.purpose === "conference")}
             processingId={processingId}
@@ -294,100 +334,7 @@ export function CommunicationsPanel({
               New template
             </button>
           </div>
-
-          <div className="overflow-x-auto rounded border border-[var(--journal-border)]">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-sky-50 text-xs text-[var(--journal-muted)]">
-                <tr>
-                  <th className="px-3 py-2 font-medium">Name</th>
-                  <th className="px-3 py-2 font-medium">Audience</th>
-                  <th className="px-3 py-2 font-medium">Subject</th>
-                  <th className="px-3 py-2 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                {templates.map((template) => (
-                  <tr
-                    key={template.id}
-                    className="border-t border-[var(--journal-border)] align-top"
-                  >
-                    <td className="px-3 py-2">
-                      <p className="font-medium text-[var(--journal-heading)]">{template.name}</p>
-                      <p className="text-xs text-[var(--journal-muted)]">{template.description}</p>
-                    </td>
-                    <td className="px-3 py-2 capitalize">{template.audience}</td>
-                    <td className="px-3 py-2 text-xs">{template.subject}</td>
-                    <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => startEditTemplate(template)}
-                        className="text-xs font-medium text-[var(--journal-accent)] hover:underline"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="rounded-lg border border-[var(--journal-border)] bg-white p-4">
-            <h3 className="text-sm font-semibold text-[var(--journal-heading)]">
-              {editTemplate ? "Edit template" : "Create template"}
-            </h3>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <input
-                value={templateForm.name}
-                onChange={(e) => setTemplateForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="Name"
-                className="rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm"
-              />
-              <select
-                value={templateForm.audience}
-                onChange={(e) =>
-                  setTemplateForm((f) => ({
-                    ...f,
-                    audience: e.target.value as EmailTemplateRecord["audience"],
-                  }))
-                }
-                className="rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm"
-              >
-                <option value="both">Both</option>
-                <option value="conference">Conference</option>
-                <option value="journal">Journal</option>
-              </select>
-              <input
-                value={templateForm.description}
-                onChange={(e) =>
-                  setTemplateForm((f) => ({ ...f, description: e.target.value }))
-                }
-                placeholder="Description"
-                className="rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm sm:col-span-2"
-              />
-              <input
-                value={templateForm.subject}
-                onChange={(e) => setTemplateForm((f) => ({ ...f, subject: e.target.value }))}
-                placeholder="Subject"
-                className="rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm sm:col-span-2"
-              />
-              <textarea
-                value={templateForm.bodyHtml}
-                onChange={(e) => setTemplateForm((f) => ({ ...f, bodyHtml: e.target.value }))}
-                rows={8}
-                placeholder="HTML body"
-                className="rounded border border-[var(--journal-border)] px-3 py-2 font-mono text-xs sm:col-span-2"
-              />
-            </div>
-            <button
-              type="button"
-              disabled={savingTemplate}
-              onClick={() => void saveTemplate()}
-              className="mt-3 rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
-              {savingTemplate ? "Saving…" : "Save template"}
-            </button>
-          </div>
+          <TemplateTable templates={templates} onEdit={(template) => startEditTemplate(template)} />
         </div>
       ) : null}
 
@@ -411,11 +358,201 @@ export function CommunicationsPanel({
           onClose={() => setComposerPurpose(null)}
           onCampaignChange={() => void reload()}
           onTemplatesChange={() => void reload()}
+          onEditTemplate={(template) => {
+            setComposerPurpose(null);
+            startEditTemplate(template);
+          }}
+        />
+      ) : null}
+
+      {templateEditorOpen ? (
+        <TemplateEditorDialog
+          editorRef={templateEditorRef}
+          editTemplate={editTemplate}
+          templateForm={templateForm}
+          saving={savingTemplate}
+          onChange={setTemplateForm}
+          onSave={() => void saveTemplate()}
+          onClose={closeTemplateEditor}
         />
       ) : null}
     </div>
   );
 }
+
+function TemplateTable({
+  templates,
+  onEdit,
+}: {
+  templates: EmailTemplateRecord[];
+  onEdit: (template: EmailTemplateRecord) => void;
+}) {
+  if (templates.length === 0) {
+    return (
+      <p className="mt-3 text-sm text-[var(--journal-muted)]">No templates yet.</p>
+    );
+  }
+
+  return (
+    <div className="mt-3 overflow-x-auto rounded border border-[var(--journal-border)]">
+      <table className="min-w-full text-left text-sm">
+        <thead className="bg-sky-50 text-xs text-[var(--journal-muted)]">
+          <tr>
+            <th className="px-3 py-2 font-medium">Name</th>
+            <th className="px-3 py-2 font-medium">Audience</th>
+            <th className="px-3 py-2 font-medium">Subject</th>
+            <th className="px-3 py-2 font-medium" />
+          </tr>
+        </thead>
+        <tbody>
+          {templates.map((template) => (
+            <tr
+              key={template.id}
+              className="border-t border-[var(--journal-border)] align-top"
+            >
+              <td className="px-3 py-2">
+                <p className="font-medium text-[var(--journal-heading)]">{template.name}</p>
+                <p className="text-xs text-[var(--journal-muted)]">{template.description}</p>
+              </td>
+              <td className="px-3 py-2 capitalize">{template.audience}</td>
+              <td className="px-3 py-2 text-xs">{template.subject}</td>
+              <td className="px-3 py-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => onEdit(template)}
+                  className="text-xs font-medium text-[var(--journal-accent)] hover:underline"
+                >
+                  Edit
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const TemplateEditorDialog = ({
+  editorRef,
+  editTemplate,
+  templateForm,
+  saving,
+  onChange,
+  onSave,
+  onClose,
+}: {
+  editorRef?: React.RefObject<HTMLDivElement | null>;
+  editTemplate: EmailTemplateRecord | null;
+  templateForm: {
+    name: string;
+    description: string;
+    audience: EmailTemplateRecord["audience"];
+    subject: string;
+    bodyHtml: string;
+  };
+  saving: boolean;
+  onChange: React.Dispatch<
+    React.SetStateAction<{
+      name: string;
+      description: string;
+      audience: EmailTemplateRecord["audience"];
+      subject: string;
+      bodyHtml: string;
+    }>
+  >;
+  onSave: () => void;
+  onClose: () => void;
+}) => (
+  <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8">
+    <div
+      ref={editorRef}
+      className="w-full max-w-3xl rounded-lg border border-[var(--journal-border)] bg-white shadow-xl"
+      role="dialog"
+      aria-labelledby="template-editor-title"
+    >
+      <div className="flex items-center justify-between border-b border-[var(--journal-border)] px-5 py-4">
+        <h3
+          id="template-editor-title"
+          className="text-sm font-semibold text-[var(--journal-heading)]"
+        >
+          {editTemplate ? "Edit template" : "Create template"}
+        </h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-sm text-[var(--journal-muted)] hover:text-[var(--journal-heading)]"
+        >
+          Close
+        </button>
+      </div>
+      <div className="space-y-3 px-5 py-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <input
+            value={templateForm.name}
+            onChange={(e) => onChange((f) => ({ ...f, name: e.target.value }))}
+            placeholder="Name"
+            className="rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm"
+          />
+          <select
+            value={templateForm.audience}
+            onChange={(e) =>
+              onChange((f) => ({
+                ...f,
+                audience: e.target.value as EmailTemplateRecord["audience"],
+              }))
+            }
+            className="rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm"
+          >
+            <option value="both">Both</option>
+            <option value="conference">Conference</option>
+            <option value="journal">Journal</option>
+          </select>
+          <input
+            value={templateForm.description}
+            onChange={(e) => onChange((f) => ({ ...f, description: e.target.value }))}
+            placeholder="Description"
+            className="rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm sm:col-span-2"
+          />
+          <input
+            value={templateForm.subject}
+            onChange={(e) => onChange((f) => ({ ...f, subject: e.target.value }))}
+            placeholder="Subject"
+            className="rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm sm:col-span-2"
+          />
+          <textarea
+            value={templateForm.bodyHtml}
+            onChange={(e) => onChange((f) => ({ ...f, bodyHtml: e.target.value }))}
+            rows={14}
+            placeholder="HTML body — use {{authorName}}, {{title}}, {{registrationId}}, etc."
+            className="rounded border border-[var(--journal-border)] px-3 py-2 font-mono text-xs leading-relaxed sm:col-span-2"
+          />
+        </div>
+        <p className="text-xs text-[var(--journal-muted)]">
+          Variables: {"{{authorName}}"}, {"{{title}}"}, {"{{registrationId}}"},{" "}
+          {"{{statusLabel}}"}, {"{{dashboardUrl}}"}, and other merge fields from the composer.
+        </p>
+      </div>
+      <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--journal-border)] px-5 py-4">
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded border border-[var(--journal-border)] px-4 py-2 text-sm"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          disabled={saving}
+          onClick={onSave}
+          className="rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save template"}
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 function CampaignTable({
   campaigns,

@@ -369,7 +369,16 @@ export async function createOrUpdateTemplate(input: {
 
   if (input.id) {
     const ref = db.doc(`emailTemplates/${input.id}`);
-    await ref.set(payload, { merge: true });
+    const existing = await ref.get();
+    const existingData = existing.data() ?? {};
+    await ref.set(
+      {
+        ...payload,
+        isDefault: Boolean(existingData.isDefault),
+        ...(existingData.seedKey ? { seedKey: existingData.seedKey } : {}),
+      },
+      { merge: true }
+    );
     const snap = await ref.get();
     return serializeTemplate(ref.id, snap.data() ?? payload);
   }

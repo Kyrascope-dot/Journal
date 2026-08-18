@@ -41,6 +41,7 @@ type Props = {
   defaultBodyHtml?: string;
   onCampaignChange?: (campaign: EmailCampaignSummary) => void;
   onTemplatesChange?: () => void;
+  onEditTemplate?: (template: EmailTemplateRecord) => void;
 };
 
 const CONFERENCE_STATUSES: SubmissionStatus[] = ["pending", "accepted", "rejected"];
@@ -85,6 +86,7 @@ export function BulkEmailComposer({
   defaultBodyHtml = "",
   onCampaignChange,
   onTemplatesChange,
+  onEditTemplate,
 }: Props) {
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [filters, setFilters] = useState<RecipientFilters>(() => defaultFilters(purpose));
@@ -645,9 +647,23 @@ export function BulkEmailComposer({
 
           <section className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-[var(--journal-muted)]">
-                Template
-              </label>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Template
+                </label>
+                {templateId && onEditTemplate ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const template = templates.find((t) => t.id === templateId);
+                      if (template) onEditTemplate(template);
+                    }}
+                    className="text-xs font-medium text-[var(--journal-accent)] hover:underline"
+                  >
+                    Edit template
+                  </button>
+                ) : null}
+              </div>
               <select
                 value={templateId}
                 onChange={(e) => applyTemplate(e.target.value)}
