@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { RequireSignIn } from "@/components/auth/RequireSignIn";
 import { useAuth } from "@/context/AuthContext";
 import {
+  requestCapturePayPalOrder,
   requestCreatePaymentOrder,
+  requestCreatePayPalOrder,
   requestMyPayments,
   type PaymentHistoryItem,
 } from "@/lib/client/payments";
@@ -19,6 +21,7 @@ import {
 } from "@/lib/payments/razorpay-checkout-client";
 
 type ConferencePaymentPlanId = Exclude<PaymentPlanId, "gateway_test_usd">;
+type PaymentMethod = "razorpay" | "paypal";
 
 export function ConferencePaymentCheckout() {
   return (
@@ -34,6 +37,7 @@ export function ConferencePaymentCheckout() {
 function ConferencePaymentCheckoutSignedIn() {
   const { user } = useAuth();
   const [planId, setPlanId] = useState<ConferencePaymentPlanId>("national_usd");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("razorpay");
   const [registrationId, setRegistrationId] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [busy, setBusy] = useState(false);
@@ -58,6 +62,61 @@ function ConferencePaymentCheckoutSignedIn() {
     void reloadHistory();
   }, [reloadHistory]);
 
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams(window.location.search);
+    const returnedFromPayPal = params.get("paypal_return") === "1";
+    const orderId = params.get("token");
+    const cancelled = params.get("paypal_cancelled") === "1";
+
+    if (cancelled) {
+      setMessage("PayPal payment was cancelled. No charge was completed.");
+      params.delete("paypal_cancelled");
+      const nextSearch = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`
+      );
+      return;
+    }
+
+    if (!returnedFromPayPal || !orderId) return;
+
+    setBusy(true);
+    setError("");
+    setMessage("Finalizing PayPal payment...");
+    void requestCapturePayPalOrder({ orderId })
+      .then(async (captured) => {
+        setMessage(
+          captured.alreadyPaid
+            ? `PayPal payment already recorded. Payment ID: ${captured.paypalCaptureId}`
+            : `PayPal payment successful. Payment ID: ${captured.paypalCaptureId}. Keep this reference for your records.`
+        );
+        await reloadHistory();
+      })
+      .catch((err) => {
+        setError(
+          err instanceof Error
+            ? formatCheckoutPaymentError(err.message)
+            : "Could not finalize PayPal payment."
+        );
+        setMessage("");
+      })
+      .finally(() => {
+        params.delete("paypal_return");
+        params.delete("token");
+        params.delete("PayerID");
+        const nextSearch = params.toString();
+        window.history.replaceState(
+          null,
+          "",
+          `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`
+        );
+        setBusy(false);
+      });
+  }, [reloadHistory, user]);
+
   async function handlePay() {
     setError("");
     setMessage("");
@@ -66,14 +125,25 @@ function ConferencePaymentCheckoutSignedIn() {
       return;
     }
 
-    const contactError = validateInternationalCheckoutContact(contactPhone);
-    if (contactError) {
-      setError(contactError);
-      return;
+    if (paymentMethod === "razorpay") {
+      const contactError = validateInternationalCheckoutContact(contactPhone);
+      if (contactError) {
+        setError(contactError);
+        return;
+      }
     }
 
     setBusy(true);
     try {
+      if (paymentMethod === "paypal") {
+        const order = await requestCreatePayPalOrder({
+          planId,
+          registrationId: registrationId.trim() || undefined,
+        });
+        window.location.href = order.approveUrl;
+        return;
+      }
+
       const order = await requestCreatePaymentOrder({
         planId,
         registrationId: registrationId.trim() || undefined,
@@ -131,8 +201,8 @@ function ConferencePaymentCheckoutSignedIn() {
           Secure checkout
         </h2>
         <p className="mt-2 text-sm text-[var(--journal-body)]">
-          All fees are charged in USD through Razorpay. International Visa/Mastercard payments
-          require a valid mobile number and Razorpay International Payments on your account.
+          Pay domestic registrations through Razorpay or use PayPal for international payments.
+          All conference fees are charged in USD.
         </p>
 
         <fieldset className="mt-5 space-y-3">
@@ -174,6 +244,62 @@ function ConferencePaymentCheckoutSignedIn() {
           })}
         </fieldset>
 
+        <fieldset className="mt-5">
+          <legend className="text-sm font-semibold text-[var(--journal-heading)]">
+            Payment method
+          </legend>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label
+              className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
+                paymentMethod === "razorpay"
+                  ? "border-[var(--journal-accent)] bg-sky-50"
+                  : "border-[var(--journal-border)] bg-white"
+              }`}
+            >
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="razorpay"
+                checked={paymentMethod === "razorpay"}
+                onChange={() => setPaymentMethod("razorpay")}
+                className="mt-1"
+              />
+              <span>
+                <span className="font-medium text-[var(--journal-heading)]">
+                  Razorpay
+                </span>
+                <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
+                  Recommended for domestic Indian payments and cards supported by Razorpay.
+                </span>
+              </span>
+            </label>
+            <label
+              className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
+                paymentMethod === "paypal"
+                  ? "border-[var(--journal-accent)] bg-sky-50"
+                  : "border-[var(--journal-border)] bg-white"
+              }`}
+            >
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="paypal"
+                checked={paymentMethod === "paypal"}
+                onChange={() => setPaymentMethod("paypal")}
+                className="mt-1"
+              />
+              <span>
+                <span className="font-medium text-[var(--journal-heading)]">
+                  PayPal
+                </span>
+                <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
+                  Recommended for international participants paying with PayPal or global cards.
+                </span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
         <label className="mt-5 block text-sm">
           <span className="font-medium text-[var(--journal-heading)]">
             Registration ID (optional)
@@ -189,22 +315,24 @@ function ConferencePaymentCheckoutSignedIn() {
           </span>
         </label>
 
-        <label className="mt-5 block text-sm">
-          <span className="font-medium text-[var(--journal-heading)]">
-            Mobile number <span className="text-red-500">*</span>
-          </span>
-          <input
-            value={contactPhone}
-            onChange={(e) => setContactPhone(e.target.value)}
-            placeholder="e.g. +1 555 123 4567 or +91 98765 43210"
-            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm"
-            autoComplete="tel"
-          />
-          <span className="mt-1 block text-xs text-[var(--journal-muted)]">
-            Required for international USD card payments. Use a real number with country code —
-            dummy values can cause Razorpay to reject the transaction.
-          </span>
-        </label>
+        {paymentMethod === "razorpay" ? (
+          <label className="mt-5 block text-sm">
+            <span className="font-medium text-[var(--journal-heading)]">
+              Mobile number <span className="text-red-500">*</span>
+            </span>
+            <input
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value)}
+              placeholder="e.g. +1 555 123 4567 or +91 98765 43210"
+              className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm"
+              autoComplete="tel"
+            />
+            <span className="mt-1 block text-xs text-[var(--journal-muted)]">
+              Required for international USD card payments through Razorpay. Use a real number
+              with country code.
+            </span>
+          </label>
+        ) : null}
 
         <div className="mt-5 rounded border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm">
           <p className="font-medium text-[var(--journal-heading)]">Payable now</p>
@@ -212,7 +340,9 @@ function ConferencePaymentCheckoutSignedIn() {
             {selectedPlan.displayAmount}
           </p>
           <p className="mt-1 text-xs text-[var(--journal-muted)]">
-            Charged in {selectedPlan.currency} via Razorpay · Signed in as {user.email}
+            Charged in {selectedPlan.currency} via{" "}
+            {paymentMethod === "paypal" ? "PayPal" : "Razorpay"} · Signed in as{" "}
+            {user.email}
           </p>
         </div>
 
@@ -222,7 +352,11 @@ function ConferencePaymentCheckoutSignedIn() {
           onClick={() => void handlePay()}
           className="mt-5 rounded bg-[var(--journal-accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
         >
-          {busy ? "Processing…" : `Pay ${selectedPlan.displayAmount} securely`}
+          {busy
+            ? "Processing..."
+            : paymentMethod === "paypal"
+              ? `Continue to PayPal for ${selectedPlan.displayAmount}`
+              : `Pay ${selectedPlan.displayAmount} securely`}
         </button>
 
         {message ? (
@@ -252,8 +386,14 @@ function ConferencePaymentCheckoutSignedIn() {
                   {payment.displayAmount} · {payment.status}
                 </p>
                 <p className="text-xs text-[var(--journal-muted)]">
-                  Order: {payment.razorpayOrderId}
-                  {payment.razorpayPaymentId ? ` · Payment: ${payment.razorpayPaymentId}` : ""}
+                  {payment.gateway === "paypal" ? "PayPal" : "Razorpay"} order:{" "}
+                  {payment.gateway === "paypal" ? payment.paypalOrderId : payment.razorpayOrderId}
+                  {payment.gateway === "paypal" && payment.paypalCaptureId
+                    ? ` · Payment: ${payment.paypalCaptureId}`
+                    : ""}
+                  {payment.gateway !== "paypal" && payment.razorpayPaymentId
+                    ? ` · Payment: ${payment.razorpayPaymentId}`
+                    : ""}
                   {payment.paidAt
                     ? ` · ${new Date(payment.paidAt).toLocaleString("en-GB")}`
                     : ""}

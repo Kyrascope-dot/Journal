@@ -29,7 +29,7 @@ export default function ConferencePaymentPage() {
 
           <p className="mt-6 text-[15px] leading-relaxed text-[var(--journal-body)]">
             Sign in is required before you can pay. After abstract acceptance, complete your
-            registration fee here using secure Razorpay checkout.
+            registration fee here using Razorpay or PayPal secure checkout.
           </p>
 
           <ConferencePaymentCheckout />
@@ -49,17 +49,16 @@ export default function ConferencePaymentPage() {
                 <strong>National Participants:</strong> USD 150
               </li>
               <li>
-                <strong>International Participants:</strong> USD 200 — enter a valid mobile number
-                and use Visa/Mastercard.
+                <strong>International Participants:</strong> USD 200 — use PayPal for
+                international cards or PayPal accounts.
               </li>
               <li>
-                <strong>International payments failing:</strong> activate International Payments in
-                Razorpay Dashboard → Account &amp; Settings → International payments →
-                International Cards.
+                <strong>Domestic payments:</strong> use Razorpay and enter a valid mobile number
+                with country code.
               </li>
               <li>
-                <strong>Testing:</strong> use Razorpay test keys (<code>rzp_test_…</code>) and test
-                card <code>4111 1111 1111 1111</code>.
+                <strong>Testing:</strong> use Razorpay test keys or PayPal sandbox credentials
+                before switching either gateway to live mode.
               </li>
             </ul>
           </section>

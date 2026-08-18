@@ -15,6 +15,9 @@ export async function GET() {
           process.env.FIREBASE_ADMIN_PRIVATE_KEY?.trim())
     ),
     resendConfigured: Boolean(process.env.RESEND_API_KEY?.trim()),
+    paypalConfigured: Boolean(
+      process.env.PAYPAL_CLIENT_ID?.trim() && process.env.PAYPAL_CLIENT_SECRET?.trim()
+    ),
     timestamp: new Date().toISOString(),
   });
 }

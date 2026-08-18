@@ -27,6 +27,26 @@ export type VerifyPaymentResponse = {
   error?: string;
 };
 
+export type CreatePayPalOrderResponse = {
+  ok: boolean;
+  orderId: string;
+  approveUrl: string;
+  status: string | null;
+  displayAmount: string;
+  planId: PaymentPlanId;
+  paymentDocId: string;
+  error?: string;
+};
+
+export type CapturePayPalOrderResponse = {
+  ok: boolean;
+  paymentId?: string;
+  alreadyPaid?: boolean;
+  paypalOrderId?: string;
+  paypalCaptureId?: string;
+  error?: string;
+};
+
 async function authFetch(path: string, init?: RequestInit) {
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new Error("Please sign in to continue with payment.");
@@ -72,14 +92,46 @@ export async function requestVerifyPayment(input: {
   return data;
 }
 
+export async function requestCreatePayPalOrder(input: {
+  planId: PaymentPlanId;
+  registrationId?: string;
+}): Promise<CreatePayPalOrderResponse> {
+  const response = await authFetch("/api/payments/create-paypal-order", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  const data = (await response.json()) as CreatePayPalOrderResponse;
+  if (!response.ok || !data.ok) {
+    throw new Error(data.error ?? "Could not create PayPal order.");
+  }
+  return data;
+}
+
+export async function requestCapturePayPalOrder(input: {
+  orderId: string;
+}): Promise<CapturePayPalOrderResponse> {
+  const response = await authFetch("/api/payments/capture-paypal-order", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  const data = (await response.json()) as CapturePayPalOrderResponse;
+  if (!response.ok || !data.ok) {
+    throw new Error(data.error ?? "PayPal payment capture failed.");
+  }
+  return data;
+}
+
 export type PaymentHistoryItem = {
   id: string;
   planId: PaymentPlanId;
   displayAmount: string;
   currency: string;
   status: string;
+  gateway?: "razorpay" | "paypal";
   razorpayOrderId: string;
   razorpayPaymentId: string | null;
+  paypalOrderId?: string | null;
+  paypalCaptureId?: string | null;
   registrationId: string | null;
   createdAt: string | null;
   paidAt: string | null;
