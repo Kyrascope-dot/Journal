@@ -10,6 +10,7 @@ export const runtime = "nodejs";
 type Body = {
   planId?: PaymentPlanId;
   registrationId?: string | null;
+  returnPath?: "/conferences/payment" | "/payments/test";
 };
 
 export async function POST(request: Request) {
@@ -43,9 +44,15 @@ export async function POST(request: Request) {
     }
 
     const plan = getPaymentPlan(body.planId ?? "international_usd");
-    if (!plan || isGatewayTestPlan(plan.id)) {
+    if (!plan) {
       return NextResponse.json({ error: "Invalid PayPal payment plan." }, { status: 400 });
     }
+
+    const paymentPurpose = isGatewayTestPlan(plan.id)
+      ? "gateway_test"
+      : "conference_registration";
+    const returnPath =
+      body.returnPath === "/payments/test" ? "/payments/test" : "/conferences/payment";
 
     const registrationId =
       typeof body.registrationId === "string" && body.registrationId.trim()
@@ -55,12 +62,15 @@ export async function POST(request: Request) {
     const order = await createPayPalOrder({
       planId: plan.id,
       label: plan.label,
-      description: `${plan.label} - Conference registration`,
+      description: isGatewayTestPlan(plan.id)
+        ? "Payment gateway test - USD 1"
+        : `${plan.label} - Conference registration`,
       currency: plan.currency,
       amountMajor: plan.amountMajor,
       userId: user.uid,
       userEmail: user.email,
       registrationId,
+      returnPath,
     });
 
     const paymentDocId = await createPaymentIntent({
@@ -75,7 +85,7 @@ export async function POST(request: Request) {
       paypalOrderId: order.orderId,
       registrationId,
       notes: {
-        purpose: "conference_registration",
+        purpose: paymentPurpose,
         planId: plan.id,
       },
     });

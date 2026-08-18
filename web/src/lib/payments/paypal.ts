@@ -80,9 +80,11 @@ export async function createPayPalOrder(input: {
   userId: string;
   userEmail: string;
   registrationId: string | null;
+  returnPath?: "/conferences/payment" | "/payments/test";
 }): Promise<{ orderId: string; approveUrl: string; status: string | null }> {
   const token = await getPayPalAccessToken();
   const origin = getSiteOrigin();
+  const returnPath = input.returnPath ?? "/conferences/payment";
   const response = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders`, {
     method: "POST",
     headers: {
@@ -112,8 +114,8 @@ export async function createPayPalOrder(input: {
             landing_page: "LOGIN",
             shipping_preference: "NO_SHIPPING",
             user_action: "PAY_NOW",
-            return_url: `${origin}/conferences/payment?paypal_return=1`,
-            cancel_url: `${origin}/conferences/payment?paypal_cancelled=1`,
+            return_url: `${origin}${returnPath}?paypal_return=1`,
+            cancel_url: `${origin}${returnPath}?paypal_cancelled=1`,
           },
         },
       },

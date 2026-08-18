@@ -95,6 +95,7 @@ export async function requestVerifyPayment(input: {
 export async function requestCreatePayPalOrder(input: {
   planId: PaymentPlanId;
   registrationId?: string;
+  returnPath?: "/conferences/payment" | "/payments/test";
 }): Promise<CreatePayPalOrderResponse> {
   const response = await authFetch("/api/payments/create-paypal-order", {
     method: "POST",
