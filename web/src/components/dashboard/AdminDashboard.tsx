@@ -31,6 +31,7 @@ import { CommentThread } from "@/components/dashboard/CommentThread";
 import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
 import { requestSendReviewerInvitation } from "@/lib/client/send-reviewer-invitation";
 import {
+  requestAdminDeleteSubmission,
   requestAdminEmailLogs,
   requestAdminStatusUpdate,
   requestRetryNotification,
@@ -384,6 +385,10 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                       allUsers={users}
                       adminProfile={profile}
                       onUpdate={refreshAll}
+                      onDeleted={async () => {
+                        setExpandedSubId(null);
+                        await refreshAll();
+                      }}
                     />
                   )}
                 </li>
@@ -420,6 +425,7 @@ function SubmissionPanel({
   allUsers,
   adminProfile,
   onUpdate,
+  onDeleted,
 }: {
   submission: Submission;
   editors: UserProfile[];
@@ -427,6 +433,7 @@ function SubmissionPanel({
   allUsers: UserProfile[];
   adminProfile: UserProfile;
   onUpdate: () => Promise<void>;
+  onDeleted: () => Promise<void>;
 }) {
   const [selectedEditorId, setSelectedEditorId] = useState(
     submission.assignedEditorId ?? ""
@@ -450,6 +457,8 @@ function SubmissionPanel({
   const [commHistory, setCommHistory] = useState<CommunicationHistoryItem[]>([]);
   const [commHistoryLoading, setCommHistoryLoading] = useState(false);
   const [commHistoryError, setCommHistoryError] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteMsg, setDeleteMsg] = useState("");
 
   useEffect(() => {
     setSelectedEditorId(submission.assignedEditorId ?? "");
@@ -460,6 +469,7 @@ function SubmissionPanel({
     setStatusMsg("");
     setFailedNotificationId(null);
     setComposerOpen(false);
+    setDeleteMsg("");
   }, [
     submission.id,
     submission.assignedEditorId,
@@ -592,6 +602,26 @@ function SubmissionPanel({
   const savedReviewerId = submission.assignedReviewerId;
   const reviewerPendingSave =
     Boolean(selectedReviewerId) && selectedReviewerId !== (savedReviewerId ?? "");
+
+  async function handleDeleteSubmission() {
+    const confirmed = window.confirm(
+      `Delete submission ${submission.registrationId} (“${submission.title}”)?\n\nThis permanently removes the submission, its comments, and status history. This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setDeleteMsg("");
+    try {
+      await requestAdminDeleteSubmission(submission.id);
+      await onDeleted();
+    } catch (error) {
+      setDeleteMsg(
+        error instanceof Error ? error.message : "Could not delete submission."
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function handleSendReviewerEmail() {
     setEmailMsg("");
@@ -907,6 +937,26 @@ function SubmissionPanel({
         currentUserRole="admin"
         canComment={true}
       />
+
+      <div className="mt-8 rounded-lg border border-red-200 bg-red-50/50 p-4">
+        <p className="text-sm font-medium text-red-900">Danger zone</p>
+        <p className="mt-1 text-xs text-red-800/80">
+          Permanently delete this submission and all related comments and status history.
+        </p>
+        <button
+          type="button"
+          disabled={deleting || saving || emailSending}
+          onClick={() => void handleDeleteSubmission()}
+          className="mt-3 rounded border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+        >
+          {deleting ? "Deleting…" : "Delete submission"}
+        </button>
+        {deleteMsg ? (
+          <p className="mt-3 text-sm text-red-700" role="alert">
+            {deleteMsg}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

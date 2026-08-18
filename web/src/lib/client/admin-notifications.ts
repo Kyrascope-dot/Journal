@@ -73,6 +73,28 @@ export type AdminEmailLog = {
   createdAt: string | null;
 };
 
+export async function requestAdminDeleteSubmission(submissionId: string): Promise<{
+  submissionId: string;
+  registrationId: string;
+}> {
+  const response = await adminRequest("/api/admin/submissions/delete", {
+    method: "POST",
+    body: JSON.stringify({ submissionId }),
+  });
+  const data = (await response.json()) as {
+    error?: string;
+    submissionId?: string;
+    registrationId?: string;
+  };
+  if (!response.ok || !data.submissionId) {
+    throw new Error(data.error ?? "Could not delete submission.");
+  }
+  return {
+    submissionId: data.submissionId,
+    registrationId: data.registrationId ?? data.submissionId,
+  };
+}
+
 export async function requestAdminEmailLogs(): Promise<AdminEmailLog[]> {
   const response = await adminRequest("/api/admin/email-logs");
   const data = (await response.json()) as { logs?: AdminEmailLog[]; error?: string };
