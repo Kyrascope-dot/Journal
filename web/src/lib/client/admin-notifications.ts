@@ -1,7 +1,11 @@
 "use client";
 
 import { getFirebaseAuth } from "@/lib/firebase";
-import type { SubmissionStatus } from "@/types/dashboard";
+import type {
+  ConferenceFeeWaiver,
+  ConferenceTrack,
+  SubmissionStatus,
+} from "@/types/dashboard";
 
 async function adminRequest(path: string, init?: RequestInit) {
   const user = getFirebaseAuth().currentUser;
@@ -48,6 +52,38 @@ export async function requestAdminStatusUpdate(payload: {
     emailSent: Boolean(data.emailSent),
     notificationId: data.notificationId,
     error: data.error,
+  };
+}
+
+export async function requestAdminConferenceUpdate(payload: {
+  submissionId: string;
+  conferenceTrack?: ConferenceTrack | null;
+  conferenceFeeWaiver?: ConferenceFeeWaiver;
+}): Promise<{
+  submissionId: string;
+  registrationId: string;
+  conferenceTrack: ConferenceTrack | null;
+  conferenceFeeWaiver: ConferenceFeeWaiver;
+}> {
+  const response = await adminRequest("/api/admin/submissions/update-conference", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  const data = (await response.json()) as {
+    error?: string;
+    submissionId?: string;
+    registrationId?: string;
+    conferenceTrack?: ConferenceTrack | null;
+    conferenceFeeWaiver?: ConferenceFeeWaiver;
+  };
+  if (!response.ok || !data.submissionId) {
+    throw new Error(data.error ?? "Could not update conference fields.");
+  }
+  return {
+    submissionId: data.submissionId,
+    registrationId: data.registrationId ?? data.submissionId,
+    conferenceTrack: data.conferenceTrack ?? null,
+    conferenceFeeWaiver: data.conferenceFeeWaiver ?? "none",
   };
 }
 

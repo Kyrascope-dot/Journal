@@ -153,6 +153,8 @@ export const COMMUNICATION_VARIABLES = [
   "submissionPurpose",
   "conferenceQuarter",
   "conferenceAwardIntent",
+  "conferenceTrack",
+  "conferenceFeeWaiver",
   "assignedEditorName",
   "assignedReviewerName",
   "submittedAt",

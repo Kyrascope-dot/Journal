@@ -21,10 +21,14 @@ import type {
 } from "@/types/communications";
 import {
   CONFERENCE_AWARD_LABELS,
+  CONFERENCE_FEE_WAIVER_LABELS,
   CONFERENCE_QUARTER_LABELS,
+  CONFERENCE_TRACK_LABELS,
   getEmailStatusLabel,
   type ConferenceAwardIntent,
+  type ConferenceFeeWaiver,
   type ConferenceQuarter,
+  type ConferenceTrack,
   type SubmissionPurpose,
   type SubmissionStatus,
 } from "@/types/dashboard";
@@ -40,6 +44,8 @@ type SubmissionDoc = {
   submissionPurpose?: SubmissionPurpose;
   conferenceQuarter?: ConferenceQuarter | null;
   conferenceAwardIntent?: ConferenceAwardIntent | null;
+  conferenceTrack?: string | null;
+  conferenceFeeWaiver?: string | null;
   authorName?: string;
   authorEmail?: string;
   affiliation?: string;
@@ -100,6 +106,15 @@ export function buildPersonalizationContext(sub: SubmissionDoc): Personalization
   const status = (sub.status ?? "pending") as SubmissionStatus;
   const award = sub.conferenceAwardIntent ?? null;
   const quarter = sub.conferenceQuarter ?? null;
+  const track =
+    sub.conferenceTrack === "track_1" ||
+    sub.conferenceTrack === "track_2" ||
+    sub.conferenceTrack === "track_3" ||
+    sub.conferenceTrack === "track_4" ||
+    sub.conferenceTrack === "track_5"
+      ? sub.conferenceTrack
+      : null;
+  const waiver = (sub.conferenceFeeWaiver ?? "none") as ConferenceFeeWaiver;
 
   return {
     authorName: String(sub.authorName ?? ""),
@@ -114,6 +129,8 @@ export function buildPersonalizationContext(sub: SubmissionDoc): Personalization
     submissionPurpose: purpose,
     conferenceQuarter: quarter ? CONFERENCE_QUARTER_LABELS[quarter] : "",
     conferenceAwardIntent: award ? CONFERENCE_AWARD_LABELS[award] : "",
+    conferenceTrack: track ? CONFERENCE_TRACK_LABELS[track as ConferenceTrack] : "Unassigned",
+    conferenceFeeWaiver: CONFERENCE_FEE_WAIVER_LABELS[waiver] ?? "No Waiver",
     assignedEditorName: String(sub.assignedEditorName ?? ""),
     assignedReviewerName: String(sub.assignedReviewerName ?? ""),
     submittedAt: formatSubmittedAt(sub.submittedAt),
@@ -485,6 +502,8 @@ export async function sendTestEmail(input: {
     submissionPurpose: "journal",
     conferenceQuarter: "",
     conferenceAwardIntent: "",
+    conferenceTrack: "Unassigned",
+    conferenceFeeWaiver: "No Waiver",
     assignedEditorName: "",
     assignedReviewerName: "",
     submittedAt: new Date().toLocaleString("en-GB"),

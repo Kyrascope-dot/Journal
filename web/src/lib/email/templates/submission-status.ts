@@ -118,7 +118,7 @@ function conferenceAcceptedContent(
   );
 
   return {
-    subject: `Abstract Accepted | GCR International Conference Q3 2026 | ${context.registrationId}`,
+    subject: `Acceptance Notification – GCR International Conference Q3 2026`,
     includeMetadataTable: false,
     includeRegards: false,
     opening: [

@@ -14,13 +14,33 @@ import { getDb, getFirebaseAuth } from "@/lib/firebase";
 import type {
   Comment,
   ConferenceAwardIntent,
+  ConferenceFeeWaiver,
   ConferenceQuarter,
+  ConferenceTrack,
   Submission,
   SubmissionPurpose,
   SubmissionStatus,
   SubmissionStatusEvent,
   UserRole,
 } from "@/types/dashboard";
+
+function parseConferenceTrack(value: unknown): ConferenceTrack | null {
+  if (
+    value === "track_1" ||
+    value === "track_2" ||
+    value === "track_3" ||
+    value === "track_4" ||
+    value === "track_5"
+  ) {
+    return value;
+  }
+  return null;
+}
+
+function parseConferenceFeeWaiver(value: unknown): ConferenceFeeWaiver | null {
+  if (value === "none" || value === "full" || value === "partial") return value;
+  return null;
+}
 
 function mapSubmission(
   id: string,
@@ -52,6 +72,14 @@ function mapSubmission(
         data.conferenceAwardIntent === "best_presenter" ||
         data.conferenceAwardIntent === "both")
         ? data.conferenceAwardIntent
+        : null,
+    conferenceTrack:
+      data.submissionPurpose === "conference"
+        ? parseConferenceTrack(data.conferenceTrack)
+        : null,
+    conferenceFeeWaiver:
+      data.submissionPurpose === "conference"
+        ? parseConferenceFeeWaiver(data.conferenceFeeWaiver) ?? "none"
         : null,
     status: (data.status as SubmissionStatus) ?? "pending",
     submittedAt: data.submittedAt as Submission["submittedAt"],

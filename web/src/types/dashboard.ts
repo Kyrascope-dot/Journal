@@ -76,11 +76,56 @@ export const CONFERENCE_AWARD_LABELS: Record<ConferenceAwardIntent, string> = {
   both: "Best Paper & Best Presenter",
 };
 
+export type ConferenceTrack =
+  | "track_1"
+  | "track_2"
+  | "track_3"
+  | "track_4"
+  | "track_5";
+
+export type ConferenceFeeWaiver = "none" | "full" | "partial";
+
+export const CONFERENCE_TRACK_OPTIONS: {
+  value: ConferenceTrack;
+  label: string;
+}[] = [
+  { value: "track_1", label: "Track 1" },
+  { value: "track_2", label: "Track 2" },
+  { value: "track_3", label: "Track 3" },
+  { value: "track_4", label: "Track 4" },
+  { value: "track_5", label: "Track 5" },
+];
+
+export const CONFERENCE_TRACK_LABELS: Record<ConferenceTrack, string> = {
+  track_1: "Track 1",
+  track_2: "Track 2",
+  track_3: "Track 3",
+  track_4: "Track 4",
+  track_5: "Track 5",
+};
+
+export const CONFERENCE_FEE_WAIVER_OPTIONS: {
+  value: ConferenceFeeWaiver;
+  label: string;
+}[] = [
+  { value: "none", label: "No Waiver" },
+  { value: "full", label: "Full Fee Waiver" },
+  { value: "partial", label: "Partial Fee Waiver" },
+];
+
+export const CONFERENCE_FEE_WAIVER_LABELS: Record<ConferenceFeeWaiver, string> = {
+  none: "No Waiver",
+  full: "Full Fee Waiver",
+  partial: "Partial Fee Waiver",
+};
+
 /** Short line for lists (conference quarter + award). Empty for journal-only rows. */
 export function formatConferenceSubmissionMeta(sub: {
   submissionPurpose: SubmissionPurpose;
   conferenceQuarter: ConferenceQuarter | null;
   conferenceAwardIntent: ConferenceAwardIntent | null;
+  conferenceTrack?: ConferenceTrack | null;
+  conferenceFeeWaiver?: ConferenceFeeWaiver | null;
 }): string {
   if (sub.submissionPurpose !== "conference") return "";
   const parts: string[] = [];
@@ -89,6 +134,12 @@ export function formatConferenceSubmissionMeta(sub: {
   }
   if (sub.conferenceAwardIntent) {
     parts.push(CONFERENCE_AWARD_LABELS[sub.conferenceAwardIntent]);
+  }
+  if (sub.conferenceTrack) {
+    parts.push(CONFERENCE_TRACK_LABELS[sub.conferenceTrack]);
+  }
+  if (sub.conferenceFeeWaiver && sub.conferenceFeeWaiver !== "none") {
+    parts.push(CONFERENCE_FEE_WAIVER_LABELS[sub.conferenceFeeWaiver]);
   }
   return parts.length ? parts.join(" · ") : "";
 }
@@ -105,6 +156,10 @@ export type Submission = {
   conferenceQuarter: ConferenceQuarter | null;
   /** Conference only: award nomination intent. */
   conferenceAwardIntent: ConferenceAwardIntent | null;
+  /** Conference only: programme track assignment (admin). */
+  conferenceTrack: ConferenceTrack | null;
+  /** Conference only: fee waiver classification (admin). */
+  conferenceFeeWaiver: ConferenceFeeWaiver | null;
   authorId: string;
   authorName: string;
   authorEmail: string;

@@ -14,12 +14,18 @@ import {
   findUserByEmail,
 } from "@/lib/firestore-users";
 import type {
+  ConferenceFeeWaiver,
+  ConferenceTrack,
   Submission,
   SubmissionPurpose,
   SubmissionStatus,
   UserProfile,
 } from "@/types/dashboard";
 import {
+  CONFERENCE_FEE_WAIVER_LABELS,
+  CONFERENCE_FEE_WAIVER_OPTIONS,
+  CONFERENCE_TRACK_LABELS,
+  CONFERENCE_TRACK_OPTIONS,
   RESEARCH_CATEGORIES,
   STATUS_LABELS,
   SUBMISSION_PURPOSE_LABELS,
@@ -27,10 +33,12 @@ import {
   getSubmissionStatusLabel,
 } from "@/types/dashboard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { ConferenceAbstractAcceptedSection } from "@/components/dashboard/ConferenceAbstractAcceptedSection";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
 import { requestSendReviewerInvitation } from "@/lib/client/send-reviewer-invitation";
 import {
+  requestAdminConferenceUpdate,
   requestAdminDeleteSubmission,
   requestAdminEmailLogs,
   requestAdminStatusUpdate,
@@ -101,6 +109,10 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<SubmissionStatus | "all">("all");
   const [filterPurpose, setFilterPurpose] = useState<SubmissionPurpose | "all">("all");
+  const [filterConferenceTrack, setFilterConferenceTrack] = useState<
+    ConferenceTrack | "unassigned" | "all"
+  >("all");
+  const [filterFeeWaiver, setFilterFeeWaiver] = useState<ConferenceFeeWaiver | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<
     "registration_date" | "registration_id" | "submission_type" | "status"
@@ -140,6 +152,19 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
       if (filterCategory !== "all" && s.category !== filterCategory) return false;
       if (filterStatus !== "all" && s.status !== filterStatus) return false;
       if (filterPurpose !== "all" && s.submissionPurpose !== filterPurpose) return false;
+      if (filterConferenceTrack !== "all") {
+        if (s.submissionPurpose !== "conference") return false;
+        if (filterConferenceTrack === "unassigned") {
+          if (s.conferenceTrack) return false;
+        } else if (s.conferenceTrack !== filterConferenceTrack) {
+          return false;
+        }
+      }
+      if (filterFeeWaiver !== "all") {
+        if (s.submissionPurpose !== "conference") return false;
+        const waiver = s.conferenceFeeWaiver ?? "none";
+        if (waiver !== filterFeeWaiver) return false;
+      }
       const needle = searchQuery.trim().toLowerCase();
       if (
         needle &&
@@ -318,6 +343,47 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
               </div>
               <div>
                 <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Conference track
+                </label>
+                <select
+                  value={filterConferenceTrack}
+                  onChange={(e) =>
+                    setFilterConferenceTrack(
+                      e.target.value as ConferenceTrack | "unassigned" | "all"
+                    )
+                  }
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="all">All tracks</option>
+                  <option value="unassigned">Unassigned</option>
+                  {CONFERENCE_TRACK_OPTIONS.map((track) => (
+                    <option key={track.value} value={track.value}>
+                      {track.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Fee waiver
+                </label>
+                <select
+                  value={filterFeeWaiver}
+                  onChange={(e) =>
+                    setFilterFeeWaiver(e.target.value as ConferenceFeeWaiver | "all")
+                  }
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="all">All</option>
+                  {CONFERENCE_FEE_WAIVER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
                   Sort by
                 </label>
                 <select
@@ -358,6 +424,12 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                         {sub.assignedEditorName && ` · Editor: ${sub.assignedEditorName}`}
                         {sub.assignedReviewerName && ` · Reviewer: ${sub.assignedReviewerName}`}
                       </p>
+                      {sub.submissionPurpose === "conference" ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <ConferenceTrackBadge track={sub.conferenceTrack} />
+                          <ConferenceFeeWaiverBadge waiver={sub.conferenceFeeWaiver} />
+                        </div>
+                      ) : null}
                     </div>
                     <div className="flex items-center gap-3">
                       <StatusBadge
@@ -459,6 +531,12 @@ function SubmissionPanel({
   const [commHistoryError, setCommHistoryError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState("");
+  const [conferenceTrack, setConferenceTrack] = useState<ConferenceTrack | "">(
+    submission.conferenceTrack ?? ""
+  );
+  const [conferenceFeeWaiver, setConferenceFeeWaiver] = useState<ConferenceFeeWaiver>(
+    submission.conferenceFeeWaiver ?? "none"
+  );
 
   useEffect(() => {
     setSelectedEditorId(submission.assignedEditorId ?? "");
@@ -466,6 +544,8 @@ function SubmissionPanel({
     setStatus(submission.status);
     setStatusNote(submission.statusNote ?? "");
     setReviewDeadline(formatDateInput(submission.reviewDeadline));
+    setConferenceTrack(submission.conferenceTrack ?? "");
+    setConferenceFeeWaiver(submission.conferenceFeeWaiver ?? "none");
     setStatusMsg("");
     setFailedNotificationId(null);
     setComposerOpen(false);
@@ -477,6 +557,8 @@ function SubmissionPanel({
     submission.status,
     submission.statusNote,
     submission.reviewDeadline,
+    submission.conferenceTrack,
+    submission.conferenceFeeWaiver,
   ]);
 
   async function loadCommunicationHistory() {
@@ -572,6 +654,20 @@ function SubmissionPanel({
         } else {
           setStatusMsg(`Status Updated · Email Failed${result.error ? `: ${result.error}` : ""}`);
           setFailedNotificationId(result.notificationId ?? null);
+        }
+      }
+      if (submission.submissionPurpose === "conference") {
+        const nextTrack: ConferenceTrack | null = conferenceTrack || null;
+        const savedWaiver = submission.conferenceFeeWaiver ?? "none";
+        if (
+          nextTrack !== submission.conferenceTrack ||
+          conferenceFeeWaiver !== savedWaiver
+        ) {
+          await requestAdminConferenceUpdate({
+            submissionId: submission.id,
+            conferenceTrack: nextTrack,
+            conferenceFeeWaiver,
+          });
         }
       }
       await onUpdate();
@@ -782,6 +878,56 @@ function SubmissionPanel({
           className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
         />
       </div>
+      {submission.submissionPurpose === "conference" ? (
+        <div className="mt-5 rounded-lg border border-[var(--journal-border)] bg-white p-4">
+          <p className="text-sm font-medium text-[var(--journal-heading)]">
+            Conference Management
+          </p>
+          <p className="mt-1 text-xs text-[var(--journal-muted)]">
+            Track and fee waiver are saved independently. Neither affects payment status
+            automatically.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                Conference Track
+              </label>
+              <select
+                value={conferenceTrack}
+                onChange={(e) =>
+                  setConferenceTrack(e.target.value as ConferenceTrack | "")
+                }
+                className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+              >
+                <option value="">Unassigned</option>
+                {CONFERENCE_TRACK_OPTIONS.map((track) => (
+                  <option key={track.value} value={track.value}>
+                    {track.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                Fee Waiver
+              </label>
+              <select
+                value={conferenceFeeWaiver}
+                onChange={(e) =>
+                  setConferenceFeeWaiver(e.target.value as ConferenceFeeWaiver)
+                }
+                className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+              >
+                {CONFERENCE_FEE_WAIVER_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <button
         type="button"
         disabled={saving}
@@ -811,6 +957,13 @@ function SubmissionPanel({
             </button>
           ) : null}
         </div>
+      ) : null}
+
+      {submission.submissionPurpose === "conference" ? (
+        <ConferenceAbstractAcceptedSection
+          submission={submission}
+          adminEmail={adminProfile.email}
+        />
       ) : null}
 
       <div className="mt-6 rounded-lg border border-[var(--journal-border)] bg-white p-4">
@@ -1439,5 +1592,32 @@ function EditorsPanel({
         )}
       </div>
     </div>
+  );
+}
+
+function ConferenceTrackBadge({ track }: { track: ConferenceTrack | null }) {
+  return (
+    <span className="rounded bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-800">
+      {track ? CONFERENCE_TRACK_LABELS[track] : "Unassigned"}
+    </span>
+  );
+}
+
+function ConferenceFeeWaiverBadge({
+  waiver,
+}: {
+  waiver: ConferenceFeeWaiver | null;
+}) {
+  const value = waiver ?? "none";
+  const tone =
+    value === "full"
+      ? "bg-emerald-50 text-emerald-800"
+      : value === "partial"
+        ? "bg-amber-50 text-amber-800"
+        : "bg-zinc-100 text-zinc-700";
+  return (
+    <span className={`rounded px-2 py-0.5 text-[11px] font-medium ${tone}`}>
+      {CONFERENCE_FEE_WAIVER_LABELS[value]}
+    </span>
   );
 }
