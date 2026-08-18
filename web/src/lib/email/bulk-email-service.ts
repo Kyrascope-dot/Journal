@@ -22,7 +22,7 @@ import type {
 import {
   CONFERENCE_AWARD_LABELS,
   CONFERENCE_QUARTER_LABELS,
-  getSubmissionStatusLabel,
+  getEmailStatusLabel,
   type ConferenceAwardIntent,
   type ConferenceQuarter,
   type SubmissionPurpose,
@@ -109,7 +109,7 @@ export function buildPersonalizationContext(sub: SubmissionDoc): Personalization
     abstract: String(sub.abstract ?? ""),
     category: String(sub.category ?? ""),
     status,
-    statusLabel: getSubmissionStatusLabel(status, purpose),
+    statusLabel: getEmailStatusLabel(status, purpose),
     affiliation: String(sub.affiliation ?? ""),
     submissionPurpose: purpose,
     conferenceQuarter: quarter ? CONFERENCE_QUARTER_LABELS[quarter] : "",

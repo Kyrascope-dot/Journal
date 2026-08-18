@@ -9,7 +9,7 @@ import {
 import { getAdminFirestore } from "@/lib/firebase-admin";
 import { getSiteBaseUrl } from "@/lib/email/reviewer-invitation";
 import {
-  getSubmissionStatusLabel,
+  getEmailStatusLabel,
   type ConferenceAwardIntent,
   type SubmissionPurpose,
   type SubmissionStatus,
@@ -71,7 +71,7 @@ export function prepareSubmissionNotification(
       registrationId,
       paperTitle: String(submission.title ?? ""),
       submissionDate: formatSubmissionDate(submission.submittedAt),
-      currentStatus: getSubmissionStatusLabel(status, purpose),
+      currentStatus: getEmailStatusLabel(status, purpose),
       submissionPurpose: purpose,
       conferenceAwardIntent: submission.conferenceAwardIntent ?? null,
       dashboardUrl: `${baseUrl}/dashboard?view=author`,

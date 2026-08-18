@@ -89,7 +89,7 @@ export const DEFAULT_BULK_TEMPLATES: DefaultBulkTemplate[] = [
     `Abstract accepted — next steps | {{registrationId}}`,
     [
       "Dear {{authorName}},",
-      "Congratulations. Your abstract <strong>{{title}}</strong> ({{registrationId}}) has been <strong>{{statusLabel}}</strong> for the Global Confluence Review International Conference.",
+      "Congratulations. Your abstract <strong>{{title}}</strong> ({{registrationId}}) has been <strong>accepted</strong> for presentation at the Global Confluence Review International Conference.",
       "Award intent on file: {{conferenceAwardIntent}}. Please prepare your presentation and watch for further instructions from the editorial office.",
       'Dashboard: <a href="{{dashboardUrl}}">{{dashboardUrl}}</a>',
       `Kind regards,<br/>${siteConfig.name}`,

@@ -187,3 +187,16 @@ export function getSubmissionStatusLabel(
   }
   return STATUS_LABELS[status];
 }
+
+/** Plain status labels for email merge fields (no "Abstract …" prefix). */
+export function getEmailStatusLabel(
+  status: SubmissionStatus,
+  purpose: SubmissionPurpose
+): string {
+  if (purpose === "conference") {
+    if (status === "accepted") return "Accepted";
+    if (status === "rejected") return "Rejected";
+    if (status === "pending") return "Submitted";
+  }
+  return STATUS_LABELS[status];
+}
