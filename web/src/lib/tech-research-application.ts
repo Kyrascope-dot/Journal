@@ -1,8 +1,4 @@
 import { TECH_RESEARCH_AREAS } from "@/lib/tech-research-hub-content";
-import {
-  isAllowedTechResearchPptReportFile,
-  TECH_RESEARCH_PPT_REPORT_MAX_BYTES,
-} from "@/lib/tech-research-config";
 
 export const TECH_RESEARCH_SUBMISSION_DISCLAIMER =
   "Submission does not guarantee acceptance or publication. All submissions are subject to GCR's academic, ethical and editorial assessment.";
@@ -63,8 +59,8 @@ export type TechResearchApplicationForm = {
   technologiesUsed: string;
   keywords: string;
 
-  /** Display name for the selected PPT / Report file (internal: supplementaryMaterial). */
-  supplementaryFileName: string;
+  /** Shareable link to PPT / Report (stored as supplementaryMaterial in Firestore). */
+  supplementaryMaterialUrl: string;
   repositoryUrl: string;
   projectUrl: string;
   videoUrl: string;
@@ -105,7 +101,7 @@ export const INITIAL_TECH_RESEARCH_APPLICATION: TechResearchApplicationForm = {
   technologiesUsed: "",
   keywords: "",
 
-  supplementaryFileName: "",
+  supplementaryMaterialUrl: "",
   repositoryUrl: "",
   projectUrl: "",
   videoUrl: "",
@@ -180,9 +176,18 @@ export function projectTypeLabel(type: ProjectType | ""): string {
   return PROJECT_TYPE_OPTIONS.find((opt) => opt.value === type)?.label ?? type;
 }
 
-export type TechResearchStepValidationContext = {
-  supplementaryFile?: File | null;
-};
+export type TechResearchStepValidationContext = Record<string, never>;
+
+function isValidRequiredUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export function validateTechResearchStep(
   step: TechResearchApplyStepId,
@@ -253,14 +258,10 @@ export function validateTechResearchStep(
   }
 
   if (step === 4) {
-    const file = context.supplementaryFile ?? null;
-    if (!file) {
-      errors.supplementaryFileName = "Select a PPT / Report file to continue.";
-    } else if (!isAllowedTechResearchPptReportFile(file)) {
-      errors.supplementaryFileName =
-        "Upload a PowerPoint (.ppt, .pptx), Word (.doc, .docx), or PDF (.pdf) file.";
-    } else if (file.size > TECH_RESEARCH_PPT_REPORT_MAX_BYTES) {
-      errors.supplementaryFileName = "File must be 25 MB or smaller.";
+    if (!form.supplementaryMaterialUrl.trim()) {
+      errors.supplementaryMaterialUrl = "Enter a shareable link to your PPT / Report.";
+    } else if (!isValidRequiredUrl(form.supplementaryMaterialUrl)) {
+      errors.supplementaryMaterialUrl = "Enter a valid http or https URL.";
     }
 
     const urlFields: { key: keyof TechResearchApplicationForm; label: string }[] = [
@@ -302,7 +303,6 @@ export function validateTechResearchApplication(
 
 export type TechResearchSubmissionPayload = Omit<
   TechResearchApplicationForm,
-  | "supplementaryFileName"
   | "declarationOriginal"
   | "declarationCited"
   | "declarationContributors"
@@ -345,6 +345,7 @@ export function buildTechResearchSubmissionPayload(
     keyFindings: form.keyFindings.trim(),
     technologiesUsed: form.technologiesUsed.trim(),
     keywords: form.keywords.trim(),
+    supplementaryMaterialUrl: form.supplementaryMaterialUrl.trim(),
     repositoryUrl: form.repositoryUrl.trim(),
     projectUrl: form.projectUrl.trim(),
     videoUrl: form.videoUrl.trim(),

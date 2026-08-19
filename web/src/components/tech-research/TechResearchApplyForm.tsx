@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 import { TechResearchSubmissionPayment } from "@/components/tech-research/TechResearchSubmissionPayment";
 import { useAuth } from "@/context/AuthContext";
 import { submitTechResearchApplication } from "@/lib/client/tech-research-submission";
@@ -23,9 +23,9 @@ import {
   type TeamMember,
 } from "@/lib/tech-research-application";
 import {
-  TECH_RESEARCH_PPT_REPORT_ACCEPT,
+  TECH_RESEARCH_PRESENTATION_LINK_HINT,
+  TECH_RESEARCH_PRESENTATION_LINK_PLACEHOLDER,
   TECH_RESEARCH_SUBMISSION_FEE_DISPLAY,
-  techResearchPptReportValidationError,
 } from "@/lib/tech-research-config";
 import { contentShell } from "@/lib/content-layout";
 
@@ -78,78 +78,6 @@ function FormField({
         </p>
       ) : null}
       <div aria-describedby={describedBy}>{children}</div>
-      <FieldError id={errorId} message={error} />
-    </div>
-  );
-}
-
-function FilePlaceholder({
-  id,
-  label,
-  required,
-  fileName,
-  error,
-  onSelect,
-  hint,
-  accept,
-}: {
-  id: string;
-  label: string;
-  required?: boolean;
-  fileName: string;
-  error?: string;
-  hint?: string;
-  accept: string;
-  onSelect: (file: File | null) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const errorId = `${id}-error`;
-
-  return (
-    <div>
-      <span id={`${id}-label`} className={labelClass}>
-        {label}
-        {required ? requiredMark : null}
-      </span>
-      {hint ? (
-        <p className="mt-1 text-xs text-[var(--journal-muted)]">{hint}</p>
-      ) : null}
-      <div
-        className={`mt-2 rounded-lg border border-dashed px-4 py-5 ${
-          error ? "border-red-300 bg-red-50/40" : "border-[var(--journal-border)] bg-zinc-50/80"
-        }`}
-      >
-        <input
-          ref={inputRef}
-          id={id}
-          type="file"
-          accept={accept}
-          className="sr-only"
-          aria-labelledby={`${id}-label`}
-          aria-describedby={error ? errorId : undefined}
-          aria-invalid={error ? true : undefined}
-          onChange={(event) => {
-            const file = event.target.files?.[0] ?? null;
-            onSelect(file);
-          }}
-        />
-        <p className="text-sm text-[var(--journal-body)]">
-          {fileName ? (
-            <>
-              Selected file: <span className="font-medium">{fileName}</span>
-            </>
-          ) : (
-            "No file selected yet."
-          )}
-        </p>
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          className="mt-3 inline-flex rounded border border-[var(--journal-border)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--journal-heading)] hover:bg-zinc-50"
-        >
-          Choose file
-        </button>
-      </div>
       <FieldError id={errorId} message={error} />
     </div>
   );
@@ -596,7 +524,6 @@ function StepMaterials({
   form,
   errors,
   updateField,
-  onSelectSupplementaryFile,
 }: {
   form: TechResearchApplicationForm;
   errors: Record<string, string>;
@@ -604,7 +531,6 @@ function StepMaterials({
     key: K,
     value: TechResearchApplicationForm[K]
   ) => void;
-  onSelectSupplementaryFile: (file: File | null) => void;
 }) {
   const urlFields: {
     id: keyof TechResearchApplicationForm;
@@ -635,16 +561,23 @@ function StepMaterials({
 
   return (
     <div className={sectionClass}>
-      <FilePlaceholder
-        id="supplementaryFile"
+      <FormField
+        id="supplementaryMaterialUrl"
         label="PPT / Report"
         required
-        fileName={form.supplementaryFileName}
-        error={errors.supplementaryFileName}
-        hint="Upload your project presentation or report (PPT, Word, or PDF)."
-        accept={TECH_RESEARCH_PPT_REPORT_ACCEPT}
-        onSelect={onSelectSupplementaryFile}
-      />
+        hint={TECH_RESEARCH_PRESENTATION_LINK_HINT}
+        error={errors.supplementaryMaterialUrl}
+      >
+        <input
+          id="supplementaryMaterialUrl"
+          type="url"
+          value={form.supplementaryMaterialUrl}
+          onChange={(event) => updateField("supplementaryMaterialUrl", event.target.value)}
+          placeholder={TECH_RESEARCH_PRESENTATION_LINK_PLACEHOLDER}
+          className={`${inputClass} ${errors.supplementaryMaterialUrl ? inputErrorClass : ""}`}
+          aria-invalid={errors.supplementaryMaterialUrl ? true : undefined}
+        />
+      </FormField>
       {urlFields.map((field) => (
         <FormField
           key={field.id}
@@ -774,7 +707,7 @@ function StepReview({
       </ReviewSection>
 
       <ReviewSection title="Research materials" onEdit={() => goToStep(4)}>
-        <ReviewItem label="PPT / Report" value={form.supplementaryFileName || "Not selected"} />
+        <ReviewItem label="PPT / Report link" value={form.supplementaryMaterialUrl || "—"} />
         <ReviewItem label="Repository URL" value={form.repositoryUrl} />
         <ReviewItem label="Project / demo URL" value={form.projectUrl} />
         <ReviewItem label="Video demonstration URL" value={form.videoUrl} />
@@ -799,7 +732,6 @@ export function TechResearchApplyForm() {
   const [form, setForm] = useState<TechResearchApplicationForm>(
     INITIAL_TECH_RESEARCH_APPLICATION
   );
-  const [supplementaryFile, setSupplementaryFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -860,7 +792,7 @@ export function TechResearchApplyForm() {
   }
 
   function handleContinue() {
-    const stepErrors = validateTechResearchStep(step, form, { supplementaryFile });
+    const stepErrors = validateTechResearchStep(step, form);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
@@ -870,7 +802,7 @@ export function TechResearchApplyForm() {
   }
 
   function handleReviewSubmission() {
-    const stepErrors = validateTechResearchStep(5, form, { supplementaryFile });
+    const stepErrors = validateTechResearchStep(5, form);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
@@ -879,34 +811,13 @@ export function TechResearchApplyForm() {
     goToStep(6);
   }
 
-  function handleSelectSupplementaryFile(file: File | null) {
-    if (!file) {
-      setSupplementaryFile(null);
-      updateField("supplementaryFileName", "");
-      return;
-    }
-    const fileError = techResearchPptReportValidationError(file);
-    if (fileError) {
-      setSupplementaryFile(null);
-      updateField("supplementaryFileName", "");
-      setErrors((current) => ({ ...current, supplementaryFileName: fileError }));
-      return;
-    }
-    setSupplementaryFile(file);
-    updateField("supplementaryFileName", file.name);
-  }
-
   async function handleSubmit() {
     if (!user) {
       setSubmitError("Please sign in to submit your Tech Research application.");
       return;
     }
-    if (!supplementaryFile) {
-      setErrors({ supplementaryFileName: "Select a PPT / Report file to continue." });
-      return;
-    }
 
-    const allErrors = validateTechResearchApplication(form, { supplementaryFile });
+    const allErrors = validateTechResearchApplication(form);
     if (Object.keys(allErrors).length > 0) {
       setErrors(allErrors);
       return;
@@ -915,10 +826,7 @@ export function TechResearchApplyForm() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      const result = await submitTechResearchApplication({
-        payload: buildTechResearchSubmissionPayload(form),
-        supplementaryFile,
-      });
+      const result = await submitTechResearchApplication(buildTechResearchSubmissionPayload(form));
       setSubmissionResult({
         registrationId: result.registrationId,
         submissionId: result.submissionId,
@@ -1047,12 +955,7 @@ export function TechResearchApplyForm() {
               <StepResearch form={form} errors={errors} updateField={updateField} />
             ) : null}
             {step === 4 ? (
-              <StepMaterials
-                form={form}
-                errors={errors}
-                updateField={updateField}
-                onSelectSupplementaryFile={handleSelectSupplementaryFile}
-              />
+              <StepMaterials form={form} errors={errors} updateField={updateField} />
             ) : null}
             {step === 5 ? (
               <StepDeclaration form={form} errors={errors} updateField={updateField} />

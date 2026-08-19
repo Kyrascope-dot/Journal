@@ -8,11 +8,8 @@ import {
   type TechResearchSubmissionPayload,
 } from "@/lib/tech-research-application";
 import {
-  isAllowedTechResearchPptReportFile,
-  TECH_RESEARCH_PPT_REPORT_MAX_BYTES,
   TECH_RESEARCH_SUBMISSION_FEE_DISPLAY,
   TECH_RESEARCH_SUBMISSION_FEE_USD,
-  TECH_RESEARCH_SUPPLEMENTARY_FIELD,
 } from "@/lib/tech-research-config";
 
 export const runtime = "nodejs";
@@ -34,9 +31,21 @@ function cleanString(value: unknown, maxLength: number): string {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 }
 
-function sanitizeFileName(name: string): string {
-  const base = name.split(/[/\\]/).pop() ?? "upload";
-  return base.replace(/[^\w.\-()+\s]/g, "_").slice(0, 180) || "upload";
+function isValidRequiredUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isValidOptionalUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  return isValidRequiredUrl(trimmed);
 }
 
 function parsePayload(raw: unknown): TechResearchSubmissionPayload | null {
@@ -79,6 +88,8 @@ function parsePayload(raw: unknown): TechResearchSubmissionPayload | null {
     };
   });
 
+  const supplementaryMaterialUrl = cleanString(source.supplementaryMaterialUrl, 500);
+
   const formLike: TechResearchApplicationForm = {
     projectTitle: cleanString(source.projectTitle, 500),
     researchArea: cleanString(source.researchArea, 300),
@@ -99,7 +110,7 @@ function parsePayload(raw: unknown): TechResearchSubmissionPayload | null {
     keyFindings: cleanString(source.keyFindings, 5000),
     technologiesUsed: cleanString(source.technologiesUsed, 2000),
     keywords: cleanString(source.keywords, 500),
-    supplementaryFileName: "",
+    supplementaryMaterialUrl,
     repositoryUrl: cleanString(source.repositoryUrl, 500),
     projectUrl: cleanString(source.projectUrl, 500),
     videoUrl: cleanString(source.videoUrl, 500),
@@ -125,7 +136,17 @@ function parsePayload(raw: unknown): TechResearchSubmissionPayload | null {
     !formLike.methods ||
     !formLike.keyFindings ||
     !formLike.technologiesUsed ||
-    !formLike.keywords
+    !formLike.keywords ||
+    !isValidRequiredUrl(formLike.supplementaryMaterialUrl)
+  ) {
+    return null;
+  }
+
+  if (
+    !isValidOptionalUrl(formLike.repositoryUrl) ||
+    !isValidOptionalUrl(formLike.projectUrl) ||
+    !isValidOptionalUrl(formLike.videoUrl) ||
+    !isValidOptionalUrl(formLike.datasetUrl)
   ) {
     return null;
   }
@@ -141,9 +162,7 @@ function parsePayload(raw: unknown): TechResearchSubmissionPayload | null {
 
 export async function POST(request: Request) {
   try {
-    const { getAdminFirestore, getAdminStorage, isFirebaseAdminConfigured } = await import(
-      "@/lib/firebase-admin"
-    );
+    const { getAdminFirestore, isFirebaseAdminConfigured } = await import("@/lib/firebase-admin");
     const { verifyUserIdToken } = await import("@/lib/server/verify-user");
     const { Timestamp } = await import("firebase-admin/firestore");
 
@@ -159,36 +178,16 @@ export async function POST(request: Request) {
       return jsonError("Unauthorized. Please sign in again and retry.", 401);
     }
 
-    const formData = await request.formData();
-    const payloadRaw = formData.get("payload");
-    if (typeof payloadRaw !== "string") {
-      return jsonError("Invalid submission payload.", 400);
-    }
-
     let parsedJson: unknown;
     try {
-      parsedJson = JSON.parse(payloadRaw);
+      parsedJson = await request.json();
     } catch {
-      return jsonError("Invalid submission payload JSON.", 400);
+      return jsonError("Invalid JSON body.", 400);
     }
 
     const payload = parsePayload(parsedJson);
     if (!payload) {
       return jsonError("Required submission fields are missing or invalid.", 400);
-    }
-
-    const supplementaryEntry = formData.get(TECH_RESEARCH_SUPPLEMENTARY_FIELD);
-    if (!(supplementaryEntry instanceof File) || supplementaryEntry.size === 0) {
-      return jsonError("PPT / Report file is required.", 400);
-    }
-    if (!isAllowedTechResearchPptReportFile(supplementaryEntry)) {
-      return jsonError(
-        "PPT / Report must be a PowerPoint (.ppt, .pptx), Word (.doc, .docx), or PDF (.pdf) file.",
-        400
-      );
-    }
-    if (supplementaryEntry.size > TECH_RESEARCH_PPT_REPORT_MAX_BYTES) {
-      return jsonError("PPT / Report file must be 25 MB or smaller.", 400);
     }
 
     const db = getAdminFirestore();
@@ -284,7 +283,7 @@ export async function POST(request: Request) {
           declarations: payload.declarations,
           submissionFeeUsd: TECH_RESEARCH_SUBMISSION_FEE_USD,
           paymentStatus: "unpaid",
-          supplementaryMaterial: null,
+          supplementaryMaterial: payload.supplementaryMaterialUrl,
         },
       });
       transaction.create(submissionRef.collection("statusHistory").doc(), {
@@ -296,33 +295,6 @@ export async function POST(request: Request) {
         changedByName: "Author",
         changedByRole: "scholar",
       });
-    });
-
-    const safeName = sanitizeFileName(supplementaryEntry.name);
-    const storagePath = `tech-research/${submissionRef.id}/${Date.now()}-${safeName}`;
-    const buffer = Buffer.from(await supplementaryEntry.arrayBuffer());
-    const bucket = getAdminStorage().bucket();
-    const gcsFile = bucket.file(storagePath);
-    await gcsFile.save(buffer, {
-      metadata: {
-        contentType: supplementaryEntry.type || "application/octet-stream",
-        metadata: {
-          registrationId,
-          submissionId: submissionRef.id,
-          uploadedBy: user.uid,
-        },
-      },
-    });
-
-    await submissionRef.update({
-      "techResearchDetails.supplementaryMaterial": {
-        fileName: safeName,
-        storagePath,
-        contentType: supplementaryEntry.type || "application/octet-stream",
-        sizeBytes: supplementaryEntry.size,
-        uploadedAt: now,
-      },
-      lastUpdatedAt: Timestamp.now(),
     });
 
     void import("@/lib/email/submission-notifications")

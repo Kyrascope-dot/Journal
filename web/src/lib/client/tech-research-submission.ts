@@ -2,7 +2,6 @@
 
 import { getFirebaseAuth } from "@/lib/firebase";
 import type { TechResearchSubmissionPayload } from "@/lib/tech-research-application";
-import { TECH_RESEARCH_SUPPLEMENTARY_FIELD } from "@/lib/tech-research-config";
 
 export type TechResearchSubmissionResult = {
   submissionId: string;
@@ -12,27 +11,23 @@ export type TechResearchSubmissionResult = {
   submissionFeeDisplay: string;
 };
 
-export async function submitTechResearchApplication(input: {
-  payload: TechResearchSubmissionPayload;
-  supplementaryFile: File;
-}): Promise<TechResearchSubmissionResult> {
+export async function submitTechResearchApplication(
+  payload: TechResearchSubmissionPayload
+): Promise<TechResearchSubmissionResult> {
   const user = getFirebaseAuth().currentUser;
   if (!user) {
     throw new Error("Please sign in to submit your Tech Research application.");
   }
 
   const idToken = await user.getIdToken();
-  const formData = new FormData();
-  formData.append("payload", JSON.stringify(input.payload));
-  formData.append(TECH_RESEARCH_SUPPLEMENTARY_FIELD, input.supplementaryFile);
-
   const response = await fetch("/api/submissions/create-tech-research", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${idToken}`,
+      "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: formData,
+    body: JSON.stringify(payload),
   });
 
   const raw = await response.text();
