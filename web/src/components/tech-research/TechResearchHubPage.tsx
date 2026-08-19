@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { FeatureCard, SectionHeading } from "@/components/home/HomeSections";
+import { DataWavesCollaborationBanner } from "@/components/tech-research/DataWavesCollaborationBanner";
 import { contentShell } from "@/lib/content-layout";
 import {
   TECH_RESEARCH_AREAS,
@@ -60,6 +61,7 @@ export function TechResearchHubPage() {
             <PrimaryButton href="/tech-research/apply">Submit Your Project</PrimaryButton>
             <SecondaryButton href="#how-it-works">How It Works</SecondaryButton>
           </div>
+          <DataWavesCollaborationBanner />
         </div>
       </section>
 

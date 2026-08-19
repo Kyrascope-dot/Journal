@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { DataWavesCollaborationBanner } from "@/components/tech-research/DataWavesCollaborationBanner";
 
 const items = [
   { title: "Peer-reviewed", body: "Constructive academic assessment of submitted work." },
@@ -140,6 +141,7 @@ export function HomeYoungResearchersSection() {
         evidence-based arguments, and communicate their findings responsibly. All submissions undergo
         the same academic, ethical, and editorial assessment; acceptance is not guaranteed.
       </p>
+      <DataWavesCollaborationBanner variant="compact" />
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
           href="/research/young-researchers-hub"
