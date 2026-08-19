@@ -9,7 +9,7 @@ export type PaymentRecord = {
   id: string;
   userId: string;
   userEmail: string;
-  purpose: "conference_registration";
+  purpose: "conference_registration" | "tech_research_submission" | "gateway_test";
   gateway: PaymentGateway;
   planId: PaymentPlanId;
   currency: "USD" | "INR";
@@ -43,6 +43,7 @@ export async function createPaymentIntent(input: {
   userId: string;
   userEmail: string;
   planId: PaymentPlanId;
+  purpose?: PaymentRecord["purpose"];
   gateway?: PaymentGateway;
   currency: "USD" | "INR";
   amountMinor: number;
@@ -58,7 +59,7 @@ export async function createPaymentIntent(input: {
   await ref.set({
     userId: input.userId,
     userEmail: input.userEmail,
-    purpose: "conference_registration",
+    purpose: input.purpose ?? "conference_registration",
     gateway: input.gateway ?? "razorpay",
     planId: input.planId,
     currency: input.currency,

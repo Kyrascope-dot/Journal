@@ -22,7 +22,7 @@ export type SubmissionStatus =
   | "accepted"
   | "rejected";
 
-export type SubmissionPurpose = "journal" | "conference";
+export type SubmissionPurpose = "journal" | "conference" | "tech_research";
 
 export type EmailStatus = "pending" | "sent" | "failed" | "not_required";
 export type DeliveryStatus = "queued" | "sent" | "failed" | "not_applicable";
@@ -38,6 +38,7 @@ export const SUBMISSION_PURPOSE_OPTIONS: {
 export const SUBMISSION_PURPOSE_LABELS: Record<SubmissionPurpose, string> = {
   journal: "Journal",
   conference: "Conference",
+  tech_research: "Tech Research",
 };
 
 export type ConferenceQuarter = "q1" | "q2" | "q3" | "q4";

@@ -57,7 +57,11 @@ function mapSubmission(
     affiliation: String(data.affiliation ?? ""),
     category: String(data.category ?? ""),
     submissionPurpose:
-      data.submissionPurpose === "conference" ? "conference" : "journal",
+      data.submissionPurpose === "conference"
+        ? "conference"
+        : data.submissionPurpose === "tech_research"
+          ? "tech_research"
+          : "journal",
     conferenceQuarter:
       data.submissionPurpose === "conference" &&
       (data.conferenceQuarter === "q1" ||

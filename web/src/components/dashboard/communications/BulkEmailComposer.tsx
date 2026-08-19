@@ -361,7 +361,7 @@ export function BulkEmailComposer({
     try {
       await requestSaveCommunicationTemplate({
         name: saveAsTemplateName.trim(),
-        audience: purpose,
+        audience: purpose === "conference" ? "conference" : "journal",
         subject,
         bodyHtml,
         description: "Saved from composer",

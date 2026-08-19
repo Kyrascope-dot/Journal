@@ -53,7 +53,11 @@ export function prepareSubmissionNotification(
   trigger: "create" | "status_change" = "status_change"
 ): Omit<QueuedSubmissionNotification, "queueStatus" | "attempts" | "createdAt"> | null {
   const purpose =
-    submission.submissionPurpose === "conference" ? "conference" : "journal";
+    submission.submissionPurpose === "conference"
+      ? "conference"
+      : submission.submissionPurpose === "tech_research"
+        ? "journal"
+        : "journal";
   const templateKey = resolveSubmissionEmailTemplate(purpose, status, trigger);
   if (!templateKey) return null;
 

@@ -80,7 +80,7 @@ export async function createPayPalOrder(input: {
   userId: string;
   userEmail: string;
   registrationId: string | null;
-  returnPath?: "/conferences/payment" | "/payments/test";
+  returnPath?: "/conferences/payment" | "/payments/test" | "/tech-research/apply";
 }): Promise<{ orderId: string; approveUrl: string; status: string | null }> {
   const token = await getPayPalAccessToken();
   const origin = getSiteOrigin();

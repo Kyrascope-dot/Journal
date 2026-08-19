@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useId, useRef, useState } from "react";
+import { TechResearchSubmissionPayment } from "@/components/tech-research/TechResearchSubmissionPayment";
+import { useAuth } from "@/context/AuthContext";
+import { submitTechResearchApplication } from "@/lib/client/tech-research-submission";
 import {
+  buildTechResearchSubmissionPayload,
   DECLARATION_ITEMS,
   EDUCATION_LEVEL_OPTIONS,
   INITIAL_TECH_RESEARCH_APPLICATION,
@@ -18,8 +22,12 @@ import {
   type TechResearchApplyStepId,
   type TeamMember,
 } from "@/lib/tech-research-application";
+import {
+  TECH_RESEARCH_PPT_REPORT_ACCEPT,
+  TECH_RESEARCH_SUBMISSION_FEE_DISPLAY,
+  techResearchPptReportValidationError,
+} from "@/lib/tech-research-config";
 import { contentShell } from "@/lib/content-layout";
-import { siteConfig } from "@/lib/site-config";
 
 const inputClass =
   "mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm text-[var(--journal-body)] focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]";
@@ -83,6 +91,7 @@ function FilePlaceholder({
   error,
   onSelect,
   hint,
+  accept,
 }: {
   id: string;
   label: string;
@@ -90,7 +99,8 @@ function FilePlaceholder({
   fileName: string;
   error?: string;
   hint?: string;
-  onSelect: (name: string) => void;
+  accept: string;
+  onSelect: (file: File | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const errorId = `${id}-error`;
@@ -113,13 +123,14 @@ function FilePlaceholder({
           ref={inputRef}
           id={id}
           type="file"
+          accept={accept}
           className="sr-only"
           aria-labelledby={`${id}-label`}
           aria-describedby={error ? errorId : undefined}
           aria-invalid={error ? true : undefined}
           onChange={(event) => {
-            const file = event.target.files?.[0];
-            onSelect(file?.name ?? "");
+            const file = event.target.files?.[0] ?? null;
+            onSelect(file);
           }}
         />
         <p className="text-sm text-[var(--journal-body)]">
@@ -130,10 +141,6 @@ function FilePlaceholder({
           ) : (
             "No file selected yet."
           )}
-        </p>
-        <p className="mt-2 text-xs leading-relaxed text-[var(--journal-muted)]">
-          File selection is stored locally for this preview. Upload to GCR servers will be enabled
-          when the submission backend is implemented.
         </p>
         <button
           type="button"
@@ -387,33 +394,6 @@ function StepApplicant({
         />
       </FormField>
 
-      <FormField
-        id="applicantEducationLevel"
-        label="Education level"
-        required
-        error={errors.applicantEducationLevel}
-      >
-        <select
-          id="applicantEducationLevel"
-          value={form.applicantEducationLevel}
-          onChange={(event) =>
-            updateField(
-              "applicantEducationLevel",
-              event.target.value as TechResearchApplicationForm["applicantEducationLevel"]
-            )
-          }
-          className={`${inputClass} ${errors.applicantEducationLevel ? inputErrorClass : ""}`}
-          aria-invalid={errors.applicantEducationLevel ? true : undefined}
-        >
-          <option value="">Select education level</option>
-          {EDUCATION_LEVEL_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </FormField>
-
       {form.projectType === "team" ? (
         <fieldset className="space-y-4 rounded-lg border border-[var(--journal-border)] p-4">
           <legend className="px-1 text-sm font-medium text-[var(--journal-heading)]">
@@ -616,6 +596,7 @@ function StepMaterials({
   form,
   errors,
   updateField,
+  onSelectSupplementaryFile,
 }: {
   form: TechResearchApplicationForm;
   errors: Record<string, string>;
@@ -623,6 +604,7 @@ function StepMaterials({
     key: K,
     value: TechResearchApplicationForm[K]
   ) => void;
+  onSelectSupplementaryFile: (file: File | null) => void;
 }) {
   const urlFields: {
     id: keyof TechResearchApplicationForm;
@@ -654,21 +636,14 @@ function StepMaterials({
   return (
     <div className={sectionClass}>
       <FilePlaceholder
-        id="manuscriptFile"
-        label="Main manuscript"
-        required
-        fileName={form.manuscriptFileName}
-        error={errors.manuscriptFileName}
-        hint="Upload your main research report, paper, or technical manuscript."
-        onSelect={(name) => updateField("manuscriptFileName", name)}
-      />
-      <FilePlaceholder
         id="supplementaryFile"
-        label="Supplementary material"
+        label="PPT / Report"
+        required
         fileName={form.supplementaryFileName}
         error={errors.supplementaryFileName}
-        hint="Optional supporting files such as appendices, figures, or additional documentation."
-        onSelect={(name) => updateField("supplementaryFileName", name)}
+        hint="Upload your project presentation or report (PPT, Word, or PDF)."
+        accept={TECH_RESEARCH_PPT_REPORT_ACCEPT}
+        onSelect={onSelectSupplementaryFile}
       />
       {urlFields.map((field) => (
         <FormField
@@ -773,10 +748,6 @@ function StepReview({
         <ReviewItem label="Email" value={form.email} />
         <ReviewItem label="Institution" value={form.institution} />
         <ReviewItem label="Country" value={form.country} />
-        <ReviewItem
-          label="Education level"
-          value={educationLevelLabel(form.applicantEducationLevel)}
-        />
         {form.projectType === "team" ? (
           <ReviewItem
             label="Team members"
@@ -803,11 +774,7 @@ function StepReview({
       </ReviewSection>
 
       <ReviewSection title="Research materials" onEdit={() => goToStep(4)}>
-        <ReviewItem label="Main manuscript" value={form.manuscriptFileName || "Not selected"} />
-        <ReviewItem
-          label="Supplementary material"
-          value={form.supplementaryFileName || "None selected"}
-        />
+        <ReviewItem label="PPT / Report" value={form.supplementaryFileName || "Not selected"} />
         <ReviewItem label="Repository URL" value={form.repositoryUrl} />
         <ReviewItem label="Project / demo URL" value={form.projectUrl} />
         <ReviewItem label="Video demonstration URL" value={form.videoUrl} />
@@ -827,12 +794,19 @@ function StepReview({
 export function TechResearchApplyForm() {
   const formId = useId();
   const stepHeadingId = useId();
+  const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState<TechResearchApplyStepId>(1);
   const [form, setForm] = useState<TechResearchApplicationForm>(
     INITIAL_TECH_RESEARCH_APPLICATION
   );
+  const [supplementaryFile, setSupplementaryFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submissionResult, setSubmissionResult] = useState<{
+    registrationId: string;
+    submissionId: string;
+  } | null>(null);
 
   const currentStepMeta = TECH_RESEARCH_APPLY_STEPS.find((item) => item.id === step)!;
 
@@ -886,7 +860,7 @@ export function TechResearchApplyForm() {
   }
 
   function handleContinue() {
-    const stepErrors = validateTechResearchStep(step, form);
+    const stepErrors = validateTechResearchStep(step, form, { supplementaryFile });
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
@@ -896,7 +870,7 @@ export function TechResearchApplyForm() {
   }
 
   function handleReviewSubmission() {
-    const stepErrors = validateTechResearchStep(5, form);
+    const stepErrors = validateTechResearchStep(5, form, { supplementaryFile });
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
@@ -905,14 +879,58 @@ export function TechResearchApplyForm() {
     goToStep(6);
   }
 
-  function handleSubmit() {
-    const allErrors = validateTechResearchApplication(form);
+  function handleSelectSupplementaryFile(file: File | null) {
+    if (!file) {
+      setSupplementaryFile(null);
+      updateField("supplementaryFileName", "");
+      return;
+    }
+    const fileError = techResearchPptReportValidationError(file);
+    if (fileError) {
+      setSupplementaryFile(null);
+      updateField("supplementaryFileName", "");
+      setErrors((current) => ({ ...current, supplementaryFileName: fileError }));
+      return;
+    }
+    setSupplementaryFile(file);
+    updateField("supplementaryFileName", file.name);
+  }
+
+  async function handleSubmit() {
+    if (!user) {
+      setSubmitError("Please sign in to submit your Tech Research application.");
+      return;
+    }
+    if (!supplementaryFile) {
+      setErrors({ supplementaryFileName: "Select a PPT / Report file to continue." });
+      return;
+    }
+
+    const allErrors = validateTechResearchApplication(form, { supplementaryFile });
     if (Object.keys(allErrors).length > 0) {
       setErrors(allErrors);
       return;
     }
-    setSubmitAttempted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const result = await submitTechResearchApplication({
+        payload: buildTechResearchSubmissionPayload(form),
+        supplementaryFile,
+      });
+      setSubmissionResult({
+        registrationId: result.registrationId,
+        submissionId: result.submissionId,
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Submission failed. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -926,7 +944,23 @@ export function TechResearchApplyForm() {
         </h1>
         <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-[var(--journal-body)]">
           Complete each step below to prepare your student research submission for editorial review.
+          Submission fee: <span className="font-medium">{TECH_RESEARCH_SUBMISSION_FEE_DISPLAY}</span>.
         </p>
+
+        {!authLoading && !user ? (
+          <div className="mt-6 rounded-lg border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm text-[var(--journal-body)]">
+            <span className="font-medium text-[var(--journal-heading)]">Sign in required.</span>{" "}
+            You must be signed in to submit.{" "}
+            <Link href="/login?next=/tech-research/apply" className="font-medium text-[var(--journal-accent)] hover:underline">
+              Sign in
+            </Link>{" "}
+            or{" "}
+            <Link href="/register?next=/tech-research/apply" className="font-medium text-[var(--journal-accent)] hover:underline">
+              create an account
+            </Link>
+            .
+          </div>
+        ) : null}
 
         <div
           className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-950"
@@ -935,27 +969,33 @@ export function TechResearchApplyForm() {
           {TECH_RESEARCH_SUBMISSION_DISCLAIMER}
         </div>
 
-        {submitAttempted ? (
+        {submissionResult ? (
           <div
-            className="mt-6 rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-4 text-sm leading-relaxed text-[var(--journal-body)]"
+            className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm leading-relaxed text-emerald-950"
             role="status"
           >
-            <p className="font-medium text-[var(--journal-heading)]">Development preview only</p>
+            <p className="font-medium text-emerald-900">Submission received</p>
             <p className="mt-2">
-              Your submission details have been validated on this device, but no backend endpoint is
-              connected yet. Editorial review submission will be enabled once the Tech Research Hub
-              API and file storage are implemented.
+              Registration ID:{" "}
+              <span className="font-semibold">{submissionResult.registrationId}</span>
             </p>
             <p className="mt-2">
-              Questions in the meantime? Contact{" "}
-              <a
-                href={`mailto:${siteConfig.email}`}
-                className="font-medium text-[var(--journal-accent)] hover:underline"
-              >
-                {siteConfig.email}
-              </a>
-              .
+              Your application has been saved. Complete the submission fee below to finalise your
+              application.
             </p>
+            <Link
+              href={`/dashboard/acknowledgement/${submissionResult.submissionId}`}
+              className="mt-2 inline-block font-medium text-[var(--journal-accent)] hover:underline"
+            >
+              View acknowledgement receipt
+            </Link>
+            <TechResearchSubmissionPayment registrationId={submissionResult.registrationId} />
+          </div>
+        ) : null}
+
+        {submitError ? (
+          <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+            {submitError}
           </div>
         ) : null}
 
@@ -1007,7 +1047,12 @@ export function TechResearchApplyForm() {
               <StepResearch form={form} errors={errors} updateField={updateField} />
             ) : null}
             {step === 4 ? (
-              <StepMaterials form={form} errors={errors} updateField={updateField} />
+              <StepMaterials
+                form={form}
+                errors={errors}
+                updateField={updateField}
+                onSelectSupplementaryFile={handleSelectSupplementaryFile}
+              />
             ) : null}
             {step === 5 ? (
               <StepDeclaration form={form} errors={errors} updateField={updateField} />
@@ -1016,12 +1061,9 @@ export function TechResearchApplyForm() {
               <>
                 <p className="mb-5 text-sm leading-relaxed text-[var(--journal-body)]">
                   Review your information carefully. Use Edit on any section to make changes before
-                  submitting for editorial review.
+                  submitting for editorial review. A {TECH_RESEARCH_SUBMISSION_FEE_DISPLAY} submission
+                  fee applies after your application is received.
                 </p>
-                <div className="mb-6 rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-[var(--journal-body)]">
-                  Submitting from this page is currently a development preview only. No data is sent
-                  to GCR servers yet.
-                </div>
                 <StepReview form={form} goToStep={goToStep} />
               </>
             ) : null}
@@ -1068,9 +1110,10 @@ export function TechResearchApplyForm() {
               {step === 6 ? (
                 <button
                   type="submit"
-                  className="inline-flex rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-5 py-2 text-sm font-medium text-white hover:opacity-95"
+                  disabled={submitting || !user}
+                  className="inline-flex rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-5 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-60"
                 >
-                  Submit for Editorial Review
+                  {submitting ? "Submitting…" : "Submit for Editorial Review"}
                 </button>
               ) : null}
             </div>

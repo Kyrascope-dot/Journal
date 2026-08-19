@@ -1,4 +1,8 @@
 import { TECH_RESEARCH_AREAS } from "@/lib/tech-research-hub-content";
+import {
+  isAllowedTechResearchPptReportFile,
+  TECH_RESEARCH_PPT_REPORT_MAX_BYTES,
+} from "@/lib/tech-research-config";
 
 export const TECH_RESEARCH_SUBMISSION_DISCLAIMER =
   "Submission does not guarantee acceptance or publication. All submissions are subject to GCR's academic, ethical and editorial assessment.";
@@ -49,7 +53,6 @@ export type TechResearchApplicationForm = {
   email: string;
   institution: string;
   country: string;
-  applicantEducationLevel: EducationLevel | "";
   teamMembers: TeamMember[];
 
   researchQuestion: string;
@@ -60,7 +63,7 @@ export type TechResearchApplicationForm = {
   technologiesUsed: string;
   keywords: string;
 
-  manuscriptFileName: string;
+  /** Display name for the selected PPT / Report file (internal: supplementaryMaterial). */
   supplementaryFileName: string;
   repositoryUrl: string;
   projectUrl: string;
@@ -92,7 +95,6 @@ export const INITIAL_TECH_RESEARCH_APPLICATION: TechResearchApplicationForm = {
   email: "",
   institution: "",
   country: "",
-  applicantEducationLevel: "",
   teamMembers: [{ ...EMPTY_TEAM_MEMBER }],
 
   researchQuestion: "",
@@ -103,7 +105,6 @@ export const INITIAL_TECH_RESEARCH_APPLICATION: TechResearchApplicationForm = {
   technologiesUsed: "",
   keywords: "",
 
-  manuscriptFileName: "",
   supplementaryFileName: "",
   repositoryUrl: "",
   projectUrl: "",
@@ -179,9 +180,14 @@ export function projectTypeLabel(type: ProjectType | ""): string {
   return PROJECT_TYPE_OPTIONS.find((opt) => opt.value === type)?.label ?? type;
 }
 
+export type TechResearchStepValidationContext = {
+  supplementaryFile?: File | null;
+};
+
 export function validateTechResearchStep(
   step: TechResearchApplyStepId,
-  form: TechResearchApplicationForm
+  form: TechResearchApplicationForm,
+  context: TechResearchStepValidationContext = {}
 ): Record<string, string> {
   const errors: Record<string, string> = {};
 
@@ -207,9 +213,6 @@ export function validateTechResearchStep(
     if (institution) errors.institution = institution;
     const country = requireField(form.country, "Country is required.");
     if (country) errors.country = country;
-    if (!form.applicantEducationLevel) {
-      errors.applicantEducationLevel = "Education level is required.";
-    }
 
     if (form.projectType === "team") {
       form.teamMembers.forEach((member, index) => {
@@ -250,9 +253,16 @@ export function validateTechResearchStep(
   }
 
   if (step === 4) {
-    if (!form.manuscriptFileName.trim()) {
-      errors.manuscriptFileName = "Select a manuscript file to include with your submission.";
+    const file = context.supplementaryFile ?? null;
+    if (!file) {
+      errors.supplementaryFileName = "Select a PPT / Report file to continue.";
+    } else if (!isAllowedTechResearchPptReportFile(file)) {
+      errors.supplementaryFileName =
+        "Upload a PowerPoint (.ppt, .pptx), Word (.doc, .docx), or PDF (.pdf) file.";
+    } else if (file.size > TECH_RESEARCH_PPT_REPORT_MAX_BYTES) {
+      errors.supplementaryFileName = "File must be 25 MB or smaller.";
     }
+
     const urlFields: { key: keyof TechResearchApplicationForm; label: string }[] = [
       { key: "repositoryUrl", label: "Repository URL" },
       { key: "projectUrl", label: "Project or demo URL" },
@@ -279,12 +289,73 @@ export function validateTechResearchStep(
 }
 
 export function validateTechResearchApplication(
-  form: TechResearchApplicationForm
+  form: TechResearchApplicationForm,
+  context: TechResearchStepValidationContext = {}
 ): Record<string, string> {
   let errors: Record<string, string> = {};
   for (const step of TECH_RESEARCH_APPLY_STEPS) {
     if (step.id === 6) continue;
-    errors = { ...errors, ...validateTechResearchStep(step.id, form) };
+    errors = { ...errors, ...validateTechResearchStep(step.id, form, context) };
   }
   return errors;
+}
+
+export type TechResearchSubmissionPayload = Omit<
+  TechResearchApplicationForm,
+  | "supplementaryFileName"
+  | "declarationOriginal"
+  | "declarationCited"
+  | "declarationContributors"
+  | "declarationAiDisclosed"
+  | "declarationPermission"
+  | "declarationEthics"
+> & {
+  declarations: {
+    original: boolean;
+    cited: boolean;
+    contributors: boolean;
+    aiDisclosed: boolean;
+    permission: boolean;
+    ethics: boolean;
+  };
+};
+
+export function buildTechResearchSubmissionPayload(
+  form: TechResearchApplicationForm
+): TechResearchSubmissionPayload {
+  return {
+    projectTitle: form.projectTitle.trim(),
+    researchArea: form.researchArea,
+    projectEducationLevel: form.projectEducationLevel,
+    projectType: form.projectType,
+    fullName: form.fullName.trim(),
+    email: form.email.trim(),
+    institution: form.institution.trim(),
+    country: form.country.trim(),
+    teamMembers: form.teamMembers.map((member) => ({
+      fullName: member.fullName.trim(),
+      email: member.email.trim(),
+      institution: member.institution.trim(),
+      role: member.role.trim(),
+    })),
+    researchQuestion: form.researchQuestion.trim(),
+    abstract: form.abstract.trim(),
+    problemAddressed: form.problemAddressed.trim(),
+    methods: form.methods.trim(),
+    keyFindings: form.keyFindings.trim(),
+    technologiesUsed: form.technologiesUsed.trim(),
+    keywords: form.keywords.trim(),
+    repositoryUrl: form.repositoryUrl.trim(),
+    projectUrl: form.projectUrl.trim(),
+    videoUrl: form.videoUrl.trim(),
+    datasetUrl: form.datasetUrl.trim(),
+    declarations: {
+      original: form.declarationOriginal,
+      cited: form.declarationCited,
+      contributors: form.declarationContributors,
+      aiDisclosed: form.declarationAiDisclosed,
+      permission: form.declarationPermission,
+      ethics: form.declarationEthics,
+    },
+  };
 }

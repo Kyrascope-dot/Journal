@@ -339,6 +339,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                   <option value="all">All types</option>
                   <option value="journal">Journal</option>
                   <option value="conference">Conference</option>
+                  <option value="tech_research">Tech Research</option>
                 </select>
               </div>
               <div>

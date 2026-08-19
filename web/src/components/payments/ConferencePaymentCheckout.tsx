@@ -20,7 +20,10 @@ import {
   validateInternationalCheckoutContact,
 } from "@/lib/payments/razorpay-checkout-client";
 
-type ConferencePaymentPlanId = Exclude<PaymentPlanId, "gateway_test_usd">;
+type ConferencePaymentPlanId = Exclude<
+  PaymentPlanId,
+  "gateway_test_usd" | "tech_research_usd"
+>;
 type PaymentMethod = "razorpay" | "paypal";
 
 export function ConferencePaymentCheckout() {

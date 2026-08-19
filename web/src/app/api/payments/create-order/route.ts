@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { createPaymentIntent } from "@/lib/payments/payment-store";
-import { getPaymentPlan, isGatewayTestPlan, type PaymentPlanId } from "@/lib/payments/plans";
+import { getPaymentPlan, isGatewayTestPlan, resolvePaymentPurpose, type PaymentPlanId } from "@/lib/payments/plans";
 import {
   formatRazorpayError,
   getRazorpayClient,
@@ -58,9 +58,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const paymentPurpose = isGatewayTestPlan(plan.id)
-      ? "gateway_test"
-      : "conference_registration";
+    const paymentPurpose = resolvePaymentPurpose(plan.id);
 
     const registrationId =
       typeof body.registrationId === "string" && body.registrationId.trim()
@@ -88,6 +86,7 @@ export async function POST(request: Request) {
       userId: user.uid,
       userEmail: user.email,
       planId: plan.id,
+      purpose: paymentPurpose,
       currency: plan.currency,
       amountMinor: plan.amountMinor,
       amountMajor: plan.amountMajor,
@@ -115,7 +114,9 @@ export async function POST(request: Request) {
       name: siteConfig.name,
       description: isGatewayTestPlan(plan.id)
         ? "Payment gateway test — USD 1"
-        : `${plan.label} — Conference registration`,
+        : paymentPurpose === "tech_research_submission"
+          ? `${plan.label} — Tech Research submission fee`
+          : `${plan.label} — Conference registration`,
     });
   } catch (error) {
     console.error("[payments/create-order]", error);

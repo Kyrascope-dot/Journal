@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { createPaymentIntent } from "@/lib/payments/payment-store";
 import { createPayPalOrder, isPayPalConfigured } from "@/lib/payments/paypal";
-import { getPaymentPlan, isGatewayTestPlan, type PaymentPlanId } from "@/lib/payments/plans";
+import { getPaymentPlan, isGatewayTestPlan, resolvePaymentPurpose, type PaymentPlanId } from "@/lib/payments/plans";
 import { verifyUserIdToken } from "@/lib/server/verify-user";
 
 export const runtime = "nodejs";
@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 type Body = {
   planId?: PaymentPlanId;
   registrationId?: string | null;
-  returnPath?: "/conferences/payment" | "/payments/test";
+  returnPath?: "/conferences/payment" | "/payments/test" | "/tech-research/apply";
 };
 
 export async function POST(request: Request) {
@@ -48,11 +48,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid PayPal payment plan." }, { status: 400 });
     }
 
-    const paymentPurpose = isGatewayTestPlan(plan.id)
-      ? "gateway_test"
-      : "conference_registration";
+    const paymentPurpose = resolvePaymentPurpose(plan.id);
     const returnPath =
-      body.returnPath === "/payments/test" ? "/payments/test" : "/conferences/payment";
+      body.returnPath === "/payments/test"
+        ? "/payments/test"
+        : body.returnPath === "/tech-research/apply"
+          ? "/tech-research/apply"
+          : "/conferences/payment";
 
     const registrationId =
       typeof body.registrationId === "string" && body.registrationId.trim()
@@ -64,7 +66,9 @@ export async function POST(request: Request) {
       label: plan.label,
       description: isGatewayTestPlan(plan.id)
         ? "Payment gateway test - USD 1"
-        : `${plan.label} - Conference registration`,
+        : paymentPurpose === "tech_research_submission"
+          ? `${plan.label} - Tech Research submission fee`
+          : `${plan.label} - Conference registration`,
       currency: plan.currency,
       amountMajor: plan.amountMajor,
       userId: user.uid,
@@ -77,6 +81,7 @@ export async function POST(request: Request) {
       userId: user.uid,
       userEmail: user.email,
       planId: plan.id,
+      purpose: paymentPurpose,
       gateway: "paypal",
       currency: plan.currency,
       amountMinor: plan.amountMinor,
