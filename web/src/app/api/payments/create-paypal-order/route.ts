@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       planId: plan.id,
       label: plan.label,
       description: isGatewayTestPlan(plan.id)
-        ? "Payment gateway test - USD 1"
+        ? "Payment gateway test - USD 5"
         : paymentPurpose === "tech_research_submission"
           ? `${plan.label} - Tech Research submission fee`
           : `${plan.label} - Conference registration`,

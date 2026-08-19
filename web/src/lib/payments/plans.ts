@@ -18,15 +18,15 @@ export type PaymentPlan = {
   checkoutHint: string;
 };
 
-/** USD 1 plan for Razorpay gateway testing only. */
+/** USD 5 plan for Razorpay gateway testing only. */
 export const GATEWAY_TEST_PAYMENT_PLAN: PaymentPlan = {
   id: "gateway_test_usd",
   label: "Gateway test",
-  description: "One-dollar test charge to verify Razorpay checkout",
+  description: "Five-dollar test charge to verify Razorpay checkout",
   currency: "USD",
-  amountMajor: 1,
-  amountMinor: 100,
-  displayAmount: "USD 1",
+  amountMajor: 5,
+  amountMinor: 500,
+  displayAmount: "USD 5",
   checkoutHint: "Uses USD checkout. International cards require Razorpay International Payments.",
 };
 

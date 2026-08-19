@@ -113,7 +113,7 @@ export async function POST(request: Request) {
       },
       name: siteConfig.name,
       description: isGatewayTestPlan(plan.id)
-        ? "Payment gateway test — USD 1"
+        ? "Payment gateway test — USD 5"
         : paymentPurpose === "tech_research_submission"
           ? `${plan.label} — Tech Research submission fee`
           : `${plan.label} — Conference registration`,
