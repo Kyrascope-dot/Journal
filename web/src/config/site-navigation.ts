@@ -43,6 +43,7 @@ export const mainNavGroups: NavGroup[] = [
       { href: "/articles", label: "All Articles" },
       { href: "/issues", label: "Archives" },
       { href: "/research/young-researchers-hub", label: "Young Researchers’ Hub" },
+      { href: "/tech-research", label: "Tech Research" },
       { href: "/research-competitions", label: "GCR Research Competitions" },
     ],
   },

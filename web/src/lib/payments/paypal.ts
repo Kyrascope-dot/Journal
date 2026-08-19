@@ -106,18 +106,16 @@ export async function createPayPalOrder(input: {
           },
         },
       ],
-      payment_source: {
-        paypal: {
-          email_address: input.userEmail || undefined,
-          experience_context: {
-            brand_name: "Global Confluence Review",
-            landing_page: "LOGIN",
-            shipping_preference: "NO_SHIPPING",
-            user_action: "PAY_NOW",
-            return_url: `${origin}${returnPath}?paypal_return=1`,
-            cancel_url: `${origin}${returnPath}?paypal_cancelled=1`,
-          },
-        },
+      // Do not set payment_source here — let PayPal show all enabled payer methods
+      // (PayPal balance, cards, etc.). Pre-setting payment_source.paypal can cause
+      // currency mismatch errors for INR payers on USD orders.
+      application_context: {
+        brand_name: "Global Confluence Review",
+        landing_page: "NO_PREFERENCE",
+        shipping_preference: "NO_SHIPPING",
+        user_action: "PAY_NOW",
+        return_url: `${origin}${returnPath}?paypal_return=1`,
+        cancel_url: `${origin}${returnPath}?paypal_cancelled=1`,
       },
     }),
   });

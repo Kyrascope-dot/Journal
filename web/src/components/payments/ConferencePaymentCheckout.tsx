@@ -293,11 +293,20 @@ function ConferencePaymentCheckoutSignedIn() {
                   PayPal
                 </span>
                 <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
-                  Recommended for international participants paying with PayPal or global cards.
+                  Best for participants outside India with a PayPal account or non-Indian billing
+                  address. Indian cards may see a currency error until the merchant PayPal account
+                  accepts USD.
                 </span>
               </span>
             </label>
           </div>
+          {paymentMethod === "paypal" ? (
+            <p className="mt-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              PayPal charges in <strong>USD</strong>. If you see &quot;This seller doesn&apos;t accept
+              payments in your currency&quot;, use <strong>Razorpay</strong> instead, or ask the
+              editorial office to enable USD receipt on the PayPal Business account.
+            </p>
+          ) : null}
         </fieldset>
 
         <label className="mt-5 block text-sm">

@@ -148,6 +148,18 @@ export function HomeYoungResearchersSection() {
           Visit Young Researchers’ Hub
         </Link>
         <Link
+          href="/tech-research/apply"
+          className="inline-flex rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95"
+        >
+          Submit Tech Research
+        </Link>
+        <Link
+          href="/tech-research"
+          className="inline-flex rounded border border-[var(--journal-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--journal-heading)] hover:bg-zinc-50"
+        >
+          Explore Tech Research
+        </Link>
+        <Link
           href="/research-competitions"
           className="inline-flex rounded border border-[var(--journal-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--journal-heading)] hover:bg-zinc-50"
         >
