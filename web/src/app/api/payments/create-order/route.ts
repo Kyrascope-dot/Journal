@@ -4,10 +4,12 @@ import { createPaymentIntent } from "@/lib/payments/payment-store";
 import {
   getPaymentCheckoutBreakdown,
   getPaymentPlan,
+  isFeeWaiverPlan,
   isGatewayTestPlan,
   resolvePaymentPurpose,
   type PaymentPlanId,
 } from "@/lib/payments/plans";
+import { verifyFeeWaiverPaymentAccess } from "@/lib/payments/fee-waiver-access";
 import {
   formatRazorpayError,
   getRazorpayClient,
@@ -74,6 +76,13 @@ export async function POST(request: Request) {
       typeof body.registrationId === "string" && body.registrationId.trim()
         ? body.registrationId.trim().slice(0, 64)
         : null;
+
+    if (isFeeWaiverPlan(plan.id)) {
+      await verifyFeeWaiverPaymentAccess({
+        userId: user.uid,
+        registrationId,
+      });
+    }
 
     const receipt = `${paymentReceiptPrefix()}_${Date.now().toString(36)}`.slice(0, 40);
     const razorpay = getRazorpayClient();

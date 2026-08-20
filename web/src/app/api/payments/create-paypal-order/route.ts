@@ -5,10 +5,12 @@ import { createPayPalOrder, isPayPalConfigured } from "@/lib/payments/paypal";
 import {
   getPaymentCheckoutBreakdown,
   getPaymentPlan,
+  isFeeWaiverPlan,
   isGatewayTestPlan,
   resolvePaymentPurpose,
   type PaymentPlanId,
 } from "@/lib/payments/plans";
+import { verifyFeeWaiverPaymentAccess } from "@/lib/payments/fee-waiver-access";
 import { verifyUserIdToken } from "@/lib/server/verify-user";
 
 export const runtime = "nodejs";
@@ -71,6 +73,13 @@ export async function POST(request: Request) {
       typeof body.registrationId === "string" && body.registrationId.trim()
         ? body.registrationId.trim().slice(0, 64)
         : null;
+
+    if (isFeeWaiverPlan(plan.id)) {
+      await verifyFeeWaiverPaymentAccess({
+        userId: user.uid,
+        registrationId,
+      });
+    }
 
     const order = await createPayPalOrder({
       planId: plan.id,

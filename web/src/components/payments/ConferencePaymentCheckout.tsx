@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { RequireSignIn } from "@/components/auth/RequireSignIn";
 import { useAuth } from "@/context/AuthContext";
+import { getSubmissionsByAuthor } from "@/lib/firestore-submissions";
 import {
   requestCapturePayPalOrder,
   requestCreatePaymentOrder,
@@ -49,6 +50,9 @@ function ConferencePaymentCheckoutSignedIn() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [history, setHistory] = useState<PaymentHistoryItem[]>([]);
+  const [feeWaiverRegistrationIds, setFeeWaiverRegistrationIds] = useState<string[]>([]);
+  const [feeWaiverAccessLoaded, setFeeWaiverAccessLoaded] = useState(false);
+  const [requestedPlanId, setRequestedPlanId] = useState<ConferencePaymentPlanId | null>(null);
 
   const reloadHistory = useCallback(async () => {
     if (!user) {
@@ -68,6 +72,39 @@ function ConferencePaymentCheckoutSignedIn() {
   }, [reloadHistory]);
 
   useEffect(() => {
+    if (!user) {
+      setFeeWaiverRegistrationIds([]);
+      setFeeWaiverAccessLoaded(false);
+      return;
+    }
+    let cancelled = false;
+    setFeeWaiverAccessLoaded(false);
+    getSubmissionsByAuthor(user.uid)
+      .then((submissions) => {
+        if (cancelled) return;
+        setFeeWaiverRegistrationIds(
+          submissions
+            .filter(
+              (submission) =>
+                submission.submissionPurpose === "conference" &&
+                (submission.conferenceFeeWaiver === "partial" ||
+                  submission.conferenceFeeWaiver === "full")
+            )
+            .map((submission) => submission.registrationId)
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setFeeWaiverRegistrationIds([]);
+      })
+      .finally(() => {
+        if (!cancelled) setFeeWaiverAccessLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
     if (!user) return;
     const params = new URLSearchParams(window.location.search);
     const linkedRegistrationId = params.get("registrationId");
@@ -80,7 +117,10 @@ function ConferencePaymentCheckoutSignedIn() {
       linkedPlanId === "international_usd" ||
       linkedPlanId === "fee_waiver_usd"
     ) {
-      setPlanId(linkedPlanId);
+      setRequestedPlanId(linkedPlanId);
+      if (linkedPlanId !== "fee_waiver_usd") {
+        setPlanId(linkedPlanId);
+      }
     }
     const returnedFromPayPal = params.get("paypal_return") === "1";
     const orderId = params.get("token");
@@ -134,12 +174,47 @@ function ConferencePaymentCheckoutSignedIn() {
       });
   }, [reloadHistory, user]);
 
+  useEffect(() => {
+    if (!feeWaiverAccessLoaded) return;
+    const hasFeeWaiverAccess = feeWaiverRegistrationIds.length > 0;
+    if (requestedPlanId === "fee_waiver_usd") {
+      if (hasFeeWaiverAccess) {
+        setPlanId("fee_waiver_usd");
+      } else {
+        setPlanId("national_usd");
+        setError("The USD 100 fee-waiver payment is available only after the Editorial Office assigns a fee waiver to your conference submission.");
+      }
+      return;
+    }
+    if (planId === "fee_waiver_usd" && !hasFeeWaiverAccess) {
+      setPlanId("national_usd");
+    }
+  }, [feeWaiverAccessLoaded, feeWaiverRegistrationIds.length, planId, requestedPlanId]);
+
+  useEffect(() => {
+    if (
+      planId === "fee_waiver_usd" &&
+      !registrationId.trim() &&
+      feeWaiverRegistrationIds.length === 1
+    ) {
+      setRegistrationId(feeWaiverRegistrationIds[0]!);
+    }
+  }, [feeWaiverRegistrationIds, planId, registrationId]);
+
   async function handlePay() {
     setError("");
     setMessage("");
     if (!user) {
       setError("Please sign in before paying.");
       return;
+    }
+
+    if (planId === "fee_waiver_usd") {
+      const normalizedRegistrationId = registrationId.trim();
+      if (!feeWaiverRegistrationIds.includes(normalizedRegistrationId)) {
+        setError("Select or enter the Registration ID that has an approved fee waiver.");
+        return;
+      }
     }
 
     if (paymentMethod === "razorpay") {
@@ -207,6 +282,10 @@ function ConferencePaymentCheckoutSignedIn() {
 
   const selectedPlan = CONFERENCE_PAYMENT_PLANS[planId];
   const checkout = getPaymentCheckoutBreakdown(planId)!;
+  const hasFeeWaiverAccess = feeWaiverRegistrationIds.length > 0;
+  const visiblePlanIds = (Object.keys(CONFERENCE_PAYMENT_PLANS) as ConferencePaymentPlanId[]).filter(
+    (id) => id !== "fee_waiver_usd" || hasFeeWaiverAccess
+  );
 
   if (!user) {
     return null;
@@ -227,7 +306,7 @@ function ConferencePaymentCheckoutSignedIn() {
           <legend className="text-sm font-semibold text-[var(--journal-heading)]">
             Select fee category
           </legend>
-          {(Object.keys(CONFERENCE_PAYMENT_PLANS) as ConferencePaymentPlanId[]).map((id) => {
+          {visiblePlanIds.map((id) => {
             const plan = CONFERENCE_PAYMENT_PLANS[id];
             const planCheckout = getPaymentCheckoutBreakdown(id)!;
             return (
@@ -262,6 +341,11 @@ function ConferencePaymentCheckoutSignedIn() {
             );
           })}
         </fieldset>
+        {hasFeeWaiverAccess ? (
+          <p className="mt-2 text-xs text-emerald-700">
+            Fee-waiver payment is available for: {feeWaiverRegistrationIds.join(", ")}
+          </p>
+        ) : null}
 
         <fieldset className="mt-5">
           <legend className="text-sm font-semibold text-[var(--journal-heading)]">

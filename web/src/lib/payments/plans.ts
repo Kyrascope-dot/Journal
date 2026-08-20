@@ -180,6 +180,10 @@ export function isTechResearchPlan(planId: string | null | undefined): boolean {
   return planId === "tech_research_usd";
 }
 
+export function isFeeWaiverPlan(planId: string | null | undefined): boolean {
+  return planId === "fee_waiver_usd";
+}
+
 export function resolvePaymentPurpose(
   planId: PaymentPlanId
 ): "conference_registration" | "tech_research_submission" | "gateway_test" {
