@@ -54,8 +54,20 @@ export const conferenceSchedule = [
 ] as const;
 
 export const conferenceRegistrationFees = [
-  { label: "National Participants", amount: "USD 150 + 18% GST (USD 177 total)" },
-  { label: "International Participants", amount: "USD 200" },
+  {
+    label: "National Participants",
+    amount: "USD 177 total",
+    breakdown: [
+      "Registration Fee: USD 150",
+      "GST (18%): USD 27",
+      "Total: USD 177",
+    ],
+  },
+  {
+    label: "International Participants",
+    amount: "USD 200",
+    breakdown: ["Registration Fee: USD 200"],
+  },
 ] as const;
 
 export const conferenceFeeWaiverText =
@@ -66,7 +78,14 @@ export const conferenceFeeWaiverEmailText = `Students seeking financial assistan
 export const importantConferenceDates = [
   { label: "Abstract Submission Deadline", value: "25 August 2026" },
   { label: "Registration Deadline", value: "25 August 2026" },
-  { label: "Conference Date", value: "30 August 2026" },
+  {
+    label: "GCR Colloquia/Workshop",
+    value: `${featuredConference.colloquiaDateLabel}, ${featuredConference.colloquiaTime}`,
+  },
+  {
+    label: "Conference Date",
+    value: `${featuredConference.datesLabel}, ${featuredConference.conferenceTime}`,
+  },
 ] as const;
 
 export const howToRegisterSteps = [
@@ -77,10 +96,51 @@ export const howToRegisterSteps = [
   "Present your research at the conference via PPT",
 ] as const;
 
+export const publicationOpportunityLead =
+  "All authors who enroll/register for the GCR conference will have the opportunity to submit their full research manuscript for consideration for publication in Global Confluence Review (GCR).";
+
+export const publicationOpportunityLegalClarification =
+  "Submission for publication does not constitute a guarantee of publication. All submitted manuscripts will undergo the journal's applicable double-blind peer-review, plagiarism screening, editorial evaluation, and quality-assurance processes. Authors may be required to make revisions before a publication decision is made. Final publication is subject to the journal's scope, publication ethics, editorial standards, peer-review outcome, and publication schedule.";
+
 export const publicationOpportunityParagraphs = [
-  "Selected full manuscripts may be considered for publication in Global Confluence Review (GCR), ISSN: 3139-6690.",
-  "All manuscripts considered for publication will be subject to applicable editorial screening and peer-review processes.",
-  "Conference presentation does not automatically guarantee publication.",
+  publicationOpportunityLead,
+  publicationOpportunityLegalClarification,
+] as const;
+
+export const conferenceRegistrationFeeIncludes = [
+  `Participation in the International Multidisciplinary Conference 2026 on ${featuredConference.datesLabel}.`,
+  "Presentation of the accepted research abstract before an international audience of academicians, researchers, and industry experts.",
+  `Complimentary access to the GCR Colloquia/Workshop on ${featuredConference.colloquiaDateLabel}.`,
+  "Exclusive Fireside Chat with the Editors.",
+  "Opportunity for ALL enrolled conference authors to submit their full research manuscript for consideration for publication in Global Confluence Review (GCR), subject to double-blind peer review, plagiarism screening, editorial evaluation, author revisions where required, publication ethics, journal scope, editorial standards, and publication schedule.",
+  "Digital Conference Participation Certificate.",
+  "Separate E-Certificate for participation in the GCR Colloquia/Workshop.",
+  "Opportunity to compete for Best Paper and Best Presenter Awards.",
+  "Networking opportunities with researchers, editors, academicians, and scholars.",
+] as const;
+
+export const conferencePaymentPublicationNote = [
+  "All authors who register/enroll for the GCR conference are eligible to submit their full research manuscript for consideration for publication in Global Confluence Review (GCR).",
+  "Conference registration provides an opportunity to submit a manuscript; it does not guarantee publication.",
+  "All submitted manuscripts are subject to the journal's applicable double-blind peer-review process, plagiarism screening, editorial evaluation, author revisions where required, publication ethics, journal scope, quality standards, and publication schedule.",
+  "A final publication decision will be made only after completion of the applicable editorial and peer-review process.",
+] as const;
+
+export const conferencePaymentApcNote =
+  "If a separate journal publication fee or article processing charge (APC) applies, it is governed by the journal's current Publication Fees & Fee Waivers policy and is not automatically covered by the conference registration fee.";
+
+export const razorpayPaymentNote =
+  "Razorpay Payment Note: Razorpay may apply an additional payment processing/convenience fee, where applicable. Any such payment gateway charge is separate from the GCR conference registration fee and applicable GST. The applicable charge, if any, will be displayed by Razorpay during checkout before the payment is completed. The final amount charged by Razorpay may therefore be higher than the stated GCR registration amount.";
+
+export const conferenceAcceptedEmailFeeIncludes = [
+  "Conference participation and presentation of your accepted abstract.",
+  "Complimentary participation in the GCR Colloquia and Workshop.",
+  "Exclusive Fireside Chat with the Editors.",
+  "Opportunity for all enrolled conference authors to submit their full research manuscript for consideration for publication in Global Confluence Review (GCR), subject to peer review, plagiarism screening, editorial evaluation, author revisions where required, and applicable publication standards.",
+  "Digital Conference Participation Certificate.",
+  "Separate E-Certificate for participation in the GCR Colloquia/Workshop.",
+  "Opportunity to compete for Best Paper and Best Presenter Awards.",
+  "Networking opportunities with researchers, editors, academicians, and scholars.",
 ] as const;
 
 export const conferenceAwards = [

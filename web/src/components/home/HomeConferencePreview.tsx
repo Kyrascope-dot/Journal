@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { SectionHeading } from "@/components/home/HomeSections";
-import { conferencePublicationDisclaimer, featuredConference } from "@/lib/conference-config";
+import {
+  conferencePublicationDisclaimer,
+  conferencePublicationHomepageDisclaimer,
+  featuredConference,
+} from "@/lib/conference-config";
 import { conferenceOverviewTitle, conferenceRegistrationFees } from "@/lib/conference-content";
 
 export function HomeConferencePreview() {
@@ -19,10 +23,12 @@ export function HomeConferencePreview() {
             <strong>Mode:</strong> {featuredConference.mode}
           </li>
           <li>
-            <strong>Conference:</strong> {featuredConference.datesLabel}, 9:30am IST
+            <strong>Conference:</strong> {featuredConference.datesLabel},{" "}
+            {featuredConference.conferenceTime}
           </li>
           <li>
-            <strong>Colloquia/Workshop:</strong> 29 August 2026, 9:30am IST
+            <strong>Colloquia/Workshop:</strong> {featuredConference.colloquiaDateLabel},{" "}
+            {featuredConference.colloquiaTime}
           </li>
           <li>
             <strong>Abstract &amp; registration deadline:</strong>{" "}
@@ -56,6 +62,9 @@ export function HomeConferencePreview() {
       </div>
       <p className="mt-6 text-xs leading-relaxed text-[var(--journal-muted)]">
         {conferencePublicationDisclaimer}
+      </p>
+      <p className="mt-2 text-xs leading-relaxed text-[var(--journal-muted)]">
+        {conferencePublicationHomepageDisclaimer}
       </p>
     </section>
   );

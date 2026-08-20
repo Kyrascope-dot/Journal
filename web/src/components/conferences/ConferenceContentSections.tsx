@@ -111,7 +111,16 @@ export function ConferenceFeesSection() {
       <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] text-[var(--journal-body)]">
         {conferenceRegistrationFees.map((fee) => (
           <li key={fee.label}>
-            <strong>{fee.label}:</strong> {fee.amount}
+            <strong>{fee.label}</strong>
+            {"breakdown" in fee && fee.breakdown ? (
+              <ul className="mt-1 list-disc space-y-0.5 pl-5 font-normal">
+                {fee.breakdown.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            ) : (
+              <>: {fee.amount}</>
+            )}
           </li>
         ))}
       </ul>

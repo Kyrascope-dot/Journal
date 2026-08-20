@@ -132,10 +132,15 @@ export function ConferencePopup() {
           <h3 className="mt-6 font-serif text-lg font-semibold text-[var(--journal-heading)]">
             Registration fees
           </h3>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
+          <ul className="mt-2 list-disc space-y-2 pl-5">
             {conferenceRegistrationFees.map((fee) => (
               <li key={fee.label}>
-                {fee.label}: {fee.amount}
+                <strong>{fee.label}</strong>
+                <ul className="mt-1 list-disc space-y-0.5 pl-5 font-normal">
+                  {fee.breakdown.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
               </li>
             ))}
           </ul>

@@ -5,6 +5,9 @@ export const featuredConference = {
   theme: "Innovation, Sustainability and Inclusive Development",
   mode: "Online via Zoom",
   datesLabel: "30 August 2026",
+  conferenceTime: "9:30 AM IST",
+  colloquiaDateLabel: "29 August 2026",
+  colloquiaTime: "9:30 AM IST",
   registrationDeadline: "25 August 2026",
   submissionDeadline: "25 August 2026",
 };
@@ -28,8 +31,14 @@ export const quarterlyConferenceSeries = [
   },
 ] as const;
 
-export const conferencePublicationDisclaimer =
-  "Selected conference papers may be considered for publication in Global Confluence Review (GCR), subject to peer review, plagiarism screening, editorial evaluation, author revisions, and the journal’s publication schedule.";
+export const conferencePublicationHomepageLead =
+  "All enrolled conference authors have the opportunity to submit their full research manuscript for consideration for publication in Global Confluence Review (GCR), subject to double-blind peer review, plagiarism screening, editorial evaluation, author revisions where required, and applicable publication standards.";
+
+export const conferencePublicationHomepageDisclaimer =
+  "Conference registration does not guarantee publication.";
+
+/** Homepage conference preview — concise publication note. */
+export const conferencePublicationDisclaimer = conferencePublicationHomepageLead;
 
 export const conferenceRegistrationDisclaimer =
-  "Conference participation does not guarantee journal publication. Selected manuscripts may be considered for publication subject to the journal’s peer-review process, editorial evaluation, author revisions, and publication schedule.";
+  "Conference registration provides an opportunity to submit a manuscript for publication consideration; it does not guarantee publication.";

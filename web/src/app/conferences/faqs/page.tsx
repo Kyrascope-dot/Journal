@@ -27,17 +27,47 @@ export default function ConferenceFaqsPage() {
           paragraphs: [
             "Abstract Submission Deadline: 25 August 2026",
             "Registration Deadline: 25 August 2026",
-            "Conference Date: 30 August 2026",
+            "GCR Colloquia/Workshop: 29 August 2026, 9:30 AM IST",
+            "Conference Date: 30 August 2026, 9:30 AM IST",
+            "Mode: Online via Zoom",
             "The Zoom link will be shared with registered participants.",
           ],
         },
         {
           heading: "Registration fees",
           paragraphs: [
-            "National Participants: USD 150 + 18% GST (USD 177 total)",
-            "International Participants: USD 200",
+            "National Participants:",
+            "Registration Fee: USD 150",
+            "GST (18%): USD 27",
+            "Total: USD 177",
+            "International Participants:",
+            "Registration Fee: USD 200",
             "Full and Partial need-based fee waivers are available for talented students with demonstrated financial need, subject to eligibility and availability.",
             `Students seeking financial assistance should email the Editor at ${siteConfig.email}.`,
+          ],
+        },
+        {
+          heading: "Does conference registration guarantee publication?",
+          paragraphs: [
+            "No. Conference registration provides all enrolled conference authors with the opportunity to submit a full research manuscript for consideration. All manuscripts are subject to double-blind peer review, plagiarism screening, editorial evaluation, applicable publication standards, and the journal's publication schedule. Registration does not guarantee publication.",
+          ],
+        },
+        {
+          heading: "Who can submit a manuscript for publication consideration?",
+          paragraphs: [
+            "All authors who enroll/register for the GCR conference are eligible to submit their full research manuscript for consideration, subject to the journal's applicable submission and editorial requirements.",
+          ],
+        },
+        {
+          heading: "Is the publication opportunity included in the conference registration?",
+          paragraphs: [
+            "Conference registration provides the opportunity to submit a manuscript for publication consideration. Publication itself is not guaranteed and remains subject to the journal's peer-review and editorial processes. Any separate publication fee or APC, if applicable, should be governed by the journal's current Publication Fees & Fee Waivers policy.",
+          ],
+        },
+        {
+          heading: "Is there an additional Razorpay fee?",
+          paragraphs: [
+            "Razorpay may apply a payment processing/convenience fee, where applicable. Any such charge is separate from the GCR registration fee and applicable GST and will be displayed during checkout before payment.",
           ],
         },
         {

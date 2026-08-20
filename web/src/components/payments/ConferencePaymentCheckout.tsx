@@ -11,6 +11,7 @@ import {
   type PaymentHistoryItem,
 } from "@/lib/client/payments";
 import { formatCheckoutPaymentError } from "@/lib/payments/checkout-errors";
+import { razorpayPaymentNote } from "@/lib/conference-content";
 import {
   CONFERENCE_PAYMENT_PLANS,
   getPaymentCheckoutBreakdown,
@@ -305,6 +306,9 @@ function ConferencePaymentCheckoutSignedIn() {
               editorial office to enable USD receipt on the PayPal Business account.
             </p>
           ) : null}
+          <p className="mt-3 rounded border border-[var(--journal-border)] bg-zinc-50 px-3 py-2 text-xs leading-relaxed text-[var(--journal-body)]">
+            {razorpayPaymentNote}
+          </p>
         </fieldset>
 
         <label className="mt-5 block text-sm">

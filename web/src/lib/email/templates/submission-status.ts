@@ -1,4 +1,9 @@
 import { siteConfig } from "@/lib/site-config";
+import {
+  conferenceAcceptedEmailFeeIncludes,
+  publicationOpportunityLead,
+} from "@/lib/conference-content";
+import { featuredConference } from "@/lib/conference-config";
 import type {
   ConferenceAwardIntent,
   SubmissionPurpose,
@@ -51,6 +56,8 @@ type TemplateContent = {
   closing: string[];
   includeMetadataTable?: boolean;
   includeRegards?: boolean;
+  actionLinks?: { label: string; url: string }[];
+  signatureLines?: string[];
 };
 
 function escapeHtml(value: string): string {
@@ -64,25 +71,65 @@ function escapeHtml(value: string): string {
 function conferenceAcceptedContent(
   context: SubmissionEmailContext
 ): TemplateContent {
+  const paymentUrl = `${siteConfig.siteUrl}/conferences/payment`;
   const sections: TemplateSection[] = [
     {
-      heading: "Important Information",
-      list: [
-        "Conference: GCR International Conference Q3 2026",
-        "Date: 30th August 2026",
-        "Time: 9:30 AM IST",
-      ],
+      heading: "Conference Registration Fee Includes",
+      list: [...conferenceAcceptedEmailFeeIncludes],
+    },
+    {
+      heading: "Publication Opportunity",
       paragraphs: [
-        "Workshop: 29th August 2026",
-        "Time: 9:30 AM IST",
-        "The workshop is optional and not mandatory. Scholars who participate in the workshop will receive a separate certificate of participation.",
+        publicationOpportunityLead,
+        "Please note that conference registration or payment does not guarantee publication.",
+        "All submitted manuscripts will be subject to the journal's applicable double-blind peer-review process, plagiarism screening, editorial evaluation, author revisions where required, publication ethics, journal scope, quality standards, and publication schedule.",
       ],
     },
     {
-      heading: "Presentation Guidelines",
+      heading: "Registration Fee & GST",
       paragraphs: [
-        "Please prepare a presentation of approximately 10–15 slides, keeping your presentation within 10 minutes.",
-        "If you have any timing constraints and would prefer to present earlier in the conference, please let us know by replying to this email. We will do our best to make the necessary adjustment to the presentation schedule.",
+        "For National Participants:",
+        "Registration Fee: USD 150",
+        "GST (18%): USD 27",
+        "Total Conference Registration Fee: USD 177",
+        "The USD 177 amount includes 18% GST applicable to the conference registration fee.",
+        "For International Participants:",
+        "Conference Registration Fee: USD 200",
+      ],
+    },
+    {
+      heading: "Payment Options",
+      paragraphs: [
+        "Razorpay: Secure payment using the supported payment methods available through Razorpay.",
+        "PayPal: Available as an alternative payment option, particularly for international participants.",
+      ],
+    },
+    {
+      heading: "Razorpay Payment Note",
+      paragraphs: [
+        "Razorpay may apply an additional payment processing/convenience fee, where applicable. Any such payment gateway charge is separate from the GCR conference registration fee and applicable GST.",
+        "The applicable Razorpay charge, if any, will be displayed during Razorpay checkout before the payment is completed. Therefore, the final amount charged by Razorpay may be higher than the stated GCR registration amount.",
+      ],
+    },
+    {
+      heading: "Complete Your Registration Payment",
+      paragraphs: [
+        "Please complete your registration payment using the secure GCR conference payment page linked below.",
+        "After completing the payment, please retain your payment confirmation or receipt for your records.",
+      ],
+    },
+    {
+      heading: "Conference Schedule",
+      list: [
+        `GCR Colloquia/Workshop: ${featuredConference.colloquiaDateLabel}`,
+        featuredConference.colloquiaTime,
+        `GCR International Conference: ${featuredConference.datesLabel}`,
+        featuredConference.conferenceTime,
+        `Mode: ${featuredConference.mode}`,
+        `Registration deadline: ${featuredConference.registrationDeadline}`,
+      ],
+      paragraphs: [
+        "We request all accepted authors to complete their registration within the stipulated registration period to confirm their participation.",
       ],
     },
   ];
@@ -91,7 +138,7 @@ function conferenceAcceptedContent(
     context.conferenceAwardIntent === "best_paper" ||
     context.conferenceAwardIntent === "both"
   ) {
-    sections.push({
+    sections.splice(1, 0, {
       heading: "Best Paper Award",
       paragraphs: [
         `For scholars who have opted for the Best Paper Award, please submit your title page and blinded manuscript to the Editorial Office at ${siteConfig.email} for further consideration.`,
@@ -99,38 +146,24 @@ function conferenceAcceptedContent(
     });
   }
 
-  sections.push(
-    {
-      heading: "Payment & Fee Waivers",
-      paragraphs: [
-        "The payment link will be shared with you shortly. Kindly watch your email for further instructions.",
-        "For scholars who have applied for a need-based fee waiver, please respond to this email so that we can take your request into consideration before proceeding with the payment.",
-        "The Zoom links for both the workshop and the conference will be shared with registered participants after confirmation of payment.",
-      ],
-    },
-    {
-      heading: "Confirmation of Attendance",
-      paragraphs: [
-        "Please confirm your availability for both the workshop and the conference by 25th August 2026 by replying to this email.",
-        "While the workshop is optional, we encourage you to participate as it provides an additional opportunity for academic engagement. A separate certificate will be provided to scholars who attend the workshop.",
-      ],
-    }
-  );
-
   return {
-    subject: `Acceptance Notification – GCR International Conference Q3 2026`,
+    subject: "Payment Link – GCR International Conference Q3 July–September 2026",
     includeMetadataTable: false,
     includeRegards: false,
     opening: [
       "Congratulations!",
-      `We are pleased to inform you that your abstract, “${context.paperTitle}”, has been accepted for presentation at the GCR International Conference Q3 2026, scheduled to be held on 30th August 2026 at 9:30 AM IST.`,
+      `We are pleased to inform you that your abstract, “${context.paperTitle}”, has been accepted for presentation at the GCR International Conference – Q3 July–September 2026.`,
       "We are delighted to have your research as part of the conference and look forward to your participation.",
     ],
     sections,
+    actionLinks: [{ label: "Complete Registration Payment", url: paymentUrl }],
     closing: [
-      "For any further queries related to the conference or workshop, please feel free to reach out to us by replying to this email.",
-      "We look forward to welcoming you to the GCR International Conference Q3 2026 and to an engaging exchange of ideas.",
-      "Thanking you,",
+      "We look forward to welcoming you and your research to the GCR International Conference Q3 July–September 2026.",
+      "Warm regards,",
+    ],
+    signatureLines: [
+      "GCR Conference & Editorial Team",
+      "Global Confluence Review (GCR)",
     ],
   };
 }
@@ -303,6 +336,15 @@ function renderHtml(
     ? `<h2 style="font-family:Georgia,serif;font-size:18px;color:#0f172a">Next Steps</h2>
           <ul style="padding-left:22px">${content.nextSteps.map((step) => `<li style="margin:8px 0">${escapeHtml(step)}</li>`).join("")}</ul>`
     : "";
+  const actionLinksHtml = (content.actionLinks ?? [])
+    .map(
+      (link) =>
+        `<p><a href="${escapeHtml(link.url)}" style="display:inline-block;background:#1e3a5f;color:#fff;padding:10px 16px;text-decoration:none">${escapeHtml(link.label)}</a></p>`
+    )
+    .join("");
+  const signatureHtml = content.signatureLines?.length
+    ? `<p>${content.signatureLines.map((line) => `<strong>${escapeHtml(line)}</strong>`).join("<br>")}</p>`
+    : `<p>${content.includeRegards === false ? "" : "Regards<br>"}<strong>Editorial Office</strong><br>Global Confluence Review</p>`;
   return `<!DOCTYPE html>
 <html><body style="margin:0;background:#f4f6f8;font-family:Arial,sans-serif;color:#1f2937">
   <div style="display:none;max-height:0;overflow:hidden">${escapeHtml(content.subject)}</div>
@@ -319,8 +361,9 @@ function renderHtml(
           ${metadataTable}
           ${sectionsHtml}
           ${nextStepsHtml}
+          ${actionLinksHtml}
           ${content.closing.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
-          <p>${content.includeRegards === false ? "" : "Regards<br>"}<strong>Editorial Office</strong><br>Global Confluence Review</p>
+          ${signatureHtml}
           <p><a href="${escapeHtml(context.dashboardUrl)}" style="display:inline-block;background:#1e3a5f;color:#fff;padding:10px 16px;text-decoration:none">Open Author Dashboard</a></p>
         </td></tr>
         <tr><td style="padding:20px;background:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#64748b">
@@ -366,14 +409,16 @@ function renderText(
     lines.push("Next Steps", ...content.nextSteps.map((step) => `- ${step}`), "");
   }
 
+  for (const link of content.actionLinks ?? []) {
+    lines.push(`${link.label}: ${link.url}`, "");
+  }
+
   lines.push(
     ...content.closing,
     "",
-    ...(content.includeRegards === false ? [] : ["Regards"]),
-    "Editorial Office",
-    "Global Confluence Review",
+    ...(content.signatureLines ?? (content.includeRegards === false ? [] : ["Regards", "Editorial Office", "Global Confluence Review"])),
     siteConfig.email,
-    "https://www.globalconfluencereview.in"
+    siteConfig.siteUrl
   );
 
   return lines.join("\n");
