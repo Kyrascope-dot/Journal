@@ -7,8 +7,10 @@ import {
   requestCommunicationTemplates,
   requestCommunicationsStats,
   requestExportCampaignCsv,
+  requestPendingPaymentLinkParticipants,
   requestProcessCampaignBatch,
   requestSaveCommunicationTemplate,
+  type PendingPaymentLinkParticipant,
 } from "@/lib/client/admin-communications";
 import type {
   CommunicationsStats,
@@ -30,6 +32,12 @@ export function CommunicationsPanel({
   const [stats, setStats] = useState<CommunicationsStats | null>(null);
   const [templates, setTemplates] = useState<EmailTemplateRecord[]>([]);
   const [campaigns, setCampaigns] = useState<EmailCampaignSummary[]>([]);
+  const [pendingPaymentLinks, setPendingPaymentLinks] = useState<
+    PendingPaymentLinkParticipant[]
+  >([]);
+  const [pendingPaymentTotalAccepted, setPendingPaymentTotalAccepted] = useState(0);
+  const [pendingPaymentLoading, setPendingPaymentLoading] = useState(false);
+  const [pendingPaymentError, setPendingPaymentError] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [composerPurpose, setComposerPurpose] = useState<SubmissionPurpose | null>(null);
@@ -54,20 +62,39 @@ export function CommunicationsPanel({
   const reload = useCallback(async () => {
     setError("");
     try {
-      const [nextStats, nextTemplates, nextCampaigns] = await Promise.all([
+      const [nextStats, nextTemplates, nextCampaigns, nextPendingPaymentLinks] = await Promise.all([
         requestCommunicationsStats(),
         requestCommunicationTemplates(),
         requestCommunicationCampaigns(),
+        requestPendingPaymentLinkParticipants(),
       ]);
       setStats(nextStats);
       setTemplates(nextTemplates);
       setCampaigns(nextCampaigns);
+      setPendingPaymentLinks(nextPendingPaymentLinks.pending);
+      setPendingPaymentTotalAccepted(nextPendingPaymentLinks.totalAccepted);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load communications.");
     } finally {
       setLoading(false);
     }
   }, []);
+
+  async function reloadPendingPaymentLinks() {
+    setPendingPaymentLoading(true);
+    setPendingPaymentError("");
+    try {
+      const result = await requestPendingPaymentLinkParticipants();
+      setPendingPaymentLinks(result.pending);
+      setPendingPaymentTotalAccepted(result.totalAccepted);
+    } catch (err) {
+      setPendingPaymentError(
+        err instanceof Error ? err.message : "Could not load pending payment links."
+      );
+    } finally {
+      setPendingPaymentLoading(false);
+    }
+  }
 
   useEffect(() => {
     void reload();
@@ -252,6 +279,18 @@ export function CommunicationsPanel({
           </div>
           <div className="mt-8">
             <h3 className="text-sm font-semibold text-[var(--journal-heading)]">
+              Payment links not sent
+            </h3>
+            <PendingPaymentLinksPanel
+              pending={pendingPaymentLinks}
+              totalAccepted={pendingPaymentTotalAccepted}
+              loading={pendingPaymentLoading}
+              error={pendingPaymentError}
+              onRefresh={() => void reloadPendingPaymentLinks()}
+            />
+          </div>
+          <div className="mt-8">
+            <h3 className="text-sm font-semibold text-[var(--journal-heading)]">
               Recent campaigns
             </h3>
             <CampaignTable
@@ -276,6 +315,18 @@ export function CommunicationsPanel({
           >
             Open conference composer
           </button>
+          <div className="mt-8">
+            <h3 className="text-sm font-semibold text-[var(--journal-heading)]">
+              Payment links not sent
+            </h3>
+            <PendingPaymentLinksPanel
+              pending={pendingPaymentLinks}
+              totalAccepted={pendingPaymentTotalAccepted}
+              loading={pendingPaymentLoading}
+              error={pendingPaymentError}
+              onRefresh={() => void reloadPendingPaymentLinks()}
+            />
+          </div>
           <div className="mt-8">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-semibold text-[var(--journal-heading)]">
@@ -375,6 +426,94 @@ export function CommunicationsPanel({
           onSave={() => void saveTemplate()}
           onClose={closeTemplateEditor}
         />
+      ) : null}
+    </div>
+  );
+}
+
+function PendingPaymentLinksPanel({
+  pending,
+  totalAccepted,
+  loading,
+  error,
+  onRefresh,
+}: {
+  pending: PendingPaymentLinkParticipant[];
+  totalAccepted: number;
+  loading: boolean;
+  error: string;
+  onRefresh: () => void;
+}) {
+  return (
+    <div className="mt-3 rounded border border-[var(--journal-border)] bg-white">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--journal-border)] px-3 py-2">
+        <p className="text-xs text-[var(--journal-muted)]">
+          {pending.length} of {totalAccepted} accepted conference participant
+          {totalAccepted === 1 ? "" : "s"} still need a payment-link email.
+        </p>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="text-xs font-medium text-[var(--journal-accent)] hover:underline disabled:opacity-50"
+        >
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
+      </div>
+      {error ? (
+        <p className="px-3 py-2 text-xs text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {!error && pending.length === 0 ? (
+        <p className="px-3 py-3 text-sm text-[var(--journal-muted)]">
+          All accepted conference participants have a sent payment-link email on record.
+        </p>
+      ) : null}
+      {pending.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-xs">
+            <thead className="bg-sky-50 text-[var(--journal-muted)]">
+              <tr>
+                <th className="px-3 py-2 font-medium">Registration</th>
+                <th className="px-3 py-2 font-medium">Author</th>
+                <th className="px-3 py-2 font-medium">Email</th>
+                <th className="px-3 py-2 font-medium">Paper</th>
+                <th className="px-3 py-2 font-medium">Waiver</th>
+                <th className="px-3 py-2 font-medium" />
+              </tr>
+            </thead>
+            <tbody>
+              {pending.map((participant) => (
+                <tr
+                  key={participant.submissionId}
+                  className="border-t border-[var(--journal-border)] align-top"
+                >
+                  <td className="px-3 py-2 font-medium text-[var(--journal-accent)]">
+                    {participant.registrationId}
+                  </td>
+                  <td className="px-3 py-2">{participant.authorName || "—"}</td>
+                  <td className="px-3 py-2">{participant.authorEmail || "—"}</td>
+                  <td className="max-w-sm px-3 py-2">{participant.title || "—"}</td>
+                  <td className="px-3 py-2 capitalize">
+                    {participant.conferenceFeeWaiver === "none"
+                      ? "No waiver"
+                      : participant.conferenceFeeWaiver}
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <button
+                      type="button"
+                      onClick={() => void navigator.clipboard.writeText(participant.paymentLink)}
+                      className="font-medium text-[var(--journal-accent)] hover:underline"
+                    >
+                      Copy link
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );

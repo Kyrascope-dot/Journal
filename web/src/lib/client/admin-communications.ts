@@ -14,6 +14,17 @@ import type {
 } from "@/types/communications";
 import type { SubmissionPurpose } from "@/types/dashboard";
 
+export type PendingPaymentLinkParticipant = {
+  submissionId: string;
+  registrationId: string;
+  authorName: string;
+  authorEmail: string;
+  title: string;
+  conferenceFeeWaiver: string;
+  submittedAt: string | null;
+  paymentLink: string;
+};
+
 async function adminRequest(path: string, init?: RequestInit) {
   const user = getFirebaseAuth().currentUser;
   if (!user) throw new Error("You must be signed in as an administrator.");
@@ -234,6 +245,28 @@ export async function requestCommunicationsStats(): Promise<CommunicationsStats>
     throw new Error(data.error ?? "Could not load stats.");
   }
   return data.stats;
+}
+
+export async function requestPendingPaymentLinkParticipants(): Promise<{
+  totalAccepted: number;
+  pendingCount: number;
+  pending: PendingPaymentLinkParticipant[];
+}> {
+  const response = await adminRequest("/api/admin/communications/payment-link-pending");
+  const data = (await response.json()) as {
+    totalAccepted?: number;
+    pendingCount?: number;
+    pending?: PendingPaymentLinkParticipant[];
+    error?: string;
+  };
+  if (!response.ok) {
+    throw new Error(data.error ?? "Could not load pending payment-link participants.");
+  }
+  return {
+    totalAccepted: data.totalAccepted ?? 0,
+    pendingCount: data.pendingCount ?? 0,
+    pending: data.pending ?? [],
+  };
 }
 
 export async function requestSendTestEmail(payload: {
