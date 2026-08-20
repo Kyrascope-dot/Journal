@@ -124,6 +124,10 @@ function buildConferencePaymentLink(sub: SubmissionDoc): string {
   if (!registrationId || sub.submissionPurpose !== "conference") return "";
   const url = new URL("/conferences/payment", getSiteBaseUrl());
   url.searchParams.set("registrationId", registrationId);
+  const waiver = String(sub.conferenceFeeWaiver ?? "none");
+  if (waiver === "partial" || waiver === "full") {
+    url.searchParams.set("planId", "fee_waiver_usd");
+  }
   return url.toString();
 }
 

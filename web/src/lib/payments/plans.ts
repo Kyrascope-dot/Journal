@@ -1,6 +1,7 @@
 export type PaymentPlanId =
   | "international_usd"
   | "national_usd"
+  | "fee_waiver_usd"
   | "tech_research_usd"
   | "gateway_test_usd";
 
@@ -121,6 +122,16 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
   Exclude<PaymentPlanId, "gateway_test_usd" | "tech_research_usd">,
   PaymentPlan
 > = {
+  fee_waiver_usd: {
+    id: "fee_waiver_usd",
+    label: "Fee Waiver Scholars",
+    description: "Reduced conference registration fee for approved fee-waiver scholars",
+    currency: "USD",
+    amountMajor: 100,
+    amountMinor: 10000,
+    displayAmount: "USD 100",
+    checkoutHint: "Use only if the Editorial Office has approved your fee-waiver payment.",
+  },
   national_usd: {
     id: "national_usd",
     label: "National Participants",
@@ -189,7 +200,11 @@ export function getPaymentPlan(planId: string | null | undefined): PaymentPlan |
     return TECH_RESEARCH_PAYMENT_PLAN;
   }
 
-  if (resolved === "international_usd" || resolved === "national_usd") {
+  if (
+    resolved === "international_usd" ||
+    resolved === "national_usd" ||
+    resolved === "fee_waiver_usd"
+  ) {
     return CONFERENCE_PAYMENT_PLANS[resolved];
   }
   return null;

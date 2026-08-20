@@ -74,6 +74,14 @@ function ConferencePaymentCheckoutSignedIn() {
     if (linkedRegistrationId) {
       setRegistrationId((current) => current || linkedRegistrationId.slice(0, 64));
     }
+    const linkedPlanId = params.get("planId");
+    if (
+      linkedPlanId === "national_usd" ||
+      linkedPlanId === "international_usd" ||
+      linkedPlanId === "fee_waiver_usd"
+    ) {
+      setPlanId(linkedPlanId);
+    }
     const returnedFromPayPal = params.get("paypal_return") === "1";
     const orderId = params.get("token");
     const cancelled = params.get("paypal_cancelled") === "1";
