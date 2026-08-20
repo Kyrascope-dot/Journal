@@ -5,6 +5,9 @@ import { verifyAdminIdToken } from "@/lib/server/verify-admin";
 
 export const runtime = "nodejs";
 
+const PAYMENT_LINK_TEMPLATE_ID = "conference_q3_2026_payment_link";
+const PAYMENT_LINK_SUBJECT = "Payment Link - GCR International Conference Q3 2026";
+
 function toIso(value: unknown): string | null {
   if (!value) return null;
   if (typeof value === "string") return value;
@@ -20,12 +23,7 @@ function isPaymentLinkLog(data: Record<string, unknown>): boolean {
   if (String(data.deliveryStatus ?? "sent") !== "sent") return false;
   const template = String(data.template ?? "");
   const subject = String(data.subject ?? "");
-  return (
-    template === "conference_q3_2026_payment_link" ||
-    template === "conference_abstract_accepted" ||
-    subject.includes("Payment Link") ||
-    subject.includes("Payment Link -")
-  );
+  return template === PAYMENT_LINK_TEMPLATE_ID || subject === PAYMENT_LINK_SUBJECT;
 }
 
 function buildPaymentLink(registrationId: string, waiver: string): string {
