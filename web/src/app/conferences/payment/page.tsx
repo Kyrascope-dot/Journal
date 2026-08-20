@@ -46,7 +46,7 @@ export default function ConferencePaymentPage() {
             </h2>
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--journal-body)]">
               <li>
-                <strong>National Participants:</strong> USD 150
+                <strong>National Participants:</strong> USD 150 + 18% GST (USD 177 total)
               </li>
               <li>
                 <strong>International Participants:</strong> USD 200 — use PayPal for

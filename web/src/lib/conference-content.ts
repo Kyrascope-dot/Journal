@@ -54,7 +54,7 @@ export const conferenceSchedule = [
 ] as const;
 
 export const conferenceRegistrationFees = [
-  { label: "National Participants", amount: "USD 150" },
+  { label: "National Participants", amount: "USD 150 + 18% GST (USD 177 total)" },
   { label: "International Participants", amount: "USD 200" },
 ] as const;
 

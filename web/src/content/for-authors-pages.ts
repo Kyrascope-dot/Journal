@@ -95,7 +95,7 @@ export const forAuthorsPages: Record<string, ForAuthorsPageContent> = {
       {
         heading: "Article processing charge (APC)",
         paragraphs: [
-          "National scholars in India: USD 150.",
+          "National scholars in India: USD 150 + 18% GST (USD 177 total).",
           "International scholars: USD 200.",
           "The final payable amount in local currency may vary according to the payment provider’s applicable exchange rate and charges.",
           "The APC is charged only after acceptance. Conference registration payments are separate from journal APCs.",

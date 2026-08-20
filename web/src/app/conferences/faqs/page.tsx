@@ -34,7 +34,7 @@ export default function ConferenceFaqsPage() {
         {
           heading: "Registration fees",
           paragraphs: [
-            "National Participants: USD 150",
+            "National Participants: USD 150 + 18% GST (USD 177 total)",
             "International Participants: USD 200",
             "Full and Partial need-based fee waivers are available for talented students with demonstrated financial need, subject to eligibility and availability.",
             `Students seeking financial assistance should email the Editor at ${siteConfig.email}.`,

@@ -13,6 +13,7 @@ import {
 import { formatCheckoutPaymentError } from "@/lib/payments/checkout-errors";
 import {
   CONFERENCE_PAYMENT_PLANS,
+  getPaymentCheckoutBreakdown,
   type PaymentPlanId,
 } from "@/lib/payments/plans";
 import {
@@ -192,6 +193,7 @@ function ConferencePaymentCheckoutSignedIn() {
   }
 
   const selectedPlan = CONFERENCE_PAYMENT_PLANS[planId];
+  const checkout = getPaymentCheckoutBreakdown(planId)!;
 
   if (!user) {
     return null;
@@ -214,6 +216,7 @@ function ConferencePaymentCheckoutSignedIn() {
           </legend>
           {(Object.keys(CONFERENCE_PAYMENT_PLANS) as ConferencePaymentPlanId[]).map((id) => {
             const plan = CONFERENCE_PAYMENT_PLANS[id];
+            const planCheckout = getPaymentCheckoutBreakdown(id)!;
             return (
               <label
                 key={id}
@@ -233,7 +236,7 @@ function ConferencePaymentCheckoutSignedIn() {
                 />
                 <span>
                   <span className="font-medium text-[var(--journal-heading)]">
-                    {plan.label}: {plan.displayAmount}
+                    {plan.label}: {planCheckout.displaySummary}
                   </span>
                   <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
                     {plan.description}
@@ -271,9 +274,6 @@ function ConferencePaymentCheckoutSignedIn() {
                 <span className="font-medium text-[var(--journal-heading)]">
                   Razorpay
                 </span>
-                <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
-                  Recommended for domestic Indian payments and cards supported by Razorpay.
-                </span>
               </span>
             </label>
             <label
@@ -294,11 +294,6 @@ function ConferencePaymentCheckoutSignedIn() {
               <span>
                 <span className="font-medium text-[var(--journal-heading)]">
                   PayPal
-                </span>
-                <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
-                  Best for participants outside India with a PayPal account or non-Indian billing
-                  address. Indian cards may see a currency error until the merchant PayPal account
-                  accepts USD.
                 </span>
               </span>
             </label>
@@ -348,10 +343,29 @@ function ConferencePaymentCheckoutSignedIn() {
 
         <div className="mt-5 rounded border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm">
           <p className="font-medium text-[var(--journal-heading)]">Payable now</p>
-          <p className="mt-1 text-lg font-semibold text-[var(--journal-accent)]">
-            {selectedPlan.displayAmount}
-          </p>
-          <p className="mt-1 text-xs text-[var(--journal-muted)]">
+          {checkout.gstRate ? (
+            <dl className="mt-2 space-y-1 text-[var(--journal-body)]">
+              <div className="flex justify-between gap-4">
+                <dt>Registration fee</dt>
+                <dd className="font-medium">{checkout.displayBaseAmount}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt>GST (18%)</dt>
+                <dd className="font-medium">{checkout.displayGstAmount}</dd>
+              </div>
+              <div className="flex justify-between gap-4 border-t border-[var(--journal-border)] pt-2">
+                <dt className="font-medium text-[var(--journal-heading)]">Total</dt>
+                <dd className="text-lg font-semibold text-[var(--journal-accent)]">
+                  {checkout.displayTotalAmount}
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="mt-1 text-lg font-semibold text-[var(--journal-accent)]">
+              {checkout.displayTotalAmount}
+            </p>
+          )}
+          <p className="mt-2 text-xs text-[var(--journal-muted)]">
             Charged in {selectedPlan.currency} via{" "}
             {paymentMethod === "paypal" ? "PayPal" : "Razorpay"} · Signed in as{" "}
             {user.email}
@@ -367,8 +381,8 @@ function ConferencePaymentCheckoutSignedIn() {
           {busy
             ? "Processing..."
             : paymentMethod === "paypal"
-              ? `Continue to PayPal for ${selectedPlan.displayAmount}`
-              : `Pay ${selectedPlan.displayAmount} securely`}
+              ? `Continue to PayPal for ${checkout.displayTotalAmount}`
+              : `Pay ${checkout.displayTotalAmount} securely`}
         </button>
 
         {message ? (

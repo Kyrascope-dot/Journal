@@ -11,7 +11,7 @@ export function formatCheckoutPaymentError(raw: string | undefined): string {
     return [
       "International USD checkout is not enabled on this Razorpay account yet.",
       "The site owner must activate International Payments in Razorpay Dashboard → Account & Settings → International payments → International Cards.",
-      "If you are in India, select National Participants (USD 150) instead.",
+      "If you are in India, select National Participants (USD 150 + 18% GST, USD 177 total) instead.",
     ].join(" ");
   }
 
@@ -22,7 +22,7 @@ export function formatCheckoutPaymentError(raw: string | undefined): string {
   ) {
     return [
       "This card could not be processed for international USD payment.",
-      "If you have an Indian bank card, choose National Participants (USD 150).",
+      "If you have an Indian bank card, choose National Participants (USD 150 + 18% GST, USD 177 total).",
       "If you are outside India, the conference must enable Razorpay International Payments for USD 200 checkout.",
     ].join(" ");
   }

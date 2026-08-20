@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { createPaymentIntent } from "@/lib/payments/payment-store";
-import { getPaymentPlan, isGatewayTestPlan, resolvePaymentPurpose, type PaymentPlanId } from "@/lib/payments/plans";
+import {
+  getPaymentCheckoutBreakdown,
+  getPaymentPlan,
+  isGatewayTestPlan,
+  resolvePaymentPurpose,
+  type PaymentPlanId,
+} from "@/lib/payments/plans";
 import {
   formatRazorpayError,
   getRazorpayClient,
@@ -59,6 +65,10 @@ export async function POST(request: Request) {
     }
 
     const paymentPurpose = resolvePaymentPurpose(plan.id);
+    const checkout = getPaymentCheckoutBreakdown(plan.id);
+    if (!checkout) {
+      return NextResponse.json({ error: "Invalid payment plan." }, { status: 400 });
+    }
 
     const registrationId =
       typeof body.registrationId === "string" && body.registrationId.trim()
@@ -69,7 +79,7 @@ export async function POST(request: Request) {
     const razorpay = getRazorpayClient();
 
     const order = await razorpay.orders.create({
-      amount: plan.amountMinor,
+      amount: checkout.totalAmountMinor,
       currency: plan.currency,
       receipt,
       notes: {
@@ -79,6 +89,10 @@ export async function POST(request: Request) {
         userEmail: user.email,
         registrationId: registrationId ?? "",
         journal: siteConfig.shortName,
+        baseAmountUsd: String(checkout.baseAmountMajor),
+        gstRate: checkout.gstRate ? String(checkout.gstRate) : "",
+        gstAmountUsd: checkout.gstAmountMajor ? String(checkout.gstAmountMajor) : "",
+        totalAmountUsd: String(checkout.totalAmountMajor),
       },
     });
 
@@ -88,14 +102,17 @@ export async function POST(request: Request) {
       planId: plan.id,
       purpose: paymentPurpose,
       currency: plan.currency,
-      amountMinor: plan.amountMinor,
-      amountMajor: plan.amountMajor,
-      displayAmount: plan.displayAmount,
+      amountMinor: checkout.totalAmountMinor,
+      amountMajor: checkout.totalAmountMajor,
+      displayAmount: checkout.displayTotalAmount,
       razorpayOrderId: order.id,
       registrationId,
       notes: {
         purpose: paymentPurpose,
         planId: plan.id,
+        baseAmountUsd: String(checkout.baseAmountMajor),
+        gstRate: checkout.gstRate ? String(checkout.gstRate) : "",
+        gstAmountUsd: checkout.gstAmountMajor ? String(checkout.gstAmountMajor) : "",
       },
     });
 
@@ -103,9 +120,9 @@ export async function POST(request: Request) {
       ok: true,
       keyId: getRazorpayPublicKeyId(),
       orderId: order.id,
-      amount: plan.amountMinor,
+      amount: checkout.totalAmountMinor,
       currency: plan.currency,
-      displayAmount: plan.displayAmount,
+      displayAmount: checkout.displayTotalAmount,
       planId: plan.id,
       paymentDocId,
       prefill: {
@@ -116,7 +133,9 @@ export async function POST(request: Request) {
         ? "Payment gateway test — USD 5"
         : paymentPurpose === "tech_research_submission"
           ? `${plan.label} — Tech Research submission fee`
-          : `${plan.label} — Conference registration`,
+          : checkout.gstRate
+            ? `${plan.label} — ${checkout.displaySummary}`
+            : `${plan.label} — Conference registration`,
     });
   } catch (error) {
     console.error("[payments/create-order]", error);
