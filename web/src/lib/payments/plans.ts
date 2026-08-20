@@ -43,7 +43,7 @@ export const TECH_RESEARCH_PAYMENT_PLAN: PaymentPlan = {
   checkoutHint: "Required to complete your Tech Research application.",
 };
 
-/** 18% GST applies to National (India) conference registration only. */
+/** 18% GST applies to National (India) and approved fee-waiver conference registration. */
 export const NATIONAL_CONFERENCE_GST_RATE = 0.18;
 
 export type PaymentCheckoutBreakdown = {
@@ -73,7 +73,7 @@ export function getPaymentCheckoutBreakdown(
   const plan = getPaymentPlan(planId);
   if (!plan) return null;
 
-  if (plan.id === "national_usd") {
+  if (plan.id === "national_usd" || plan.id === "fee_waiver_usd") {
     const baseAmountMajor = plan.amountMajor;
     const gstAmountMajor =
       Math.round(baseAmountMajor * NATIONAL_CONFERENCE_GST_RATE * 100) / 100;
@@ -129,8 +129,8 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
     currency: "USD",
     amountMajor: 100,
     amountMinor: 10000,
-    displayAmount: "USD 100",
-    checkoutHint: "Use only if the Editorial Office has approved your fee-waiver payment.",
+    displayAmount: "USD 100 + 18% GST",
+    checkoutHint: "Use only if the Editorial Office has approved your fee-waiver payment. Total payable: USD 118 (100 + 18% GST).",
   },
   national_usd: {
     id: "national_usd",

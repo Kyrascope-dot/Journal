@@ -44,36 +44,6 @@ export default function ConferencePaymentPage() {
 
           <ConferencePaymentCheckout />
 
-          <section
-            className="mt-10 rounded-lg border border-sky-200 bg-sky-50/70 p-5"
-            aria-labelledby="payment-troubleshooting-heading"
-          >
-            <h2
-              id="payment-troubleshooting-heading"
-              className="font-serif text-lg font-semibold text-[var(--journal-heading)]"
-            >
-              Payment not working?
-            </h2>
-            <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--journal-body)]">
-              <li>
-                <strong>National Participants:</strong> Registration Fee USD 150 + GST (18%) USD 27
-                = USD 177 total
-              </li>
-              <li>
-                <strong>International Participants:</strong> Registration Fee USD 200 — use PayPal
-                for international cards or PayPal accounts.
-              </li>
-              <li>
-                <strong>Domestic payments:</strong> use Razorpay and enter a valid mobile number
-                with country code.
-              </li>
-              <li>
-                <strong>Testing:</strong> use Razorpay test keys or PayPal sandbox credentials
-                before switching either gateway to live mode.
-              </li>
-            </ul>
-          </section>
-
           <h2 className="mt-10 font-serif text-xl font-semibold text-[var(--journal-heading)]">
             The Registration Fee Includes
           </h2>
