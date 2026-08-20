@@ -330,12 +330,16 @@ function ConferencePaymentCheckoutSignedIn() {
                   <span className="font-medium text-[var(--journal-heading)]">
                     {plan.label}: {planCheckout.displaySummary}
                   </span>
-                  <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
-                    {plan.description}
-                  </span>
-                  <span className="mt-1 block text-xs text-[var(--journal-accent)]">
-                    {plan.checkoutHint}
-                  </span>
+                  {plan.description ? (
+                    <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
+                      {plan.description}
+                    </span>
+                  ) : null}
+                  {plan.checkoutHint ? (
+                    <span className="mt-1 block text-xs text-[var(--journal-accent)]">
+                      {plan.checkoutHint}
+                    </span>
+                  ) : null}
                 </span>
               </label>
             );

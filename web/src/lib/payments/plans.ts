@@ -125,12 +125,12 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
   fee_waiver_usd: {
     id: "fee_waiver_usd",
     label: "Fee Waiver Scholars",
-    description: "Reduced conference registration fee for approved fee-waiver scholars",
+    description: "",
     currency: "USD",
     amountMajor: 100,
     amountMinor: 10000,
     displayAmount: "USD 100 + 18% GST",
-    checkoutHint: "Use only if the Editorial Office has approved your fee-waiver payment. Total payable: USD 118 (100 + 18% GST).",
+    checkoutHint: "",
   },
   national_usd: {
     id: "national_usd",
