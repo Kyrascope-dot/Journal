@@ -48,6 +48,7 @@ import {
 import {
   requestCommunicationHistory,
   requestCommunicationTemplates,
+  requestPendingPaymentLinkSubmissionIds,
 } from "@/lib/client/admin-communications";
 import type { CommunicationHistoryItem, EmailTemplateRecord } from "@/types/communications";
 import { CommunicationsPanel } from "@/components/dashboard/communications/CommunicationsPanel";
@@ -113,6 +114,9 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     ConferenceTrack | "unassigned" | "all"
   >("all");
   const [filterFeeWaiver, setFilterFeeWaiver] = useState<ConferenceFeeWaiver | "all">("all");
+  const [filterPaymentLink, setFilterPaymentLink] = useState<"all" | "not_sent">("all");
+  const [paymentLinkPendingIds, setPaymentLinkPendingIds] = useState<Set<string>>(new Set());
+  const [paymentLinkPendingError, setPaymentLinkPendingError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<
     "registration_date" | "registration_id" | "submission_type" | "status"
@@ -134,6 +138,18 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     );
   }, []);
 
+  useEffect(() => {
+    requestPendingPaymentLinkSubmissionIds()
+      .then((ids) => {
+        setPaymentLinkPendingIds(ids);
+        setPaymentLinkPendingError("");
+      })
+      .catch(() => {
+        setPaymentLinkPendingIds(new Set());
+        setPaymentLinkPendingError("Could not load payment-link email status.");
+      });
+  }, []);
+
   const refreshAll = async () => {
     const [subs, us, eds, revs] = await Promise.all([
       getAllSubmissions(),
@@ -145,6 +161,13 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     setUsers(us);
     setEditors(eds);
     setReviewers(revs);
+    try {
+      setPaymentLinkPendingIds(await requestPendingPaymentLinkSubmissionIds());
+      setPaymentLinkPendingError("");
+    } catch {
+      setPaymentLinkPendingIds(new Set());
+      setPaymentLinkPendingError("Could not load payment-link email status.");
+    }
   };
 
   const filteredSubs = submissions
@@ -164,6 +187,9 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
         if (s.submissionPurpose !== "conference") return false;
         const waiver = s.conferenceFeeWaiver ?? "none";
         if (waiver !== filterFeeWaiver) return false;
+      }
+      if (filterPaymentLink === "not_sent" && !paymentLinkPendingIds.has(s.id)) {
+        return false;
       }
       const needle = searchQuery.trim().toLowerCase();
       if (
@@ -385,6 +411,23 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
               </div>
               <div>
                 <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Payment link email
+                </label>
+                <select
+                  value={filterPaymentLink}
+                  onChange={(e) =>
+                    setFilterPaymentLink(e.target.value as typeof filterPaymentLink)
+                  }
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="all">All</option>
+                  <option value="not_sent">
+                    Not sent ({paymentLinkPendingIds.size})
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
                   Sort by
                 </label>
                 <select
@@ -402,6 +445,9 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
             <p className="mt-3 text-sm text-[var(--journal-muted)]">
               Showing {filteredSubs.length} of {submissions.length} submissions
             </p>
+            {paymentLinkPendingError ? (
+              <p className="mt-2 text-xs text-red-700">{paymentLinkPendingError}</p>
+            ) : null}
             <ul className="mt-3 divide-y divide-[var(--journal-border)] border-y border-[var(--journal-border)]">
               {filteredSubs.map((sub) => (
                 <li key={sub.id} className="py-5">

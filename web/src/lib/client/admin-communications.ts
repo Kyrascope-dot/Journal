@@ -269,6 +269,11 @@ export async function requestPendingPaymentLinkParticipants(): Promise<{
   };
 }
 
+export async function requestPendingPaymentLinkSubmissionIds(): Promise<Set<string>> {
+  const result = await requestPendingPaymentLinkParticipants();
+  return new Set(result.pending.map((participant) => participant.submissionId));
+}
+
 export async function requestSendTestEmail(payload: {
   to: string;
   subject: string;
