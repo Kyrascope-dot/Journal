@@ -979,10 +979,7 @@ function SubmissionPanel({
       ) : null}
 
       {submission.submissionPurpose === "conference" ? (
-        <ConferenceAbstractAcceptedSection
-          submission={submission}
-          adminEmail={adminProfile.email}
-        />
+        <ConferenceAbstractAcceptedSection submission={submission} />
       ) : null}
 
       <div className="mt-6 rounded-lg border border-[var(--journal-border)] bg-white p-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { requestSendTestEmail } from "@/lib/client/admin-communications";
+import { requestSendIndividualEmail } from "@/lib/client/admin-communications";
 import { renderSubmissionEmail } from "@/lib/email/templates/submission-status";
 import type { Submission } from "@/types/dashboard";
 
@@ -17,13 +17,10 @@ function formatSubmissionDate(value: Submission["submittedAt"]): string {
 
 export function ConferenceAbstractAcceptedSection({
   submission,
-  adminEmail,
 }: {
   submission: Submission;
-  adminEmail: string;
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [testEmail, setTestEmail] = useState(adminEmail);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -45,25 +42,25 @@ export function ConferenceAbstractAcceptedSection({
     });
   }, [submission]);
 
-  async function handleSendTest() {
-    if (!testEmail.trim()) {
-      setError("Enter a test email address.");
+  async function handleSendEmail() {
+    if (!submission.authorEmail.trim()) {
+      setError("This submission does not have an author email address.");
       return;
     }
     setSending(true);
     setError("");
     setMessage("");
     try {
-      await requestSendTestEmail({
-        to: testEmail.trim(),
+      await requestSendIndividualEmail({
+        submissionId: submission.id,
         subject: rendered.subject,
         bodyHtml: rendered.html,
         bodyText: rendered.text,
-        sampleSubmissionId: submission.id,
+        templateId: "conference_abstract_accepted",
       });
-      setMessage(`Test email sent to ${testEmail.trim()}.`);
+      setMessage(`Email sent to ${submission.authorEmail}.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send test email.");
+      setError(err instanceof Error ? err.message : "Could not send email.");
     } finally {
       setSending(false);
     }
@@ -106,22 +103,22 @@ export function ConferenceAbstractAcceptedSection({
       <div className="mt-4 flex flex-wrap items-end gap-2">
         <div className="min-w-[220px] flex-1">
           <label className="block text-xs font-medium text-[var(--journal-muted)]">
-            Send test email
+            Author email
           </label>
           <input
             type="email"
-            value={testEmail}
-            onChange={(e) => setTestEmail(e.target.value)}
-            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm"
+            readOnly
+            value={submission.authorEmail}
+            className="mt-1 w-full rounded border border-[var(--journal-border)] bg-zinc-50 px-3 py-1.5 text-sm text-[var(--journal-heading)]"
           />
         </div>
         <button
           type="button"
-          disabled={sending}
-          onClick={() => void handleSendTest()}
+          disabled={sending || !submission.authorEmail.trim()}
+          onClick={() => void handleSendEmail()}
           className="rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm disabled:opacity-50"
         >
-          {sending ? "Sending…" : "Send test"}
+          {sending ? "Sending…" : "Send email"}
         </button>
       </div>
       {message ? <p className="mt-2 text-xs text-emerald-700">{message}</p> : null}
