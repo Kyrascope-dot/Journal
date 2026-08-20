@@ -1181,6 +1181,7 @@ function EmailLogsPanel() {
   const [loadingLogs, setLoadingLogs] = useState(true);
   const [error, setError] = useState("");
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [logSearchQuery, setLogSearchQuery] = useState("");
 
   async function loadLogs() {
     setError("");
@@ -1211,6 +1212,19 @@ function EmailLogsPanel() {
     }
   }
 
+  const filteredLogs = logs.filter((log) => {
+    const needle = logSearchQuery.trim().toLowerCase();
+    if (!needle) return true;
+    return [
+      log.registrationId,
+      log.recipient,
+      log.subject,
+      log.template,
+      log.deliveryStatus,
+      log.error ?? "",
+    ].some((value) => value.toLowerCase().includes(needle));
+  });
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1233,10 +1247,31 @@ function EmailLogsPanel() {
           {error}
         </p>
       ) : null}
+      {!loadingLogs && logs.length > 0 ? (
+        <div className="mt-5 max-w-xl">
+          <label className="block text-xs font-medium text-[var(--journal-muted)]">
+            Search email logs
+          </label>
+          <input
+            type="search"
+            value={logSearchQuery}
+            onChange={(event) => setLogSearchQuery(event.target.value)}
+            placeholder="Registration ID, recipient, subject, template, status, or error"
+            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+          />
+          <p className="mt-1 text-xs text-[var(--journal-muted)]">
+            Showing {filteredLogs.length} of {logs.length} logs
+          </p>
+        </div>
+      ) : null}
       {loadingLogs ? (
         <p className="mt-6 text-sm text-[var(--journal-muted)]">Loading email logs…</p>
       ) : logs.length === 0 ? (
         <p className="mt-6 text-sm text-[var(--journal-muted)]">No email logs yet.</p>
+      ) : filteredLogs.length === 0 ? (
+        <p className="mt-6 text-sm text-[var(--journal-muted)]">
+          No email logs match your search.
+        </p>
       ) : (
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-[900px] w-full text-left text-sm">
@@ -1252,7 +1287,7 @@ function EmailLogsPanel() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--journal-border)]">
-              {logs.map((log) => (
+              {filteredLogs.map((log) => (
                 <tr key={log.id}>
                   <td className="px-3 py-3 font-medium text-[var(--journal-accent)]">
                     {log.registrationId}
