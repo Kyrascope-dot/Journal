@@ -8,6 +8,11 @@ export const runtime = "nodejs";
 const PAYMENT_LINK_TEMPLATE_ID = "conference_q3_2026_payment_link";
 const PAYMENT_LINK_TEMPLATE_NAME = "Payment Link - GCR Conference July–September 2026";
 const PAYMENT_LINK_SUBJECT = "Payment Link - GCR International Conference Q3 2026";
+const LEGACY_PAYMENT_LINK_SUBJECT_PARTS = [
+  "Payment Link",
+  "GCR International Conference Q3 July",
+  "September 2026",
+];
 
 function toIso(value: unknown): string | null {
   if (!value) return null;
@@ -27,7 +32,19 @@ function isPaymentLinkLog(
   if (String(data.deliveryStatus ?? "sent") !== "sent") return false;
   const template = String(data.template ?? "");
   const subject = String(data.subject ?? "");
-  return paymentTemplateIds.has(template) || subject === PAYMENT_LINK_SUBJECT;
+  const type = String(data.type ?? "");
+  const channel = String(data.channel ?? "");
+  const manualCommunication =
+    type === "individual" ||
+    type === "bulk_campaign" ||
+    channel === "individual" ||
+    channel === "bulk";
+  return (
+    paymentTemplateIds.has(template) ||
+    subject === PAYMENT_LINK_SUBJECT ||
+    (manualCommunication &&
+      LEGACY_PAYMENT_LINK_SUBJECT_PARTS.every((part) => subject.includes(part)))
+  );
 }
 
 function buildPaymentLink(registrationId: string, waiver: string): string {
