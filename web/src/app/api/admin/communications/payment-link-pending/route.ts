@@ -6,6 +6,7 @@ import { verifyAdminIdToken } from "@/lib/server/verify-admin";
 export const runtime = "nodejs";
 
 const PAYMENT_LINK_TEMPLATE_ID = "conference_q3_2026_payment_link";
+const PAYMENT_LINK_TEMPLATE_NAME = "Payment Link - GCR Conference July–September 2026";
 const PAYMENT_LINK_SUBJECT = "Payment Link - GCR International Conference Q3 2026";
 
 function toIso(value: unknown): string | null {
@@ -19,11 +20,14 @@ function toIso(value: unknown): string | null {
   return null;
 }
 
-function isPaymentLinkLog(data: Record<string, unknown>): boolean {
+function isPaymentLinkLog(
+  data: Record<string, unknown>,
+  paymentTemplateIds: Set<string>
+): boolean {
   if (String(data.deliveryStatus ?? "sent") !== "sent") return false;
   const template = String(data.template ?? "");
   const subject = String(data.subject ?? "");
-  return template === PAYMENT_LINK_TEMPLATE_ID || subject === PAYMENT_LINK_SUBJECT;
+  return paymentTemplateIds.has(template) || subject === PAYMENT_LINK_SUBJECT;
 }
 
 function buildPaymentLink(registrationId: string, waiver: string): string {
@@ -43,20 +47,33 @@ export async function GET(request: Request) {
   if (!admin) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 
   const db = getAdminFirestore();
-  const [submissionsSnap, logsSnap] = await Promise.all([
+  const [submissionsSnap, logsSnap, templatesSnap] = await Promise.all([
     db
       .collection("submissions")
       .where("submissionPurpose", "==", "conference")
       .where("status", "==", "accepted")
       .get(),
     db.collection("email_logs").limit(2000).get(),
+    db.collection("emailTemplates").get(),
   ]);
+
+  const paymentTemplateIds = new Set<string>([PAYMENT_LINK_TEMPLATE_ID]);
+  for (const doc of templatesSnap.docs) {
+    const data = doc.data();
+    if (
+      data.seedKey === PAYMENT_LINK_TEMPLATE_ID ||
+      data.name === PAYMENT_LINK_TEMPLATE_NAME ||
+      data.subject === PAYMENT_LINK_SUBJECT
+    ) {
+      paymentTemplateIds.add(doc.id);
+    }
+  }
 
   const sentRegistrationIds = new Set<string>();
   const sentSubmissionIds = new Set<string>();
   for (const doc of logsSnap.docs) {
     const data = doc.data();
-    if (!isPaymentLinkLog(data)) continue;
+    if (!isPaymentLinkLog(data, paymentTemplateIds)) continue;
     const registrationId = String(data.registrationId ?? "").trim();
     const submissionId = String(data.submissionId ?? "").trim();
     if (registrationId) sentRegistrationIds.add(registrationId);
