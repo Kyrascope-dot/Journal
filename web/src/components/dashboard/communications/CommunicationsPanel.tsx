@@ -530,7 +530,8 @@ const TemplateEditorDialog = ({
         </div>
         <p className="text-xs text-[var(--journal-muted)]">
           Variables: {"{{authorName}}"}, {"{{title}}"}, {"{{registrationId}}"},{" "}
-          {"{{statusLabel}}"}, {"{{dashboardUrl}}"}, and other merge fields from the composer.
+          {"{{coAuthors}}"}, {"{{paymentLink}}"}, {"{{statusLabel}}"}, {"{{dashboardUrl}}"},
+          and other merge fields from the composer.
         </p>
       </div>
       <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--journal-border)] px-5 py-4">

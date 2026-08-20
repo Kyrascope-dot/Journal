@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   requestCreateCampaign,
+  requestPreviewIndividualEmail,
   requestPreviewRecipients,
   requestProcessCampaignBatch,
   requestSaveCommunicationTemplate,
@@ -95,6 +96,8 @@ export function BulkEmailComposer({
   const [templateId, setTemplateId] = useState("");
   const [recipientCount, setRecipientCount] = useState<number | null>(null);
   const [previews, setPreviews] = useState<PersonalizedEmailPreview[]>([]);
+  const [individualPreview, setIndividualPreview] =
+    useState<PersonalizedEmailPreview | null>(null);
   const [previewRows, setPreviewRows] = useState<
     { registrationId: string; authorName: string; authorEmail: string; subject: string }[]
   >([]);
@@ -116,6 +119,7 @@ export function BulkEmailComposer({
     setTemplateId("");
     setRecipientCount(null);
     setPreviews([]);
+    setIndividualPreview(null);
     setPreviewRows([]);
     setScheduledFor("");
     setMessage("");
@@ -210,6 +214,30 @@ export function BulkEmailComposer({
         }))
       );
     } catch (err) {
+      setError(err instanceof Error ? err.message : "Preview failed.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  async function refreshIndividualPreview() {
+    if (!submissionId) {
+      setError("Missing submission.");
+      return;
+    }
+    setPreviewLoading(true);
+    setError("");
+    try {
+      setIndividualPreview(
+        await requestPreviewIndividualEmail({
+          submissionId,
+          subject: subject || "Preview",
+          bodyHtml: bodyHtml || "<p>Preview</p>",
+          templateId: templateId || null,
+        })
+      );
+    } catch (err) {
+      setIndividualPreview(null);
       setError(err instanceof Error ? err.message : "Preview failed.");
     } finally {
       setPreviewLoading(false);
@@ -640,6 +668,33 @@ export function BulkEmailComposer({
                   <p className="border-t border-[var(--journal-border)] px-3 py-2 text-[11px] text-[var(--journal-muted)]">
                     Showing up to 10 personalized previews
                   </p>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
+          {mode === "individual" ? (
+            <section>
+              <button
+                type="button"
+                onClick={() => void refreshIndividualPreview()}
+                disabled={previewLoading || !subject.trim() || !bodyHtml.trim()}
+                className="rounded bg-[var(--journal-accent)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              >
+                {previewLoading ? "Previewing..." : "Preview email"}
+              </button>
+              {individualPreview ? (
+                <div className="mt-3 rounded border border-[var(--journal-border)] bg-zinc-50 p-3 text-sm">
+                  <p className="text-xs text-[var(--journal-muted)]">
+                    To: {individualPreview.to} · Registration: {individualPreview.registrationId}
+                  </p>
+                  <p className="mt-1 font-medium text-[var(--journal-heading)]">
+                    {individualPreview.subject}
+                  </p>
+                  <div
+                    className="mt-3 rounded border border-[var(--journal-border)] bg-white p-3 text-sm leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: individualPreview.html }}
+                  />
                 </div>
               ) : null}
             </section>

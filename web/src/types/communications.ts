@@ -143,6 +143,7 @@ export type CommunicationsStats = {
 export const COMMUNICATION_VARIABLES = [
   "authorName",
   "authorEmail",
+  "coAuthors",
   "registrationId",
   "title",
   "abstract",
@@ -160,6 +161,7 @@ export const COMMUNICATION_VARIABLES = [
   "submittedAt",
   "journalName",
   "dashboardUrl",
+  "paymentLink",
 ] as const;
 
 export type CommunicationVariable = (typeof COMMUNICATION_VARIABLES)[number];
@@ -200,4 +202,5 @@ export type SendIndividualPayload = {
   bodyHtml: string;
   bodyText?: string;
   templateId?: string | null;
+  previewOnly?: boolean;
 };

@@ -193,6 +193,23 @@ export async function requestSendIndividualEmail(payload: SendIndividualPayload)
   return data;
 }
 
+export async function requestPreviewIndividualEmail(
+  payload: SendIndividualPayload
+): Promise<PersonalizedEmailPreview> {
+  const response = await adminRequest("/api/admin/communications/send-individual", {
+    method: "POST",
+    body: JSON.stringify({ ...payload, previewOnly: true }),
+  });
+  const data = (await response.json()) as {
+    preview?: PersonalizedEmailPreview;
+    error?: string;
+  };
+  if (!response.ok || !data.preview) {
+    throw new Error(data.error ?? "Could not preview email.");
+  }
+  return data.preview;
+}
+
 export async function requestCommunicationHistory(
   submissionId: string
 ): Promise<CommunicationHistoryItem[]> {

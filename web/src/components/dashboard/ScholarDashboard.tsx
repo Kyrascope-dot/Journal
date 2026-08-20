@@ -101,6 +101,8 @@ export function ScholarDashboard({
   const [profileMsg, setProfileMsg] = useState("");
 
   // Submission form
+  const [authorName, setAuthorName] = useState(profile.displayName || profile.email);
+  const [coAuthors, setCoAuthors] = useState<string[]>([""]);
   const [title, setTitle] = useState("");
   const [abstract, setAbstract] = useState("");
   const [category, setCategory] = useState<string>(RESEARCH_CATEGORIES[0]);
@@ -128,6 +130,10 @@ export function ScholarDashboard({
     });
   }, [profile.uid]);
 
+  useEffect(() => {
+    setAuthorName((current) => current || profile.displayName || profile.email);
+  }, [profile.displayName, profile.email]);
+
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     setSavingProfile(true);
@@ -145,6 +151,16 @@ export function ScholarDashboard({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const cleanedAuthorName = authorName.trim();
+    const coAuthorPairs: [string, string][] = coAuthors
+      .map((name) => name.trim())
+      .filter(Boolean)
+      .map((name) => [name.toLowerCase(), name]);
+    const cleanedCoAuthors = Array.from(new Map(coAuthorPairs).values());
+    if (!cleanedAuthorName) {
+      setSubmitMsg("Please enter the primary author name before submitting.");
+      return;
+    }
     if (!title.trim() || !abstract.trim()) return;
     const resolvedAffiliation = (affiliation || profile.affiliation || "").trim();
     if (!resolvedAffiliation) {
@@ -175,7 +191,8 @@ export function ScholarDashboard({
             ? (conferenceAwardIntent as ConferenceAwardIntent)
             : null,
         authorId: profile.uid,
-        authorName: profile.displayName || profile.email,
+        authorName: cleanedAuthorName,
+        coAuthors: cleanedCoAuthors,
         authorEmail: profile.email,
       });
       setLastSubmission({
@@ -185,6 +202,8 @@ export function ScholarDashboard({
       });
       setTitle("");
       setAbstract("");
+      setAuthorName(profile.displayName || profile.email);
+      setCoAuthors([""]);
       setCategory(RESEARCH_CATEGORIES[0]);
       setLastSubmittedAwardIntent(
         submissionPurpose === "conference"
@@ -394,6 +413,20 @@ export function ScholarDashboard({
                             </dt>
                             <dd>{SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}</dd>
                           </div>
+                          <div>
+                            <dt className="font-medium text-[var(--journal-muted)]">
+                              Author
+                            </dt>
+                            <dd>{sub.authorName || "—"}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-medium text-[var(--journal-muted)]">
+                              Co-Authors
+                            </dt>
+                            <dd>
+                              {sub.coAuthors.length ? sub.coAuthors.join(", ") : "None"}
+                            </dd>
+                          </div>
                         </dl>
                         <Link
                           href={`/dashboard/acknowledgement/${sub.id}`}
@@ -582,6 +615,64 @@ export function ScholarDashboard({
                   )}
                 </>
               )}
+              <div>
+                <label className="block text-sm font-medium text-[var(--journal-heading)]">
+                  Author Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  required
+                  value={authorName}
+                  onChange={(e) => setAuthorName(e.target.value)}
+                  className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[var(--journal-heading)]">
+                  Co-Authors (Optional)
+                </label>
+                <p className="mt-1 text-xs text-[var(--journal-muted)]">
+                  Add the names of any co-authors who contributed to this work. Leave blank if
+                  there are no co-authors.
+                </p>
+                <div className="mt-2 space-y-2">
+                  {coAuthors.map((name, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        value={name}
+                        onChange={(e) =>
+                          setCoAuthors((current) =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index ? e.target.value : item
+                            )
+                          )
+                        }
+                        placeholder="Co-Author Name"
+                        className="w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCoAuthors((current) =>
+                            current.length === 1
+                              ? [""]
+                              : current.filter((_, itemIndex) => itemIndex !== index)
+                          )
+                        }
+                        className="shrink-0 rounded border border-[var(--journal-border)] px-3 py-2 text-sm text-[var(--journal-muted)] hover:text-[var(--journal-heading)]"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCoAuthors((current) => [...current, ""])}
+                  className="mt-2 rounded border border-[var(--journal-accent)] px-3 py-1.5 text-sm font-medium text-[var(--journal-accent)]"
+                >
+                  + Add Co-Author
+                </button>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--journal-heading)]">
                   Paper title <span className="text-red-500">*</span>

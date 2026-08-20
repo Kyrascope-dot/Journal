@@ -57,6 +57,80 @@ function template(
 }
 
 export const DEFAULT_BULK_TEMPLATES: DefaultBulkTemplate[] = [
+  {
+    seedKey: "conference_q3_2026_payment_link",
+    name: "Payment Link - GCR Conference July–September 2026",
+    description: "Conference Q3 2026 registration payment link for a selected author.",
+    audience: "conference",
+    subject: "Payment Link - GCR International Conference Q3 2026",
+    bodyHtml: `<p>Dear {{authorName}},</p>
+
+<p>Congratulations once again on the acceptance of your abstract for the <strong>GCR International Conference Q3 2026</strong>.</p>
+
+<p>We are pleased to invite you to complete your conference registration and payment.</p>
+
+<p><strong>Registration Details</strong></p>
+
+<p>
+<strong>Registration ID:</strong> {{registrationId}}<br>
+<strong>Paper Title:</strong> {{title}}<br>
+<strong>Conference:</strong> GCR International Conference Q3 2026<br>
+<strong>Conference Date:</strong> 30th August 2026<br>
+<strong>Conference Time:</strong> 9:30 AM IST
+</p>
+
+<p><strong>Payment</strong></p>
+
+<p>Please complete your conference registration payment using the secure payment link below:</p>
+
+<p>
+<a href="{{paymentLink}}"
+style="display:inline-block;padding:12px 22px;background:#1f4775;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">
+Complete Conference Payment
+</a>
+</p>
+
+<p>If the button above does not work, you may use the following payment link:</p>
+
+<p>{{paymentLink}}</p>
+
+<p><strong>Important:</strong> If you have already applied for a need-based fee waiver, please contact the Editorial Office before making payment so that your request can be reviewed before payment.</p>
+
+<p>After successful payment confirmation, the relevant conference participation information and Zoom access details will be communicated to you.</p>
+
+<p>If you have any questions regarding registration, payment, or participation, please reply to this email.</p>
+
+<p>We look forward to welcoming you to the <strong>GCR International Conference Q3 2026</strong>.</p>
+
+<p>Thanking you,</p>
+
+<p>
+<strong>Editorial Office</strong><br>
+<strong>Global Confluence Review</strong><br>
+editor@globalconfluencereview.in
+</p>`,
+    bodyText: `Dear {{authorName}},
+
+Congratulations once again on the acceptance of your abstract for the GCR International Conference Q3 2026.
+
+Registration ID: {{registrationId}}
+Paper Title: {{title}}
+Conference: GCR International Conference Q3 2026
+Conference Date: 30th August 2026
+Conference Time: 9:30 AM IST
+
+Please complete your conference registration payment using this secure payment link:
+{{paymentLink}}
+
+Important: If you have already applied for a need-based fee waiver, please contact the Editorial Office before making payment so that your request can be reviewed before payment.
+
+Thanking you,
+Editorial Office
+Global Confluence Review
+editor@globalconfluencereview.in`,
+    variables: VARS,
+    isDefault: true,
+  },
   template(
     "conference_reminder_general",
     "Conference — General reminder",

@@ -93,10 +93,12 @@ export const forAuthorsPages: Record<string, ForAuthorsPageContent> = {
         paragraphs: ["No APC is charged during submission."],
       },
       {
-        heading: "Article processing charge (APC)",
+        heading: "Direct Journal Publication Fees",
         paragraphs: [
-          "National scholars in India: USD 150 + 18% GST (USD 177 total).",
-          "International scholars: USD 200.",
+          "These publication charges apply to manuscripts submitted directly to Global Confluence Review for journal publication and are separate from conference registration fees.",
+          "National Authors: USD 150 + applicable GST.",
+          "International Authors: USD 200.",
+          "These charges apply to direct journal publication submissions and are not conference registration fees.",
           "The final payable amount in local currency may vary according to the payment provider’s applicable exchange rate and charges.",
           "The APC is charged only after acceptance. Conference registration payments are separate from journal APCs.",
         ],

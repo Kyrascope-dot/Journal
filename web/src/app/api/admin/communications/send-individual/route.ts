@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendIndividualEmail } from "@/lib/email/bulk-email-service";
+import { previewIndividualEmail, sendIndividualEmail } from "@/lib/email/bulk-email-service";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { verifyAdminIdToken } from "@/lib/server/verify-admin";
 import type { SendIndividualPayload } from "@/types/communications";
@@ -25,13 +25,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await sendIndividualEmail(admin, {
+    const payload = {
       submissionId: body.submissionId.trim(),
       subject: body.subject.trim(),
       bodyHtml: body.bodyHtml,
       bodyText: body.bodyText,
       templateId: body.templateId,
-    });
+    };
+
+    if (body.previewOnly) {
+      const preview = await previewIndividualEmail(payload);
+      return NextResponse.json({ preview });
+    }
+
+    const result = await sendIndividualEmail(admin, payload);
 
     return NextResponse.json(result);
   } catch (error) {

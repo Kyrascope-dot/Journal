@@ -46,6 +46,9 @@ function mapSubmission(
   id: string,
   data: Record<string, unknown>
 ): Submission {
+  const coAuthors = Array.isArray(data.coAuthors)
+    ? data.coAuthors.map(String).map((name) => name.trim()).filter(Boolean)
+    : [];
   return {
     id,
     registrationId: String(data.registrationId ?? id),
@@ -53,6 +56,7 @@ function mapSubmission(
     abstract: String(data.abstract ?? ""),
     authorId: String(data.authorId ?? ""),
     authorName: String(data.authorName ?? ""),
+    coAuthors,
     authorEmail: String(data.authorEmail ?? ""),
     affiliation: String(data.affiliation ?? ""),
     category: String(data.category ?? ""),
@@ -159,6 +163,7 @@ export async function createSubmission(payload: {
   conferenceAwardIntent?: ConferenceAwardIntent | null;
   authorId: string;
   authorName: string;
+  coAuthors?: string[];
   authorEmail: string;
 }): Promise<{
   submissionId: string;
@@ -184,6 +189,8 @@ export async function createSubmission(payload: {
       submissionPurpose: payload.submissionPurpose,
       conferenceQuarter: payload.conferenceQuarter ?? null,
       conferenceAwardIntent: payload.conferenceAwardIntent ?? null,
+      authorName: payload.authorName,
+      coAuthors: payload.coAuthors ?? [],
     }),
   });
   const raw = await response.text();

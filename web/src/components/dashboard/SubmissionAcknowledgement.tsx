@@ -77,6 +77,10 @@ export function SubmissionAcknowledgement({
             ["Submission Type", SUBMISSION_PURPOSE_LABELS[submission.submissionPurpose]],
             ["Date & Time", formatDateTime(submission.submittedAt)],
             ["Author Name", submission.authorName],
+            [
+              "Co-Authors",
+              submission.coAuthors.length ? submission.coAuthors.join(", ") : "None",
+            ],
             ["Author Email", submission.authorEmail],
             [
               "Current Status",

@@ -774,6 +774,24 @@ function SubmissionPanel({
           <dt className="font-medium text-[var(--journal-muted)]">Submission Type</dt>
           <dd>{SUBMISSION_PURPOSE_LABELS[submission.submissionPurpose]}</dd>
         </div>
+        <div>
+          <dt className="font-medium text-[var(--journal-muted)]">Author Name</dt>
+          <dd>{submission.authorName || "—"}</dd>
+        </div>
+        <div>
+          <dt className="font-medium text-[var(--journal-muted)]">Co-Authors</dt>
+          <dd>
+            {submission.coAuthors.length ? (
+              <ul className="list-disc pl-4">
+                {submission.coAuthors.map((name) => (
+                  <li key={name}>{name}</li>
+                ))}
+              </ul>
+            ) : (
+              "None"
+            )}
+          </dd>
+        </div>
       </dl>
       <p className="text-sm text-[var(--journal-body)]">
         <span className="font-medium">Abstract:</span> {submission.abstract}

@@ -70,6 +70,10 @@ function ConferencePaymentCheckoutSignedIn() {
   useEffect(() => {
     if (!user) return;
     const params = new URLSearchParams(window.location.search);
+    const linkedRegistrationId = params.get("registrationId");
+    if (linkedRegistrationId) {
+      setRegistrationId((current) => current || linkedRegistrationId.slice(0, 64));
+    }
     const returnedFromPayPal = params.get("paypal_return") === "1";
     const orderId = params.get("token");
     const cancelled = params.get("paypal_cancelled") === "1";

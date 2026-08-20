@@ -47,6 +47,7 @@ type SubmissionDoc = {
   conferenceTrack?: string | null;
   conferenceFeeWaiver?: string | null;
   authorName?: string;
+  coAuthors?: unknown;
   authorEmail?: string;
   affiliation?: string;
   category?: string;
@@ -100,6 +101,53 @@ function formatSubmittedAt(value: SubmissionDoc["submittedAt"]): string {
   });
 }
 
+const PAYMENT_LINK_UNAVAILABLE =
+  "Payment link is not available for this registration. Please generate or verify the payment link before sending.";
+
+function normalizeCoAuthors(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const item of value) {
+    const name = String(item ?? "").trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
+  return names;
+}
+
+function buildConferencePaymentLink(sub: SubmissionDoc): string {
+  const registrationId = String(sub.registrationId ?? sub.id ?? "").trim();
+  if (!registrationId || sub.submissionPurpose !== "conference") return "";
+  const url = new URL("/conferences/payment", getSiteBaseUrl());
+  url.searchParams.set("registrationId", registrationId);
+  return url.toString();
+}
+
+function isValidCustomerUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function templateRequiresPaymentLink(payload: {
+  templateId?: string | null;
+  subject: string;
+  bodyHtml: string;
+}): boolean {
+  return (
+    payload.templateId === "conference_q3_2026_payment_link" ||
+    payload.subject.includes("Payment Link - GCR International Conference Q3 2026") ||
+    payload.bodyHtml.includes("{{paymentLink}}")
+  );
+}
+
 export function buildPersonalizationContext(sub: SubmissionDoc): PersonalizationContext {
   const purpose: SubmissionPurpose =
     sub.submissionPurpose === "conference" ? "conference" : "journal";
@@ -115,10 +163,13 @@ export function buildPersonalizationContext(sub: SubmissionDoc): Personalization
       ? sub.conferenceTrack
       : null;
   const waiver = (sub.conferenceFeeWaiver ?? "none") as ConferenceFeeWaiver;
+  const coAuthors = normalizeCoAuthors(sub.coAuthors);
+  const paymentLink = buildConferencePaymentLink(sub);
 
   return {
     authorName: String(sub.authorName ?? ""),
     authorEmail: String(sub.authorEmail ?? ""),
+    coAuthors: coAuthors.length ? coAuthors.join(", ") : "None",
     registrationId: String(sub.registrationId ?? sub.id),
     title: String(sub.title ?? ""),
     abstract: String(sub.abstract ?? ""),
@@ -136,6 +187,7 @@ export function buildPersonalizationContext(sub: SubmissionDoc): Personalization
     submittedAt: formatSubmittedAt(sub.submittedAt),
     journalName: siteConfig.name,
     dashboardUrl: `${getSiteBaseUrl()}/dashboard?view=author`,
+    paymentLink,
   };
 }
 
@@ -146,6 +198,7 @@ export function buildPersonalizationContext(sub: SubmissionDoc): Personalization
 const VARIABLE_ALIASES: Record<string, string> = {
   Author_Name: "authorName",
   Author_Email: "authorEmail",
+  Co_Authors: "coAuthors",
   Registration_ID: "registrationId",
   Paper_Title: "title",
   Paper_ID: "registrationId",
@@ -163,6 +216,7 @@ const VARIABLE_ALIASES: Record<string, string> = {
   Presentation_Time: "presentationTime",
   Zoom_Link: "zoomLink",
   Certificate_Link: "certificateLink",
+  Payment_Link: "paymentLink",
 };
 
 /** Replace {{var}} tokens; unknown placeholders become empty strings. */
@@ -333,6 +387,25 @@ export async function ensureDefaultTemplates(
   const writes: Promise<unknown>[] = [];
   for (const seed of DEFAULT_BULK_TEMPLATES) {
     if (bySeed.has(seed.seedKey)) continue;
+    if (seed.seedKey === "conference_q3_2026_payment_link") {
+      writes.push(
+        col.doc(seed.seedKey).set({
+          seedKey: seed.seedKey,
+          name: seed.name,
+          description: seed.description,
+          audience: seed.audience,
+          subject: seed.subject,
+          bodyHtml: seed.bodyHtml,
+          bodyText: seed.bodyText,
+          variables: seed.variables,
+          isDefault: true,
+          createdById: createdById ?? null,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        })
+      );
+      continue;
+    }
     writes.push(
       col.add({
         seedKey: seed.seedKey,
@@ -492,6 +565,7 @@ export async function sendTestEmail(input: {
   let ctx: PersonalizationContext = {
     authorName: "Test Author",
     authorEmail: input.to,
+    coAuthors: "None",
     registrationId: "GCRJ-TEST-000000",
     title: "Sample manuscript title",
     abstract: "Sample abstract for test email.",
@@ -509,6 +583,7 @@ export async function sendTestEmail(input: {
     submittedAt: new Date().toLocaleString("en-GB"),
     journalName: siteConfig.name,
     dashboardUrl: `${getSiteBaseUrl()}/dashboard?view=author`,
+    paymentLink: "",
   };
 
   if (input.sampleSubmissionId) {
@@ -901,6 +976,11 @@ export async function sendIndividualEmail(
   if (!to) throw new Error("Submission has no author email.");
 
   const ctx = buildPersonalizationContext(sub);
+  if (templateRequiresPaymentLink(payload)) {
+    if (!ctx.paymentLink || !isValidCustomerUrl(ctx.paymentLink)) {
+      throw new Error(PAYMENT_LINK_UNAVAILABLE);
+    }
+  }
   const bodyText = payload.bodyText?.trim() || htmlToPlainText(payload.bodyHtml);
   const subject = personalizeTemplate(payload.subject, ctx);
   const html = personalizeTemplate(payload.bodyHtml, ctx);
@@ -957,6 +1037,33 @@ export async function sendIndividualEmail(
   });
 
   return { sent: true, messageId: result.messageId };
+}
+
+export async function previewIndividualEmail(
+  payload: SendIndividualPayload
+): Promise<PersonalizedEmailPreview> {
+  const db = getAdminFirestore();
+  const snap = await db.doc(`submissions/${payload.submissionId}`).get();
+  if (!snap.exists) throw new Error("Submission not found.");
+  const sub: SubmissionDoc = { id: snap.id, ...(snap.data() as Omit<SubmissionDoc, "id">) };
+  const to = String(sub.authorEmail ?? "").trim();
+  if (!to) throw new Error("Submission has no author email.");
+
+  const ctx = buildPersonalizationContext(sub);
+  if (templateRequiresPaymentLink(payload)) {
+    if (!ctx.paymentLink || !isValidCustomerUrl(ctx.paymentLink)) {
+      throw new Error(PAYMENT_LINK_UNAVAILABLE);
+    }
+  }
+  const bodyText = payload.bodyText?.trim() || htmlToPlainText(payload.bodyHtml);
+  return {
+    submissionId: sub.id,
+    registrationId: ctx.registrationId,
+    to,
+    subject: personalizeTemplate(payload.subject, ctx),
+    html: personalizeTemplate(payload.bodyHtml, ctx),
+    text: personalizeTemplate(bodyText, ctx),
+  };
 }
 
 export async function getCommunicationHistory(

@@ -331,6 +331,18 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
                       </dt>
                       <dd>{SUBMISSION_PURPOSE_LABELS[sub.submissionPurpose]}</dd>
                     </div>
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">
+                        Author Name
+                      </dt>
+                      <dd>{sub.authorName || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">
+                        Co-Authors
+                      </dt>
+                      <dd>{sub.coAuthors.length ? sub.coAuthors.join(", ") : "None"}</dd>
+                    </div>
                   </dl>
                   <p className="text-sm text-[var(--journal-body)]">
                     <span className="font-medium">Abstract:</span> {sub.abstract}

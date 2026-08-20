@@ -163,6 +163,7 @@ export type Submission = {
   conferenceFeeWaiver: ConferenceFeeWaiver | null;
   authorId: string;
   authorName: string;
+  coAuthors: string[];
   authorEmail: string;
   affiliation: string;
   category: string;

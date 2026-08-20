@@ -17,6 +17,8 @@ type Body = {
   submissionPurpose?: SubmissionPurpose;
   conferenceQuarter?: ConferenceQuarter | null;
   conferenceAwardIntent?: ConferenceAwardIntent | null;
+  authorName?: string;
+  coAuthors?: unknown;
 };
 
 function cleanString(value: unknown, maxLength: number): string {
@@ -25,6 +27,21 @@ function cleanString(value: unknown, maxLength: number): string {
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
+}
+
+function cleanCoAuthors(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const item of value) {
+    const name = cleanString(item, 300);
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
+  return names;
 }
 
 export async function POST(request: Request) {
@@ -89,12 +106,16 @@ export async function POST(request: Request) {
     const profileSnap = await db.doc(`users/${user.uid}`).get();
     const profile = profileSnap.data();
     const authorEmail = cleanString(profile?.email ?? user.email, 320);
-    const authorName = cleanString(profile?.displayName ?? authorEmail, 300);
+    const authorName = cleanString(body.authorName, 300) || cleanString(profile?.displayName ?? authorEmail, 300);
+    const coAuthors = cleanCoAuthors(body.coAuthors);
     if (!authorEmail) {
       return jsonError(
         "Your account email is missing. Update your profile and try again.",
         400
       );
+    }
+    if (!authorName) {
+      return jsonError("Author name is required.", 400);
     }
 
     const now = Timestamp.now();
@@ -147,6 +168,7 @@ export async function POST(request: Request) {
         conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
         authorId: user.uid,
         authorName,
+        coAuthors,
         authorEmail,
         status: initialStatus,
         assignedEditorId: null,
