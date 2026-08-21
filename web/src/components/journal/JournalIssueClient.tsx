@@ -11,12 +11,17 @@ import { siteConfig } from "@/lib/site-config";
 import { ArticleList } from "@/components/journal/ArticleList";
 import { contentProse, contentShell } from "@/lib/content-layout";
 import { formatPublished } from "@/lib/format-dates";
+import { getIssnLabel } from "@/lib/journal-settings";
 
 type Props = { slug: string };
 
 export function JournalIssueClient({ slug }: Props) {
-  const [issue, setIssue] = useState<IssueWithArticles | null>(null);
-  const [loading, setLoading] = useState(true);
+  const initialIssue =
+    demoArchiveIssues.find((item) => item.slug === slug) ?? null;
+  const [issue, setIssue] = useState<IssueWithArticles | null>(
+    initialIssue ? mergeIssueWithLocalPapers(initialIssue) : null
+  );
+  const [loading, setLoading] = useState(!initialIssue);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -123,14 +128,21 @@ export function JournalIssueClient({ slug }: Props) {
             {issue.archiveDisplayName}
           </p>
         ) : null}
-        <p className="mt-2 text-sm text-[var(--journal-muted)]">
-          {siteConfig.shortName} · Volume {issue.volume}
-          {issue.publishedAt ? (
-            <> · Published: {formatPublished(issue.publishedAt)}</>
-          ) : (
-            <> · Publication date to be announced</>
-          )}
-        </p>
+        <div className="mt-4 space-y-1 text-sm">
+          <p className="font-medium text-[var(--journal-heading)]">
+            {siteConfig.name} ({siteConfig.shortName})
+          </p>
+          <p className="text-[var(--journal-muted)]">{getIssnLabel()}</p>
+          <p className="text-[var(--journal-muted)]">
+            Volume {issue.volume}
+            {issue.issueNumber ? <>, Issue {issue.issueNumber}</> : null}
+            {issue.publishedAt ? (
+              <> · Published: {formatPublished(issue.publishedAt)}</>
+            ) : (
+              <> · Publication date to be announced</>
+            )}
+          </p>
+        </div>
       </header>
 
       <section className="mt-10">
