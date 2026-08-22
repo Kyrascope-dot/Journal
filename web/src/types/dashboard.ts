@@ -181,6 +181,13 @@ export type Submission = {
   emailStatus: EmailStatus;
   emailTimestamp: Timestamp | Date | null;
   deliveryStatus: DeliveryStatus;
+  conferenceCategory?: "best_paper" | "best_presenter" | "both" | null;
+  paymentCompleted?: boolean;
+  paymentLinkSent?: boolean;
+  paymentLinkSentAt?: Timestamp | Date | null;
+  paymentReminderSent?: boolean;
+  paymentReminderSentAt?: Timestamp | Date | null;
+  education?: "high_school" | "graduate" | "post_graduate" | "phd_scholar" | "faculty" | null;
 };
 
 export type SubmissionStatusEvent = {
@@ -257,3 +264,21 @@ export function getEmailStatusLabel(
   }
   return STATUS_LABELS[status];
 }
+
+export const EDUCATION_OPTIONS = [
+  { value: "high_school", label: "High School" },
+  { value: "graduate", label: "Graduate" },
+  { value: "post_graduate", label: "Post Graduate" },
+  { value: "phd_scholar", label: "PhD Scholar" },
+  { value: "faculty", label: "Faculty" },
+] as const;
+
+export type EducationLevel = (typeof EDUCATION_OPTIONS)[number]["value"];
+
+export const EDUCATION_LABELS: Record<EducationLevel, string> = {
+  high_school: "High School",
+  graduate: "Graduate",
+  post_graduate: "Post Graduate",
+  phd_scholar: "PhD Scholar",
+  faculty: "Faculty",
+};

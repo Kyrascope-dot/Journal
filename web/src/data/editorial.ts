@@ -110,6 +110,20 @@ export const editorialTeam: EditorialMember[] = [
     ],
   },
   {
+    id: "ishaan-sharma",
+    name: "Dr. Ishaan Sharma",
+    headline: "Editorial Board",
+    qualification:
+      "Ph.D. in Communication Engineering, Delhi Technological University",
+    designation: "Guest Faculty, Indraprastha University\nDelhi, India",
+    scholarUrl:
+      "https://scholar.google.com/citations?user=eNlmb8kAAAAJ&hl=en",
+    imageSrc: "/editorial/ishaansharma.jpeg",
+    bioParagraphs: [
+      "Dr. Sharma received his Ph.D. in Communication Engineering from Delhi Technological University (DTU). His research focuses on wireless communications, reconfigurable intelligent surfaces (RIS), multi-armed bandit algorithms, and hardware acceleration for intelligent communication systems. His work aims to develop efficient, adaptive, and energy-aware solutions for next-generation wireless networks.",
+    ],
+  },
+  {
     id: "parveen-kumar",
     name: "Dr. Parveen Kumar",
     headline: "Associate Editor",

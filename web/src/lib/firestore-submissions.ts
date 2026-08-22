@@ -123,6 +123,25 @@ function mapSubmission(
       data.deliveryStatus === "failed"
         ? data.deliveryStatus
         : "not_applicable",
+    conferenceCategory:
+      data.conferenceCategory === "best_paper" ||
+      data.conferenceCategory === "best_presenter" ||
+      data.conferenceCategory === "both"
+        ? (data.conferenceCategory as "best_paper" | "best_presenter" | "both")
+        : null,
+    paymentCompleted: Boolean(data.paymentCompleted ?? false),
+    paymentLinkSent: Boolean(data.paymentLinkSent ?? false),
+    paymentLinkSentAt: (data.paymentLinkSentAt ?? null) as Submission["paymentLinkSentAt"],
+    paymentReminderSent: Boolean(data.paymentReminderSent ?? false),
+    paymentReminderSentAt: (data.paymentReminderSentAt ?? null) as Submission["paymentReminderSentAt"],
+    education:
+      data.education === "high_school" ||
+      data.education === "graduate" ||
+      data.education === "post_graduate" ||
+      data.education === "phd_scholar" ||
+      data.education === "faculty"
+        ? (data.education as "high_school" | "graduate" | "post_graduate" | "phd_scholar" | "faculty")
+        : null,
   };
 }
 
