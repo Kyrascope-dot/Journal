@@ -43,6 +43,7 @@ type Props = {
   onCampaignChange?: (campaign: EmailCampaignSummary) => void;
   onTemplatesChange?: () => void;
   onEditTemplate?: (template: EmailTemplateRecord) => void;
+  initialFilters?: RecipientFilters | null;
 };
 
 const CONFERENCE_STATUSES: SubmissionStatus[] = ["pending", "accepted", "rejected"];
@@ -88,6 +89,7 @@ export function BulkEmailComposer({
   onCampaignChange,
   onTemplatesChange,
   onEditTemplate,
+  initialFilters = null,
 }: Props) {
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [filters, setFilters] = useState<RecipientFilters>(() => defaultFilters(purpose));
@@ -113,7 +115,11 @@ export function BulkEmailComposer({
 
   useEffect(() => {
     if (!open) return;
-    setFilters(defaultFilters(purpose));
+    setFilters({
+      ...defaultFilters(purpose),
+      ...(initialFilters ?? {}),
+      purpose,
+    });
     setSubject(defaultSubject);
     setBodyHtml(defaultBodyHtml);
     setTemplateId("");
@@ -127,7 +133,7 @@ export function BulkEmailComposer({
     setConfirmSend(false);
     setActiveCampaign(null);
     setSaveAsTemplateName("");
-  }, [open, purpose, defaultSubject, defaultBodyHtml, submissionId, mode]);
+  }, [open, purpose, defaultSubject, defaultBodyHtml, submissionId, mode, initialFilters]);
 
   if (!open) return null;
 
@@ -522,6 +528,83 @@ export function BulkEmailComposer({
                       />
                       Best paper nominees (best_paper / both)
                     </label>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                        Conference category
+                      </label>
+                      <select
+                        value={filters.conferenceAwardIntent ?? ""}
+                        onChange={(e) =>
+                          updateFilter(
+                            "conferenceAwardIntent",
+                            (e.target.value || undefined) as RecipientFilters["conferenceAwardIntent"]
+                          )
+                        }
+                        className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm"
+                      >
+                        <option value="">All awards</option>
+                        <option value="best_paper">Best Paper Award</option>
+                        <option value="best_presenter">Best Presenter Award</option>
+                        <option value="both">Both</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                        Payment completed
+                      </label>
+                      <select
+                        value={filters.paymentCompleted ?? ""}
+                        onChange={(e) =>
+                          updateFilter(
+                            "paymentCompleted",
+                            (e.target.value || undefined) as RecipientFilters["paymentCompleted"]
+                          )
+                        }
+                        className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm"
+                      >
+                        <option value="">All</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                        Payment link sent
+                      </label>
+                      <select
+                        value={filters.paymentLinkSent ?? ""}
+                        onChange={(e) =>
+                          updateFilter(
+                            "paymentLinkSent",
+                            (e.target.value || undefined) as RecipientFilters["paymentLinkSent"]
+                          )
+                        }
+                        className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm"
+                      >
+                        <option value="">All</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                        Payment reminder sent
+                      </label>
+                      <select
+                        value={filters.paymentReminderSent ?? ""}
+                        onChange={(e) =>
+                          updateFilter(
+                            "paymentReminderSent",
+                            (e.target.value || undefined) as RecipientFilters["paymentReminderSent"]
+                          )
+                        }
+                        className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm"
+                      >
+                        <option value="">All</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                    </div>
                   </>
                 ) : (
                   <>

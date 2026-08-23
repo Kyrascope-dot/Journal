@@ -11,6 +11,7 @@ import { updateScholarProfile } from "@/lib/firestore-users";
 import type {
   ConferenceAwardIntent,
   ConferenceQuarter,
+  EducationLevel,
   Submission,
   UserProfile,
   SubmissionPurpose,
@@ -18,6 +19,7 @@ import type {
 import {
   CONFERENCE_AWARD_OPTIONS,
   CONFERENCE_QUARTER_OPTIONS,
+  EDUCATION_OPTIONS,
   formatConferenceSubmissionMeta,
   RESEARCH_CATEGORIES,
   SUBMISSION_PURPOSE_LABELS,
@@ -110,6 +112,7 @@ export function ScholarDashboard({
   const [conferenceQuarter, setConferenceQuarter] = useState<ConferenceQuarter | "">("");
   const [conferenceAwardIntent, setConferenceAwardIntent] =
     useState<ConferenceAwardIntent | "">("");
+  const [education, setEducation] = useState<EducationLevel | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState("");
   const [showManuscriptNotice, setShowManuscriptNotice] = useState(false);
@@ -168,9 +171,9 @@ export function ScholarDashboard({
       return;
     }
     if (submissionPurpose === "conference") {
-      if (!conferenceQuarter || !conferenceAwardIntent) {
+      if (!conferenceQuarter || !conferenceAwardIntent || !education) {
         setSubmitMsg(
-          "For conference submissions, select the issue quarter and your award option."
+          "For conference submissions, select the issue quarter, award option, and education level."
         );
         return;
       }
@@ -190,6 +193,8 @@ export function ScholarDashboard({
           submissionPurpose === "conference"
             ? (conferenceAwardIntent as ConferenceAwardIntent)
             : null,
+        education:
+          submissionPurpose === "conference" ? (education as EducationLevel) : null,
         authorId: profile.uid,
         authorName: cleanedAuthorName,
         coAuthors: cleanedCoAuthors,
@@ -213,6 +218,7 @@ export function ScholarDashboard({
       setSubmissionPurpose("journal");
       setConferenceQuarter("");
       setConferenceAwardIntent("");
+      setEducation("");
       setSubmitMsg("");
       setShowManuscriptNotice(true);
       const updated = await getSubmissionsByAuthor(profile.uid);
@@ -493,6 +499,7 @@ export function ScholarDashboard({
                             if (opt.value === "journal") {
                               setConferenceQuarter("");
                               setConferenceAwardIntent("");
+                              setEducation("");
                             }
                           }}
                           className="mt-0.5 border-[var(--journal-border)] text-[var(--journal-accent)] focus:ring-[var(--journal-accent)]"
@@ -531,6 +538,26 @@ export function ScholarDashboard({
                     >
                       <option value="">Select quarter</option>
                       {CONFERENCE_QUARTER_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--journal-heading)]">
+                      Education <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={education}
+                      onChange={(e) =>
+                        setEducation(e.target.value as EducationLevel | "")
+                      }
+                      className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
+                    >
+                      <option value="">Select education level</option>
+                      {EDUCATION_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                           {opt.label}
                         </option>

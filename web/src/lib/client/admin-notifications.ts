@@ -59,11 +59,17 @@ export async function requestAdminConferenceUpdate(payload: {
   submissionId: string;
   conferenceTrack?: ConferenceTrack | null;
   conferenceFeeWaiver?: ConferenceFeeWaiver;
+  paymentCompleted?: boolean;
+  paymentLinkSent?: boolean;
+  paymentReminderSent?: boolean;
 }): Promise<{
   submissionId: string;
   registrationId: string;
   conferenceTrack: ConferenceTrack | null;
   conferenceFeeWaiver: ConferenceFeeWaiver;
+  paymentCompleted: boolean;
+  paymentLinkSent: boolean;
+  paymentReminderSent: boolean;
 }> {
   const response = await adminRequest("/api/admin/submissions/update-conference", {
     method: "POST",
@@ -75,6 +81,9 @@ export async function requestAdminConferenceUpdate(payload: {
     registrationId?: string;
     conferenceTrack?: ConferenceTrack | null;
     conferenceFeeWaiver?: ConferenceFeeWaiver;
+    paymentCompleted?: boolean;
+    paymentLinkSent?: boolean;
+    paymentReminderSent?: boolean;
   };
   if (!response.ok || !data.submissionId) {
     throw new Error(data.error ?? "Could not update conference fields.");
@@ -84,6 +93,9 @@ export async function requestAdminConferenceUpdate(payload: {
     registrationId: data.registrationId ?? data.submissionId,
     conferenceTrack: data.conferenceTrack ?? null,
     conferenceFeeWaiver: data.conferenceFeeWaiver ?? "none",
+    paymentCompleted: Boolean(data.paymentCompleted),
+    paymentLinkSent: Boolean(data.paymentLinkSent),
+    paymentReminderSent: Boolean(data.paymentReminderSent),
   };
 }
 

@@ -20,6 +20,9 @@ type Body = {
   submissionId?: string;
   conferenceTrack?: ConferenceTrack | null;
   conferenceFeeWaiver?: ConferenceFeeWaiver;
+  paymentCompleted?: boolean;
+  paymentLinkSent?: boolean;
+  paymentReminderSent?: boolean;
 };
 
 export async function POST(request: Request) {
@@ -43,10 +46,25 @@ export async function POST(request: Request) {
 
   const hasTrack = Object.prototype.hasOwnProperty.call(body, "conferenceTrack");
   const hasWaiver = Object.prototype.hasOwnProperty.call(body, "conferenceFeeWaiver");
+  const hasPaymentCompleted = Object.prototype.hasOwnProperty.call(body, "paymentCompleted");
+  const hasPaymentLinkSent = Object.prototype.hasOwnProperty.call(body, "paymentLinkSent");
+  const hasPaymentReminderSent = Object.prototype.hasOwnProperty.call(
+    body,
+    "paymentReminderSent"
+  );
 
-  if (!hasTrack && !hasWaiver) {
+  if (
+    !hasTrack &&
+    !hasWaiver &&
+    !hasPaymentCompleted &&
+    !hasPaymentLinkSent &&
+    !hasPaymentReminderSent
+  ) {
     return NextResponse.json(
-      { error: "Provide conferenceTrack and/or conferenceFeeWaiver to update." },
+      {
+        error:
+          "Provide at least one field to update (track, waiver, paymentCompleted, paymentLinkSent, or paymentReminderSent).",
+      },
       { status: 400 }
     );
   }
@@ -73,13 +91,14 @@ export async function POST(request: Request) {
   const submission = snap.data()!;
   if (submission.submissionPurpose !== "conference") {
     return NextResponse.json(
-      { error: "Conference track and fee waiver apply to conference submissions only." },
+      { error: "Conference fields apply to conference submissions only." },
       { status: 400 }
     );
   }
 
+  const now = Timestamp.now();
   const update: Record<string, unknown> = {
-    lastUpdatedAt: Timestamp.now(),
+    lastUpdatedAt: now,
   };
 
   if (hasTrack) {
@@ -87,6 +106,17 @@ export async function POST(request: Request) {
   }
   if (hasWaiver) {
     update.conferenceFeeWaiver = body.conferenceFeeWaiver ?? "none";
+  }
+  if (hasPaymentCompleted) {
+    update.paymentCompleted = Boolean(body.paymentCompleted);
+  }
+  if (hasPaymentLinkSent) {
+    update.paymentLinkSent = Boolean(body.paymentLinkSent);
+    update.paymentLinkSentAt = body.paymentLinkSent ? now : null;
+  }
+  if (hasPaymentReminderSent) {
+    update.paymentReminderSent = Boolean(body.paymentReminderSent);
+    update.paymentReminderSentAt = body.paymentReminderSent ? now : null;
   }
 
   await submissionRef.update(update);
@@ -99,5 +129,14 @@ export async function POST(request: Request) {
     conferenceFeeWaiver: hasWaiver
       ? (body.conferenceFeeWaiver ?? "none")
       : submission.conferenceFeeWaiver ?? "none",
+    paymentCompleted: hasPaymentCompleted
+      ? Boolean(body.paymentCompleted)
+      : Boolean(submission.paymentCompleted ?? false),
+    paymentLinkSent: hasPaymentLinkSent
+      ? Boolean(body.paymentLinkSent)
+      : Boolean(submission.paymentLinkSent ?? false),
+    paymentReminderSent: hasPaymentReminderSent
+      ? Boolean(body.paymentReminderSent)
+      : Boolean(submission.paymentReminderSent ?? false),
   });
 }

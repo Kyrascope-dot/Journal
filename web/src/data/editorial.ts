@@ -115,7 +115,8 @@ export const editorialTeam: EditorialMember[] = [
     headline: "Editorial Board",
     qualification:
       "Ph.D. in Communication Engineering, Delhi Technological University",
-    designation: "Guest Faculty, Indraprastha University\nDelhi, India",
+    designation:
+      "Assistant Professor\nGuest Faculty, Indraprastha University\nDelhi, India",
     scholarUrl:
       "https://scholar.google.com/citations?user=eNlmb8kAAAAJ&hl=en",
     imageSrc: "/editorial/ishaansharma.jpeg",

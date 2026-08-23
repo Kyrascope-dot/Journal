@@ -4,6 +4,15 @@ import { DEFAULT_BULK_TEMPLATES, htmlToPlainText } from "@/lib/email/bulk-templa
 import { getSiteBaseUrl } from "@/lib/email/reviewer-invitation";
 import { getAdminFirestore } from "@/lib/firebase-admin";
 import { siteConfig } from "@/lib/site-config";
+import {
+  loadConferencePaymentCommunicationIndex,
+  PAYMENT_LINK_TEMPLATE_SEED,
+  PAYMENT_REMINDER_TEMPLATE_SEED,
+  type ConferencePaymentCommunicationIndex,
+  isPaymentLinkSentForSubmission,
+  isPaymentReminderSentForSubmission,
+  matchesYesNoFilter,
+} from "@/lib/conference-payment-communications";
 import type {
   CampaignDeliveryStatus,
   CampaignRecipientPreview,
@@ -57,6 +66,9 @@ type SubmissionDoc = {
   assignedEditorName?: string | null;
   assignedReviewerId?: string | null;
   assignedReviewerName?: string | null;
+  paymentCompleted?: boolean;
+  paymentLinkSent?: boolean;
+  paymentReminderSent?: boolean;
 };
 
 function toIso(value: unknown): string | null {
@@ -146,10 +158,49 @@ function templateRequiresPaymentLink(payload: {
   bodyHtml: string;
 }): boolean {
   return (
-    payload.templateId === "conference_q3_2026_payment_link" ||
+    payload.templateId === PAYMENT_LINK_TEMPLATE_SEED ||
+    payload.templateId === PAYMENT_REMINDER_TEMPLATE_SEED ||
     payload.subject.includes("Payment Link - GCR International Conference Q3 2026") ||
+    payload.subject.includes("Payment Reminder") ||
     payload.bodyHtml.includes("{{paymentLink}}")
   );
+}
+
+async function resolveTemplateSeedKey(
+  templateId: string | null | undefined
+): Promise<string | null> {
+  if (!templateId) return null;
+  if (
+    templateId === PAYMENT_LINK_TEMPLATE_SEED ||
+    templateId === PAYMENT_REMINDER_TEMPLATE_SEED
+  ) {
+    return templateId;
+  }
+  const snap = await getAdminFirestore().doc(`emailTemplates/${templateId}`).get();
+  if (!snap.exists) return null;
+  const seedKey = snap.data()?.seedKey;
+  return seedKey ? String(seedKey) : null;
+}
+
+async function markConferencePaymentCommunicationSent(
+  submissionId: string,
+  templateId: string | null | undefined
+): Promise<void> {
+  const seedKey = await resolveTemplateSeedKey(templateId);
+  if (!seedKey) return;
+  const now = FieldValue.serverTimestamp();
+  const update: Record<string, unknown> = { lastUpdatedAt: now };
+  if (seedKey === PAYMENT_LINK_TEMPLATE_SEED) {
+    update.paymentLinkSent = true;
+    update.paymentLinkSentAt = now;
+  }
+  if (seedKey === PAYMENT_REMINDER_TEMPLATE_SEED) {
+    update.paymentReminderSent = true;
+    update.paymentReminderSentAt = now;
+  }
+  if (Object.keys(update).length > 1) {
+    await getAdminFirestore().doc(`submissions/${submissionId}`).set(update, { merge: true });
+  }
 }
 
 export function buildPersonalizationContext(sub: SubmissionDoc): PersonalizationContext {
@@ -237,7 +288,8 @@ export function personalizeTemplate(
 
 export function matchesRecipientFilters(
   sub: SubmissionDoc,
-  filters: RecipientFilters
+  filters: RecipientFilters,
+  paymentIndex?: ConferencePaymentCommunicationIndex
 ): boolean {
   const purpose =
     sub.submissionPurpose === "conference" ? "conference" : "journal";
@@ -281,9 +333,51 @@ export function matchesRecipientFilters(
     if (filters.conferenceQuarter) {
       if (sub.conferenceQuarter !== filters.conferenceQuarter) return false;
     }
+    if (filters.conferenceAwardIntent) {
+      if (sub.conferenceAwardIntent !== filters.conferenceAwardIntent) return false;
+    }
     if (filters.bestPaperNominees) {
       const award = sub.conferenceAwardIntent;
       if (award !== "best_paper" && award !== "both") return false;
+    }
+    if (paymentIndex) {
+      const submissionLike = {
+        id: sub.id,
+        registrationId: String(sub.registrationId ?? sub.id),
+        submissionPurpose: "conference" as const,
+        status: (sub.status ?? "pending") as SubmissionStatus,
+        paymentLinkSent: Boolean(sub.paymentLinkSent),
+        paymentReminderSent: Boolean(sub.paymentReminderSent),
+      };
+      if (
+        !matchesYesNoFilter(
+          Boolean(sub.paymentCompleted),
+          filters.paymentCompleted
+        )
+      ) {
+        return false;
+      }
+      if (
+        !matchesYesNoFilter(
+          isPaymentLinkSentForSubmission(submissionLike, paymentIndex),
+          filters.paymentLinkSent
+        )
+      ) {
+        return false;
+      }
+      if (
+        !matchesYesNoFilter(
+          isPaymentReminderSentForSubmission(submissionLike, paymentIndex),
+          filters.paymentReminderSent
+        )
+      ) {
+        return false;
+      }
+    } else if (
+      filters.paymentCompleted &&
+      !matchesYesNoFilter(Boolean(sub.paymentCompleted), filters.paymentCompleted)
+    ) {
+      return false;
     }
   }
 
@@ -308,8 +402,12 @@ export async function resolveRecipients(
   filters: RecipientFilters
 ): Promise<CampaignRecipientPreview[]> {
   const all = await loadAllSubmissions();
+  const paymentIndex =
+    filters.purpose === "conference"
+      ? await loadConferencePaymentCommunicationIndex(getAdminFirestore())
+      : undefined;
   return all
-    .filter((sub) => matchesRecipientFilters(sub, filters))
+    .filter((sub) => matchesRecipientFilters(sub, filters, paymentIndex))
     .filter((sub) => Boolean(String(sub.authorEmail ?? "").trim()))
     .map((sub) => ({
       submissionId: sub.id,
@@ -391,7 +489,10 @@ export async function ensureDefaultTemplates(
   const writes: Promise<unknown>[] = [];
   for (const seed of DEFAULT_BULK_TEMPLATES) {
     if (bySeed.has(seed.seedKey)) continue;
-    if (seed.seedKey === "conference_q3_2026_payment_link") {
+    if (
+      seed.seedKey === "conference_q3_2026_payment_link" ||
+      seed.seedKey === PAYMENT_REMINDER_TEMPLATE_SEED
+    ) {
       writes.push(
         col.doc(seed.seedKey).set({
           seedKey: seed.seedKey,
@@ -911,6 +1012,10 @@ export async function processCampaignBatch(campaignId: string): Promise<{
           },
           { merge: true }
         );
+        await markConferencePaymentCommunicationSent(
+          String(data.submissionId),
+          campaign.templateId ? String(campaign.templateId) : null
+        );
       }
       sent += 1;
     } catch (error) {
@@ -1012,6 +1117,7 @@ export async function sendIndividualEmail(
     },
     { merge: true }
   );
+  await markConferencePaymentCommunicationSent(sub.id, payload.templateId ?? null);
 
   // Track lightweight individual campaign log row for admin history
   await db.collection("emailCampaigns").add({

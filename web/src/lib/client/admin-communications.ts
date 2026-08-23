@@ -269,9 +269,37 @@ export async function requestPendingPaymentLinkParticipants(): Promise<{
   };
 }
 
+export async function requestConferencePaymentStatus(): Promise<{
+  totalAccepted: number;
+  paymentLinkPendingIds: Set<string>;
+  paymentLinkSentIds: Set<string>;
+  paymentReminderPendingIds: Set<string>;
+  paymentReminderSentIds: Set<string>;
+}> {
+  const response = await adminRequest("/api/admin/communications/conference-payment-status");
+  const data = (await response.json()) as {
+    totalAccepted?: number;
+    paymentLinkPendingIds?: string[];
+    paymentLinkSentIds?: string[];
+    paymentReminderPendingIds?: string[];
+    paymentReminderSentIds?: string[];
+    error?: string;
+  };
+  if (!response.ok) {
+    throw new Error(data.error ?? "Could not load conference payment status.");
+  }
+  return {
+    totalAccepted: data.totalAccepted ?? 0,
+    paymentLinkPendingIds: new Set(data.paymentLinkPendingIds ?? []),
+    paymentLinkSentIds: new Set(data.paymentLinkSentIds ?? []),
+    paymentReminderPendingIds: new Set(data.paymentReminderPendingIds ?? []),
+    paymentReminderSentIds: new Set(data.paymentReminderSentIds ?? []),
+  };
+}
+
 export async function requestPendingPaymentLinkSubmissionIds(): Promise<Set<string>> {
-  const result = await requestPendingPaymentLinkParticipants();
-  return new Set(result.pending.map((participant) => participant.submissionId));
+  const result = await requestConferencePaymentStatus();
+  return result.paymentLinkPendingIds;
 }
 
 export async function requestSendTestEmail(payload: {

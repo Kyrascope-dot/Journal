@@ -14,6 +14,7 @@ import {
   findUserByEmail,
 } from "@/lib/firestore-users";
 import type {
+  ConferenceAwardIntent,
   ConferenceFeeWaiver,
   ConferenceTrack,
   Submission,
@@ -22,6 +23,7 @@ import type {
   UserProfile,
 } from "@/types/dashboard";
 import {
+  CONFERENCE_AWARD_OPTIONS,
   CONFERENCE_FEE_WAIVER_LABELS,
   CONFERENCE_FEE_WAIVER_OPTIONS,
   CONFERENCE_TRACK_LABELS,
@@ -48,7 +50,7 @@ import {
 import {
   requestCommunicationHistory,
   requestCommunicationTemplates,
-  requestPendingPaymentLinkSubmissionIds,
+  requestConferencePaymentStatus,
 } from "@/lib/client/admin-communications";
 import type { CommunicationHistoryItem, EmailTemplateRecord } from "@/types/communications";
 import { CommunicationsPanel } from "@/components/dashboard/communications/CommunicationsPanel";
@@ -97,6 +99,35 @@ type AdminTab =
   | "communications"
   | "email_logs";
 
+type YesNoFilter = "all" | "yes" | "no";
+
+function effectivePaymentLinkSent(
+  sub: Submission,
+  sentIds: Set<string>,
+  pendingIds: Set<string>
+): boolean {
+  if (sub.paymentLinkSent) return true;
+  if (sub.submissionPurpose !== "conference" || sub.status !== "accepted") return false;
+  if (sentIds.has(sub.id)) return true;
+  return !pendingIds.has(sub.id);
+}
+
+function effectivePaymentReminderSent(
+  sub: Submission,
+  sentIds: Set<string>,
+  pendingIds: Set<string>
+): boolean {
+  if (sub.paymentReminderSent) return true;
+  if (sub.submissionPurpose !== "conference" || sub.status !== "accepted") return false;
+  if (sentIds.has(sub.id)) return true;
+  return !pendingIds.has(sub.id);
+}
+
+function matchesYesNo(value: boolean, filter: YesNoFilter): boolean {
+  if (filter === "all") return true;
+  return filter === "yes" ? value : !value;
+}
+
 export function AdminDashboard({ profile }: { profile: UserProfile }) {
   const [tab, setTab] = useState<AdminTab>("overview");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -114,9 +145,19 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     ConferenceTrack | "unassigned" | "all"
   >("all");
   const [filterFeeWaiver, setFilterFeeWaiver] = useState<ConferenceFeeWaiver | "all">("all");
-  const [filterPaymentLink, setFilterPaymentLink] = useState<"all" | "not_sent">("all");
+  const [filterConferenceAward, setFilterConferenceAward] = useState<
+    ConferenceAwardIntent | "all"
+  >("all");
+  const [filterPaymentCompleted, setFilterPaymentCompleted] = useState<YesNoFilter>("all");
+  const [filterPaymentLinkSent, setFilterPaymentLinkSent] = useState<YesNoFilter>("all");
+  const [filterPaymentReminderSent, setFilterPaymentReminderSent] = useState<YesNoFilter>("all");
   const [paymentLinkPendingIds, setPaymentLinkPendingIds] = useState<Set<string>>(new Set());
-  const [paymentLinkPendingError, setPaymentLinkPendingError] = useState("");
+  const [paymentLinkSentIds, setPaymentLinkSentIds] = useState<Set<string>>(new Set());
+  const [paymentReminderPendingIds, setPaymentReminderPendingIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [paymentReminderSentIds, setPaymentReminderSentIds] = useState<Set<string>>(new Set());
+  const [paymentStatusError, setPaymentStatusError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<
     "registration_date" | "registration_id" | "submission_type" | "status"
@@ -139,14 +180,20 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
   }, []);
 
   useEffect(() => {
-    requestPendingPaymentLinkSubmissionIds()
-      .then((ids) => {
-        setPaymentLinkPendingIds(ids);
-        setPaymentLinkPendingError("");
+    requestConferencePaymentStatus()
+      .then((status) => {
+        setPaymentLinkPendingIds(status.paymentLinkPendingIds);
+        setPaymentLinkSentIds(status.paymentLinkSentIds);
+        setPaymentReminderPendingIds(status.paymentReminderPendingIds);
+        setPaymentReminderSentIds(status.paymentReminderSentIds);
+        setPaymentStatusError("");
       })
       .catch(() => {
         setPaymentLinkPendingIds(new Set());
-        setPaymentLinkPendingError("Could not load payment-link email status.");
+        setPaymentLinkSentIds(new Set());
+        setPaymentReminderPendingIds(new Set());
+        setPaymentReminderSentIds(new Set());
+        setPaymentStatusError("Could not load conference payment email status.");
       });
   }, []);
 
@@ -162,11 +209,18 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     setEditors(eds);
     setReviewers(revs);
     try {
-      setPaymentLinkPendingIds(await requestPendingPaymentLinkSubmissionIds());
-      setPaymentLinkPendingError("");
+      const status = await requestConferencePaymentStatus();
+      setPaymentLinkPendingIds(status.paymentLinkPendingIds);
+      setPaymentLinkSentIds(status.paymentLinkSentIds);
+      setPaymentReminderPendingIds(status.paymentReminderPendingIds);
+      setPaymentReminderSentIds(status.paymentReminderSentIds);
+      setPaymentStatusError("");
     } catch {
       setPaymentLinkPendingIds(new Set());
-      setPaymentLinkPendingError("Could not load payment-link email status.");
+      setPaymentLinkSentIds(new Set());
+      setPaymentReminderPendingIds(new Set());
+      setPaymentReminderSentIds(new Set());
+      setPaymentStatusError("Could not load conference payment email status.");
     }
   };
 
@@ -188,8 +242,39 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
         const waiver = s.conferenceFeeWaiver ?? "none";
         if (waiver !== filterFeeWaiver) return false;
       }
-      if (filterPaymentLink === "not_sent" && !paymentLinkPendingIds.has(s.id)) {
-        return false;
+      if (filterConferenceAward !== "all") {
+        if (s.submissionPurpose !== "conference") return false;
+        if (s.conferenceAwardIntent !== filterConferenceAward) return false;
+      }
+      if (filterPaymentCompleted !== "all") {
+        if (s.submissionPurpose !== "conference") return false;
+        if (!matchesYesNo(Boolean(s.paymentCompleted), filterPaymentCompleted)) return false;
+      }
+      if (filterPaymentLinkSent !== "all") {
+        if (s.submissionPurpose !== "conference") return false;
+        if (
+          !matchesYesNo(
+            effectivePaymentLinkSent(s, paymentLinkSentIds, paymentLinkPendingIds),
+            filterPaymentLinkSent
+          )
+        ) {
+          return false;
+        }
+      }
+      if (filterPaymentReminderSent !== "all") {
+        if (s.submissionPurpose !== "conference") return false;
+        if (
+          !matchesYesNo(
+            effectivePaymentReminderSent(
+              s,
+              paymentReminderSentIds,
+              paymentReminderPendingIds
+            ),
+            filterPaymentReminderSent
+          )
+        ) {
+          return false;
+        }
       }
       const needle = searchQuery.trim().toLowerCase();
       if (
@@ -411,19 +496,69 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
               </div>
               <div>
                 <label className="block text-xs font-medium text-[var(--journal-muted)]">
-                  Payment link email
+                  Conference category
                 </label>
                 <select
-                  value={filterPaymentLink}
+                  value={filterConferenceAward}
                   onChange={(e) =>
-                    setFilterPaymentLink(e.target.value as typeof filterPaymentLink)
+                    setFilterConferenceAward(e.target.value as ConferenceAwardIntent | "all")
+                  }
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="all">All awards</option>
+                  {CONFERENCE_AWARD_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Payment completed
+                </label>
+                <select
+                  value={filterPaymentCompleted}
+                  onChange={(e) =>
+                    setFilterPaymentCompleted(e.target.value as YesNoFilter)
                   }
                   className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
                 >
                   <option value="all">All</option>
-                  <option value="not_sent">
-                    Not sent ({paymentLinkPendingIds.size})
-                  </option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Payment link sent
+                </label>
+                <select
+                  value={filterPaymentLinkSent}
+                  onChange={(e) =>
+                    setFilterPaymentLinkSent(e.target.value as YesNoFilter)
+                  }
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="all">All</option>
+                  <option value="yes">Yes ({paymentLinkSentIds.size})</option>
+                  <option value="no">No ({paymentLinkPendingIds.size})</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Payment reminder sent
+                </label>
+                <select
+                  value={filterPaymentReminderSent}
+                  onChange={(e) =>
+                    setFilterPaymentReminderSent(e.target.value as YesNoFilter)
+                  }
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="all">All</option>
+                  <option value="yes">Yes ({paymentReminderSentIds.size})</option>
+                  <option value="no">No ({paymentReminderPendingIds.size})</option>
                 </select>
               </div>
               <div>
@@ -445,8 +580,8 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
             <p className="mt-3 text-sm text-[var(--journal-muted)]">
               Showing {filteredSubs.length} of {submissions.length} submissions
             </p>
-            {paymentLinkPendingError ? (
-              <p className="mt-2 text-xs text-red-700">{paymentLinkPendingError}</p>
+            {paymentStatusError ? (
+              <p className="mt-2 text-xs text-red-700">{paymentStatusError}</p>
             ) : null}
             <ul className="mt-3 divide-y divide-[var(--journal-border)] border-y border-[var(--journal-border)]">
               {filteredSubs.map((sub) => (
@@ -584,6 +719,15 @@ function SubmissionPanel({
   const [conferenceFeeWaiver, setConferenceFeeWaiver] = useState<ConferenceFeeWaiver>(
     submission.conferenceFeeWaiver ?? "none"
   );
+  const [paymentCompleted, setPaymentCompleted] = useState(
+    Boolean(submission.paymentCompleted)
+  );
+  const [paymentLinkSent, setPaymentLinkSent] = useState(
+    Boolean(submission.paymentLinkSent)
+  );
+  const [paymentReminderSent, setPaymentReminderSent] = useState(
+    Boolean(submission.paymentReminderSent)
+  );
 
   useEffect(() => {
     setSelectedEditorId(submission.assignedEditorId ?? "");
@@ -593,6 +737,9 @@ function SubmissionPanel({
     setReviewDeadline(formatDateInput(submission.reviewDeadline));
     setConferenceTrack(submission.conferenceTrack ?? "");
     setConferenceFeeWaiver(submission.conferenceFeeWaiver ?? "none");
+    setPaymentCompleted(Boolean(submission.paymentCompleted));
+    setPaymentLinkSent(Boolean(submission.paymentLinkSent));
+    setPaymentReminderSent(Boolean(submission.paymentReminderSent));
     setStatusMsg("");
     setFailedNotificationId(null);
     setComposerOpen(false);
@@ -606,6 +753,9 @@ function SubmissionPanel({
     submission.reviewDeadline,
     submission.conferenceTrack,
     submission.conferenceFeeWaiver,
+    submission.paymentCompleted,
+    submission.paymentLinkSent,
+    submission.paymentReminderSent,
   ]);
 
   async function loadCommunicationHistory() {
@@ -706,14 +856,22 @@ function SubmissionPanel({
       if (submission.submissionPurpose === "conference") {
         const nextTrack: ConferenceTrack | null = conferenceTrack || null;
         const savedWaiver = submission.conferenceFeeWaiver ?? "none";
+        const paymentChanged =
+          paymentCompleted !== Boolean(submission.paymentCompleted) ||
+          paymentLinkSent !== Boolean(submission.paymentLinkSent) ||
+          paymentReminderSent !== Boolean(submission.paymentReminderSent);
         if (
           nextTrack !== submission.conferenceTrack ||
-          conferenceFeeWaiver !== savedWaiver
+          conferenceFeeWaiver !== savedWaiver ||
+          paymentChanged
         ) {
           await requestAdminConferenceUpdate({
             submissionId: submission.id,
             conferenceTrack: nextTrack,
             conferenceFeeWaiver,
+            paymentCompleted,
+            paymentLinkSent,
+            paymentReminderSent,
           });
         }
       }
@@ -990,9 +1148,50 @@ function SubmissionPanel({
                 ))}
               </select>
             </div>
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Payment completed
+                </label>
+                <select
+                  value={paymentCompleted ? "yes" : "no"}
+                  onChange={(e) => setPaymentCompleted(e.target.value === "yes")}
+                  className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Payment link sent
+                </label>
+                <select
+                  value={paymentLinkSent ? "yes" : "no"}
+                  onChange={(e) => setPaymentLinkSent(e.target.value === "yes")}
+                  className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Payment reminder sent
+                </label>
+                <select
+                  value={paymentReminderSent ? "yes" : "no"}
+                  onChange={(e) => setPaymentReminderSent(e.target.value === "yes")}
+                  className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
       <button
         type="button"
         disabled={saving}

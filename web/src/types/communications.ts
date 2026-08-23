@@ -25,6 +25,14 @@ export type RecipientFilters = {
   statuses?: SubmissionStatus[];
   /** Conference: nominees with award intent best_paper or both. */
   bestPaperNominees?: boolean;
+  /** Conference: filter by award nomination category. */
+  conferenceAwardIntent?: "best_paper" | "best_presenter" | "both";
+  /** Conference: registration payment completed. */
+  paymentCompleted?: "yes" | "no";
+  /** Conference: payment link email sent. */
+  paymentLinkSent?: "yes" | "no";
+  /** Conference: payment reminder email sent. */
+  paymentReminderSent?: "yes" | "no";
   category?: string;
   registrationId?: string;
   authorName?: string;

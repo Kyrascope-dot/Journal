@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type {
   ConferenceAwardIntent,
   ConferenceQuarter,
+  EducationLevel,
   SubmissionPurpose,
   SubmissionStatus,
 } from "@/types/dashboard";
@@ -17,6 +18,7 @@ type Body = {
   submissionPurpose?: SubmissionPurpose;
   conferenceQuarter?: ConferenceQuarter | null;
   conferenceAwardIntent?: ConferenceAwardIntent | null;
+  education?: EducationLevel | null;
   authorName?: string;
   coAuthors?: unknown;
 };
@@ -94,10 +96,13 @@ export async function POST(request: Request) {
       (!["q1", "q2", "q3", "q4"].includes(body.conferenceQuarter ?? "") ||
         !["best_paper", "best_presenter", "both"].includes(
           body.conferenceAwardIntent ?? ""
+        ) ||
+        !["high_school", "graduate", "post_graduate", "phd_scholar", "faculty"].includes(
+          body.education ?? ""
         ))
     ) {
       return jsonError(
-        "Conference quarter and award category are required.",
+        "Conference quarter, award category, and education level are required.",
         400
       );
     }
@@ -166,6 +171,7 @@ export async function POST(request: Request) {
         submissionPurpose: purpose,
         conferenceQuarter: isConference ? body.conferenceQuarter : null,
         conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
+        education: isConference ? body.education : null,
         authorId: user.uid,
         authorName,
         coAuthors,

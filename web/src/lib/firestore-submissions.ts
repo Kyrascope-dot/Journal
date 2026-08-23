@@ -17,6 +17,7 @@ import type {
   ConferenceFeeWaiver,
   ConferenceQuarter,
   ConferenceTrack,
+  EducationLevel,
   Submission,
   SubmissionPurpose,
   SubmissionStatus,
@@ -180,6 +181,7 @@ export async function createSubmission(payload: {
   submissionPurpose: SubmissionPurpose;
   conferenceQuarter?: ConferenceQuarter | null;
   conferenceAwardIntent?: ConferenceAwardIntent | null;
+  education?: EducationLevel | null;
   authorId: string;
   authorName: string;
   coAuthors?: string[];
@@ -208,6 +210,7 @@ export async function createSubmission(payload: {
       submissionPurpose: payload.submissionPurpose,
       conferenceQuarter: payload.conferenceQuarter ?? null,
       conferenceAwardIntent: payload.conferenceAwardIntent ?? null,
+      education: payload.education ?? null,
       authorName: payload.authorName,
       coAuthors: payload.coAuthors ?? [],
     }),

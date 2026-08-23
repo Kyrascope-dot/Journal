@@ -131,6 +131,65 @@ editor@globalconfluencereview.in`,
     variables: VARS,
     isDefault: true,
   },
+  {
+    seedKey: "conference_payment_reminder",
+    name: "GCR Conference — Payment Reminder",
+    description:
+      "Reminder for accepted authors to complete conference registration payment before the extended deadline.",
+    audience: "conference" as const,
+    subject: "Payment Reminder — GCR International Conference Q3 2026",
+    bodyHtml: `<p>Dear {{authorName}},</p>
+
+<p>This is a friendly reminder to complete your conference registration payment for the <strong>GCR International Conference Q3 2026</strong>.</p>
+
+<p><strong>Registration ID:</strong> {{registrationId}}<br>
+<strong>Paper Title:</strong> {{title}}</p>
+
+<p>The last date for conference payment has been <strong>extended to 27 August 2026, 12:00 PM IST</strong>.</p>
+
+<p>Please complete your registration payment using the secure link below:</p>
+
+<p>
+<a href="{{paymentLink}}"
+style="display:inline-block;padding:12px 22px;background:#1f4775;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">
+Complete Conference Payment
+</a>
+</p>
+
+<p>If the button above does not work, copy and paste this link into your browser:</p>
+
+<p>{{paymentLink}}</p>
+
+<p>If you have already paid, please ignore this reminder. If you have applied for a need-based fee waiver, contact the Editorial Office before making payment.</p>
+
+<p>Thanking you,</p>
+
+<p>
+<strong>GCR Conference &amp; Editorial Team</strong><br>
+<strong>Global Confluence Review</strong><br>
+${siteConfig.email}
+</p>`,
+    bodyText: `Dear {{authorName}},
+
+This is a friendly reminder to complete your conference registration payment for the GCR International Conference Q3 2026.
+
+Registration ID: {{registrationId}}
+Paper Title: {{title}}
+
+The last date for conference payment has been extended to 27 August 2026, 12:00 PM IST.
+
+Please complete your registration payment using this secure link:
+{{paymentLink}}
+
+If you have already paid, please ignore this reminder.
+
+Thanking you,
+GCR Conference & Editorial Team
+Global Confluence Review
+${siteConfig.email}`,
+    variables: VARS,
+    isDefault: true,
+  },
   template(
     "conference_reminder_general",
     "Conference — General reminder",

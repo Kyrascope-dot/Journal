@@ -16,6 +16,7 @@ import type {
   CommunicationsStats,
   EmailCampaignSummary,
   EmailTemplateRecord,
+  RecipientFilters,
 } from "@/types/communications";
 import type { SubmissionPurpose, UserProfile } from "@/types/dashboard";
 
@@ -41,6 +42,9 @@ export function CommunicationsPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [composerPurpose, setComposerPurpose] = useState<SubmissionPurpose | null>(null);
+  const [composerPresetFilters, setComposerPresetFilters] = useState<RecipientFilters | null>(
+    null
+  );
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const [editTemplate, setEditTemplate] = useState<EmailTemplateRecord | null>(null);
@@ -101,6 +105,7 @@ export function CommunicationsPanel({
   }, [reload]);
 
   function openComposer(purpose: SubmissionPurpose) {
+    setComposerPresetFilters(null);
     setComposerPurpose(purpose);
   }
 
@@ -390,7 +395,60 @@ export function CommunicationsPanel({
       ) : null}
 
       {!loading && tab === "campaigns" ? (
-        <div className="mt-6">
+        <div className="mt-6 space-y-6">
+          <div className="rounded-lg border border-[var(--journal-border)] bg-zinc-50 p-4">
+            <p className="text-sm font-medium text-[var(--journal-heading)]">
+              Conference payment outreach filters
+            </p>
+            <p className="mt-1 text-xs text-[var(--journal-muted)]">
+              Use these quick actions to target accepted authors who still need a payment link or
+              payment reminder. Opens the conference bulk composer with filters applied.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setComposerPurpose("conference");
+                  setComposerPresetFilters({
+                    purpose: "conference",
+                    statuses: ["accepted"],
+                    paymentLinkSent: "no",
+                  });
+                }}
+                className="rounded border border-[var(--journal-accent)] bg-white px-3 py-2 text-sm font-medium text-[var(--journal-accent)] hover:bg-sky-50"
+              >
+                Payment link not sent
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setComposerPurpose("conference");
+                  setComposerPresetFilters({
+                    purpose: "conference",
+                    statuses: ["accepted"],
+                    paymentReminderSent: "no",
+                  });
+                }}
+                className="rounded border border-[var(--journal-accent)] bg-white px-3 py-2 text-sm font-medium text-[var(--journal-accent)] hover:bg-sky-50"
+              >
+                Payment reminder not sent
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setComposerPurpose("conference");
+                  setComposerPresetFilters({
+                    purpose: "conference",
+                    statuses: ["accepted"],
+                    paymentCompleted: "no",
+                  });
+                }}
+                className="rounded border border-[var(--journal-border)] bg-white px-3 py-2 text-sm text-[var(--journal-body)] hover:bg-white"
+              >
+                Payment not completed
+              </button>
+            </div>
+          </div>
           <CampaignTable
             campaigns={campaigns}
             processingId={processingId}
@@ -406,7 +464,11 @@ export function CommunicationsPanel({
           templates={templates}
           editors={editors}
           reviewers={reviewers}
-          onClose={() => setComposerPurpose(null)}
+          onClose={() => {
+            setComposerPurpose(null);
+            setComposerPresetFilters(null);
+          }}
+          initialFilters={composerPresetFilters}
           onCampaignChange={() => void reload()}
           onTemplatesChange={() => void reload()}
           onEditTemplate={(template) => {

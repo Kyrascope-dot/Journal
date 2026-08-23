@@ -64,6 +64,10 @@ export default function ContactPage() {
                 title="Editor-in-Chief"
                 rows={[
                   {
+                    label: "Name",
+                    value: "Dr. Japji Kaur",
+                  },
+                  {
                     label: "Email",
                     value: (
                       <MailLink
