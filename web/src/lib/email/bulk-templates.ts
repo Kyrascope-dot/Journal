@@ -133,24 +133,29 @@ editor@globalconfluencereview.in`,
   },
   {
     seedKey: "conference_payment_reminder",
-    name: "GCR Conference — Payment Reminder",
+    name: "Payment Reminder – GCR Conference Registration",
     description:
-      "Reminder for accepted authors to complete conference registration payment before the extended deadline.",
+      "Reminder for accepted authors to complete conference registration payment before the deadline.",
     audience: "conference" as const,
-    subject: "Payment Reminder — GCR International Conference Q3 2026",
-    bodyHtml: `<p>Dear {{authorName}},</p>
+    subject: "Payment Reminder – GCR Conference Registration Deadline: 28 August 2026",
+    bodyHtml: `<p>Dear {{author_name}},</p>
 
-<p>This is a friendly reminder to complete your conference registration payment for the <strong>GCR International Conference Q3 2026</strong>.</p>
+<p>Greetings from Global Confluence Review (GCR).</p>
 
-<p><strong>Registration ID:</strong> {{registrationId}}<br>
-<strong>Paper Title:</strong> {{title}}</p>
+<p>This is a gentle reminder regarding the pending payment for your registration for the <strong>GCR International Multidisciplinary Conference Q3 (July–September)</strong>, scheduled for <strong>30 August 2026 at 9:30 AM IST</strong>.</p>
 
-<p>The last date for conference payment has been <strong>extended to 27 August 2026, 12:00 PM IST</strong>.</p>
+<p>Our records indicate that the payment for your registration has not yet been completed.</p>
 
-<p>Please complete your registration payment using the secure link below:</p>
+<p><strong>Payment Deadline:</strong><br>
+28 August 2026<br>
+11:59 PM IST</p>
+
+<p>We kindly request you to complete the payment by the above deadline to confirm your participation in the conference.</p>
+
+<p><strong>Complete Your Conference Payment:</strong></p>
 
 <p>
-<a href="{{paymentLink}}"
+<a href="https://www.globalconfluencereview.in/conferences/payment"
 style="display:inline-block;padding:12px 22px;background:#1f4775;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">
 Complete Conference Payment
 </a>
@@ -158,35 +163,163 @@ Complete Conference Payment
 
 <p>If the button above does not work, copy and paste this link into your browser:</p>
 
-<p>{{paymentLink}}</p>
+<p>https://www.globalconfluencereview.in/conferences/payment</p>
 
-<p>If you have already paid, please ignore this reminder. If you have applied for a need-based fee waiver, contact the Editorial Office before making payment.</p>
+<p>Please note that the Zoom links for the GCR Colloquia/Workshop and Conference will be shared with participants whose payment has been successfully completed.</p>
 
-<p>Thanking you,</p>
+<p>If you have already completed the payment, please disregard this reminder and, if necessary, share your payment confirmation with the GCR Editorial &amp; Conference Office.</p>
+
+<p>We look forward to your participation in the GCR International Multidisciplinary Conference.</p>
+
+<p>Warm regards,</p>
 
 <p>
-<strong>GCR Conference &amp; Editorial Team</strong><br>
-<strong>Global Confluence Review</strong><br>
-${siteConfig.email}
+<strong>Global Confluence Review (GCR)</strong><br>
+<strong>Editorial &amp; Conference Office</strong>
 </p>`,
-    bodyText: `Dear {{authorName}},
+    bodyText: `Dear {{author_name}},
 
-This is a friendly reminder to complete your conference registration payment for the GCR International Conference Q3 2026.
+Greetings from Global Confluence Review (GCR).
 
-Registration ID: {{registrationId}}
-Paper Title: {{title}}
+This is a gentle reminder regarding the pending payment for your registration for the GCR International Multidisciplinary Conference Q3 (July–September), scheduled for 30 August 2026 at 9:30 AM IST.
 
-The last date for conference payment has been extended to 27 August 2026, 12:00 PM IST.
+Our records indicate that the payment for your registration has not yet been completed.
 
-Please complete your registration payment using this secure link:
-{{paymentLink}}
+Payment Deadline:
+28 August 2026
+11:59 PM IST
 
-If you have already paid, please ignore this reminder.
+We kindly request you to complete the payment by the above deadline to confirm your participation in the conference.
 
-Thanking you,
-GCR Conference & Editorial Team
-Global Confluence Review
-${siteConfig.email}`,
+Complete Your Conference Payment:
+https://www.globalconfluencereview.in/conferences/payment
+
+Please note that the Zoom links for the GCR Colloquia/Workshop and Conference will be shared with participants whose payment has been successfully completed.
+
+If you have already completed the payment, please disregard this reminder and, if necessary, share your payment confirmation with the GCR Editorial & Conference Office.
+
+We look forward to your participation in the GCR International Multidisciplinary Conference.
+
+Warm regards,
+Global Confluence Review (GCR)
+Editorial & Conference Office`,
+    variables: VARS,
+    isDefault: true,
+  },
+  {
+    seedKey: "conference_zoom_links",
+    name: "Zoom link for GCR Colloquia/Workshop and Conference",
+    description:
+      "Zoom meeting details for paid conference participants (Colloquia/Workshop and Conference).",
+    audience: "conference" as const,
+    subject: "Zoom link for GCR Colloquia/Workshop and Conference",
+    bodyHtml: `<p>Dear {{author_name}},</p>
+
+<p>Greetings from Global Confluence Review (GCR).</p>
+
+<p>Thank you for registering for the GCR Colloquia/Workshop and GCR International Multidisciplinary Conference Q3 (July–September).</p>
+
+<p>Please find the Zoom links below for the Colloquia/Workshop and the Conference:</p>
+
+<p><strong>GCR Colloquia/Workshop</strong></p>
+
+<p>
+Date: 29 August 2026<br>
+Time: 9:30 AM IST
+</p>
+
+<p>
+<a href="https://us06web.zoom.us/j/82284991687?pwd=BcUgNr0XJePsic0mIiSPyR6judzlqz.1"
+style="display:inline-block;padding:12px 22px;background:#1f4775;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">
+JOIN COLLOQUIA/WORKSHOP
+</a>
+</p>
+
+<p>
+Join Zoom Meeting:<br>
+https://us06web.zoom.us/j/82284991687?pwd=BcUgNr0XJePsic0mIiSPyR6judzlqz.1
+</p>
+
+<p>
+Meeting ID: 822 8499 1687<br>
+Passcode: 719947
+</p>
+
+<p><strong>GCR International Multidisciplinary Conference Q3 (July–September)</strong></p>
+
+<p>
+Date: 30 August 2026<br>
+Time: 9:30 AM IST
+</p>
+
+<p>
+<a href="https://us06web.zoom.us/j/87422081934?pwd=opGXnxBEJrNc1JltmkCzEzH72Yfvsm.1"
+style="display:inline-block;padding:12px 22px;background:#1f4775;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">
+JOIN CONFERENCE
+</a>
+</p>
+
+<p>
+Join Zoom Meeting:<br>
+https://us06web.zoom.us/j/87422081934?pwd=opGXnxBEJrNc1JltmkCzEzH72Yfvsm.1
+</p>
+
+<p>
+Meeting ID: 874 2208 1934<br>
+Passcode: 027216
+</p>
+
+<p>We request you to join the respective Zoom session a few minutes before the scheduled start time.</p>
+
+<p>Please ensure that you use the appropriate Zoom link for the session you are attending.</p>
+
+<p>We look forward to welcoming you to the GCR Colloquia/Workshop and International Multidisciplinary Conference.</p>
+
+<p>Warm regards,</p>
+
+<p>
+<strong>Global Confluence Review (GCR)</strong><br>
+<strong>Editorial &amp; Conference Office</strong>
+</p>`,
+    bodyText: `Dear {{author_name}},
+
+Greetings from Global Confluence Review (GCR).
+
+Thank you for registering for the GCR Colloquia/Workshop and GCR International Multidisciplinary Conference Q3 (July–September).
+
+Please find the Zoom links below for the Colloquia/Workshop and the Conference:
+
+GCR Colloquia/Workshop
+
+Date: 29 August 2026
+Time: 9:30 AM IST
+
+Join Zoom Meeting:
+https://us06web.zoom.us/j/82284991687?pwd=BcUgNr0XJePsic0mIiSPyR6judzlqz.1
+
+Meeting ID: 822 8499 1687
+Passcode: 719947
+
+GCR International Multidisciplinary Conference Q3 (July–September)
+
+Date: 30 August 2026
+Time: 9:30 AM IST
+
+Join Zoom Meeting:
+https://us06web.zoom.us/j/87422081934?pwd=opGXnxBEJrNc1JltmkCzEzH72Yfvsm.1
+
+Meeting ID: 874 2208 1934
+Passcode: 027216
+
+We request you to join the respective Zoom session a few minutes before the scheduled start time.
+
+Please ensure that you use the appropriate Zoom link for the session you are attending.
+
+We look forward to welcoming you to the GCR Colloquia/Workshop and International Multidisciplinary Conference.
+
+Warm regards,
+Global Confluence Review (GCR)
+Editorial & Conference Office`,
     variables: VARS,
     isDefault: true,
   },

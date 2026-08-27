@@ -1,6 +1,7 @@
 "use client";
 
 import { getFirebaseAuth } from "@/lib/firebase";
+import type { SubmissionActionEmailStatus } from "@/types/communications";
 import type {
   CampaignRecipientPreview,
   CommunicationsStats,
@@ -300,6 +301,72 @@ export async function requestConferencePaymentStatus(): Promise<{
 export async function requestPendingPaymentLinkSubmissionIds(): Promise<Set<string>> {
   const result = await requestConferencePaymentStatus();
   return result.paymentLinkPendingIds;
+}
+
+export async function requestSubmissionActionEmailStatus(
+  submissionId: string
+): Promise<SubmissionActionEmailStatus> {
+  const response = await adminRequest(
+    `/api/admin/communications/submission-action-status?submissionId=${encodeURIComponent(submissionId)}`
+  );
+  const data = (await response.json()) as {
+    status?: SubmissionActionEmailStatus;
+    error?: string;
+  };
+  if (!response.ok || !data.status) {
+    throw new Error(data.error ?? "Could not load submission email status.");
+  }
+  return data.status;
+}
+
+export async function requestSendConferencePaymentReminder(submissionId: string): Promise<{
+  sent: boolean;
+  messageId: string | null;
+  recipient: string;
+}> {
+  const response = await adminRequest("/api/admin/communications/send-payment-reminder", {
+    method: "POST",
+    body: JSON.stringify({ submissionId }),
+  });
+  const data = (await response.json()) as {
+    sent?: boolean;
+    messageId?: string | null;
+    recipient?: string;
+    error?: string;
+  };
+  if (!response.ok || !data.sent) {
+    throw new Error(data.error ?? "Could not send payment reminder.");
+  }
+  return {
+    sent: true,
+    messageId: data.messageId ?? null,
+    recipient: data.recipient ?? "",
+  };
+}
+
+export async function requestSendConferenceZoomLinks(submissionId: string): Promise<{
+  sent: boolean;
+  messageId: string | null;
+  recipient: string;
+}> {
+  const response = await adminRequest("/api/admin/communications/send-zoom-links", {
+    method: "POST",
+    body: JSON.stringify({ submissionId }),
+  });
+  const data = (await response.json()) as {
+    sent?: boolean;
+    messageId?: string | null;
+    recipient?: string;
+    error?: string;
+  };
+  if (!response.ok || !data.sent) {
+    throw new Error(data.error ?? "Could not send Zoom links.");
+  }
+  return {
+    sent: true,
+    messageId: data.messageId ?? null,
+    recipient: data.recipient ?? "",
+  };
 }
 
 export async function requestSendTestEmail(payload: {

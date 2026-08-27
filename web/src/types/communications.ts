@@ -212,3 +212,16 @@ export type SendIndividualPayload = {
   templateId?: string | null;
   previewOnly?: boolean;
 };
+
+export type SubmissionActionEmailStatus = {
+  beforePaymentDeadline: boolean;
+  paymentDeadlineLabel: string;
+  paymentReminder: {
+    sent: boolean;
+    sentAt: string | null;
+  };
+  zoomLinks: {
+    sent: boolean;
+    sentAt: string | null;
+  };
+};

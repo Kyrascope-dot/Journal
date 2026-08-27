@@ -51,10 +51,19 @@ import {
   requestCommunicationHistory,
   requestCommunicationTemplates,
   requestConferencePaymentStatus,
-  requestSendIndividualEmail,
+  requestSendConferencePaymentReminder,
+  requestSendConferenceZoomLinks,
+  requestSubmissionActionEmailStatus,
 } from "@/lib/client/admin-communications";
-import { PAYMENT_REMINDER_TEMPLATE_SEED } from "@/lib/conference-payment-communications";
-import type { CommunicationHistoryItem, EmailTemplateRecord } from "@/types/communications";
+import {
+  isBeforePaymentDeadline,
+  PAYMENT_DEADLINE_IST_LABEL,
+} from "@/lib/conference-deadline";
+import type {
+  CommunicationHistoryItem,
+  EmailTemplateRecord,
+  SubmissionActionEmailStatus,
+} from "@/types/communications";
 import { CommunicationsPanel } from "@/components/dashboard/communications/CommunicationsPanel";
 import { BulkEmailComposer } from "@/components/dashboard/communications/BulkEmailComposer";
 
@@ -732,6 +741,11 @@ function SubmissionPanel({
   );
   const [paymentReminderSending, setPaymentReminderSending] = useState(false);
   const [paymentReminderMsg, setPaymentReminderMsg] = useState("");
+  const [zoomLinksSending, setZoomLinksSending] = useState(false);
+  const [zoomLinksMsg, setZoomLinksMsg] = useState("");
+  const [actionEmailStatus, setActionEmailStatus] =
+    useState<SubmissionActionEmailStatus | null>(null);
+  const [confirmModal, setConfirmModal] = useState<null | "reminder" | "zoom">(null);
 
   useEffect(() => {
     setSelectedEditorId(submission.assignedEditorId ?? "");
@@ -745,6 +759,9 @@ function SubmissionPanel({
     setPaymentLinkSent(Boolean(submission.paymentLinkSent));
     setPaymentReminderSent(Boolean(submission.paymentReminderSent));
     setPaymentReminderMsg("");
+    setZoomLinksMsg("");
+    setConfirmModal(null);
+    setActionEmailStatus(null);
     setStatusMsg("");
     setFailedNotificationId(null);
     setComposerOpen(false);
@@ -763,6 +780,14 @@ function SubmissionPanel({
     submission.paymentReminderSent,
   ]);
 
+  async function loadActionEmailStatus() {
+    try {
+      setActionEmailStatus(await requestSubmissionActionEmailStatus(submission.id));
+    } catch {
+      setActionEmailStatus(null);
+    }
+  }
+
   async function loadCommunicationHistory() {
     setCommHistoryLoading(true);
     setCommHistoryError("");
@@ -779,6 +804,7 @@ function SubmissionPanel({
 
   useEffect(() => {
     void loadCommunicationHistory();
+    void loadActionEmailStatus();
     void requestCommunicationTemplates()
       .then(setCommTemplates)
       .catch(() => setCommTemplates([]));
@@ -929,41 +955,16 @@ function SubmissionPanel({
     }
   }
 
-  async function handleSendPaymentReminder() {
-    if (submission.submissionPurpose !== "conference") return;
-
-    const template =
-      commTemplates.find(
-        (t) =>
-          t.id === PAYMENT_REMINDER_TEMPLATE_SEED ||
-          t.name === "GCR Conference — Payment Reminder"
-      ) ?? null;
-
-    if (!template) {
-      setPaymentReminderMsg(
-        "Payment reminder template not found. Open Communications → Templates and refresh, or ask an admin to seed default templates."
-      );
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Send a payment reminder email to ${submission.authorEmail} for ${submission.registrationId}?`
-    );
-    if (!confirmed) return;
-
+  async function handleConfirmSendPaymentReminder() {
     setPaymentReminderSending(true);
     setPaymentReminderMsg("");
     try {
-      await requestSendIndividualEmail({
-        submissionId: submission.id,
-        subject: template.subject,
-        bodyHtml: template.bodyHtml,
-        bodyText: template.bodyText,
-        templateId: template.id,
-      });
+      await requestSendConferencePaymentReminder(submission.id);
       setPaymentReminderSent(true);
       setPaymentReminderMsg("Payment reminder sent successfully.");
+      setConfirmModal(null);
       await loadCommunicationHistory();
+      await loadActionEmailStatus();
       await onUpdate();
     } catch (error) {
       setPaymentReminderMsg(
@@ -973,6 +974,28 @@ function SubmissionPanel({
       setPaymentReminderSending(false);
     }
   }
+
+  async function handleConfirmSendZoomLinks() {
+    setZoomLinksSending(true);
+    setZoomLinksMsg("");
+    try {
+      await requestSendConferenceZoomLinks(submission.id);
+      setZoomLinksMsg("Zoom links sent successfully.");
+      setConfirmModal(null);
+      await loadCommunicationHistory();
+      await loadActionEmailStatus();
+      await onUpdate();
+    } catch (error) {
+      setZoomLinksMsg(error instanceof Error ? error.message : "Could not send Zoom links.");
+    } finally {
+      setZoomLinksSending(false);
+    }
+  }
+
+  const beforeDeadline =
+    actionEmailStatus?.beforePaymentDeadline ?? isBeforePaymentDeadline();
+  const showConferenceManageActions =
+    submission.submissionPurpose === "conference" && submission.status === "accepted";
 
   async function handleSendReviewerEmail() {
     setEmailMsg("");
@@ -1240,32 +1263,78 @@ function SubmissionPanel({
                 </select>
               </div>
             </div>
-            {submission.status === "accepted" && !paymentCompleted ? (
+            {showConferenceManageActions ? (
               <div className="mt-4 border-t border-[var(--journal-border)] pt-4">
-                <p className="text-xs text-[var(--journal-muted)]">
-                  Sends the GCR Conference payment reminder with the extended deadline and secure
-                  payment link to {submission.authorEmail || "the author"}.
+                <p className="text-sm font-medium text-[var(--journal-heading)]">
+                  Conference email actions
                 </p>
-                <button
-                  type="button"
-                  disabled={paymentReminderSending || saving}
-                  onClick={() => void handleSendPaymentReminder()}
-                  className="mt-3 rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
-                >
-                  {paymentReminderSending ? "Sending reminder…" : "Send payment reminder"}
-                </button>
-                {paymentReminderMsg ? (
-                  <p
-                    className={`mt-2 text-xs ${
-                      paymentReminderMsg.includes("successfully")
-                        ? "text-emerald-700"
-                        : "text-red-700"
-                    }`}
-                    role="status"
-                  >
-                    {paymentReminderMsg}
+                {paymentCompleted ? (
+                  <div className="mt-3">
+                    {actionEmailStatus?.zoomLinks.sent || submission.zoomLinkSent ? (
+                      <p className="text-xs text-emerald-700">
+                        Zoom Links Sent ✓
+                        {actionEmailStatus?.zoomLinks.sentAt
+                          ? ` · ${actionEmailStatus.zoomLinks.sentAt}`
+                          : ""}
+                      </p>
+                    ) : null}
+                    <button
+                      type="button"
+                      disabled={zoomLinksSending || saving}
+                      onClick={() => setConfirmModal("zoom")}
+                      className="mt-3 rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
+                    >
+                      {zoomLinksSending ? "Sending…" : "Send Zoom Links"}
+                    </button>
+                    {zoomLinksMsg ? (
+                      <p
+                        className={`mt-2 text-xs ${
+                          zoomLinksMsg.includes("successfully")
+                            ? "text-emerald-700"
+                            : "text-red-700"
+                        }`}
+                        role="status"
+                      >
+                        {zoomLinksMsg}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : beforeDeadline ? (
+                  <div className="mt-3">
+                    {actionEmailStatus?.paymentReminder.sent || paymentReminderSent ? (
+                      <p className="text-xs text-[var(--journal-muted)]">
+                        Previously sent
+                        {actionEmailStatus?.paymentReminder.sentAt
+                          ? `: ${actionEmailStatus.paymentReminder.sentAt}`
+                          : ""}
+                      </p>
+                    ) : null}
+                    <button
+                      type="button"
+                      disabled={paymentReminderSending || saving}
+                      onClick={() => setConfirmModal("reminder")}
+                      className="mt-3 rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
+                    >
+                      {paymentReminderSending ? "Sending…" : "Remind to Make Payment"}
+                    </button>
+                    {paymentReminderMsg ? (
+                      <p
+                        className={`mt-2 text-xs ${
+                          paymentReminderMsg.includes("successfully")
+                            ? "text-emerald-700"
+                            : "text-red-700"
+                        }`}
+                        role="status"
+                      >
+                        {paymentReminderMsg}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm font-medium text-amber-800" role="status">
+                    Payment Deadline Passed
                   </p>
-                ) : null}
+                )}
               </div>
             ) : null}
           </div>
@@ -1385,6 +1454,97 @@ function SubmissionPanel({
             void onUpdate();
           }}
         />
+      ) : null}
+
+      {confirmModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="conference-email-confirm-title"
+        >
+          <div className="w-full max-w-md rounded-lg border border-[var(--journal-border)] bg-white p-5 shadow-lg">
+            <h3
+              id="conference-email-confirm-title"
+              className="text-base font-semibold text-[var(--journal-heading)]"
+            >
+              {confirmModal === "zoom"
+                ? `Send Zoom links to ${submission.authorEmail}?`
+                : `Send payment reminder to ${submission.authorEmail}?`}
+            </h3>
+            <dl className="mt-4 space-y-2 text-sm">
+              <div>
+                <dt className="font-medium text-[var(--journal-muted)]">Author name</dt>
+                <dd>{submission.authorName || "—"}</dd>
+              </div>
+              <div>
+                <dt className="font-medium text-[var(--journal-muted)]">Author email</dt>
+                <dd>{submission.authorEmail || "—"}</dd>
+              </div>
+              {confirmModal === "zoom" ? (
+                <>
+                  <div>
+                    <dt className="font-medium text-[var(--journal-muted)]">Colloquia/Workshop</dt>
+                    <dd>29 August 2026 — 9:30 AM IST</dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium text-[var(--journal-muted)]">Conference</dt>
+                    <dd>30 August 2026 — 9:30 AM IST</dd>
+                  </div>
+                  {actionEmailStatus?.zoomLinks.sentAt ? (
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">Previously sent</dt>
+                      <dd>{actionEmailStatus.zoomLinks.sentAt}</dd>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <div>
+                    <dt className="font-medium text-[var(--journal-muted)]">Payment deadline</dt>
+                    <dd>{actionEmailStatus?.paymentDeadlineLabel ?? PAYMENT_DEADLINE_IST_LABEL}</dd>
+                  </div>
+                  {actionEmailStatus?.paymentReminder.sentAt ? (
+                    <div>
+                      <dt className="font-medium text-[var(--journal-muted)]">Previously sent</dt>
+                      <dd>{actionEmailStatus.paymentReminder.sentAt}</dd>
+                    </div>
+                  ) : null}
+                </>
+              )}
+            </dl>
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmModal(null)}
+                disabled={paymentReminderSending || zoomLinksSending}
+                className="rounded border border-[var(--journal-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--journal-heading)] hover:bg-zinc-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={paymentReminderSending || zoomLinksSending}
+                onClick={() =>
+                  void (confirmModal === "zoom"
+                    ? handleConfirmSendZoomLinks()
+                    : handleConfirmSendPaymentReminder())
+                }
+                className="rounded bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
+              >
+                {paymentReminderSending || zoomLinksSending
+                  ? "Sending…"
+                  : confirmModal === "zoom"
+                    ? actionEmailStatus?.zoomLinks.sent
+                      ? "Send Again"
+                      : "Send Email"
+                    : actionEmailStatus?.paymentReminder.sent
+                      ? "Send Again"
+                      : "Send Reminder"}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       {selectedReviewerId ? (

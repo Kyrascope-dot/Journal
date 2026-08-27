@@ -135,6 +135,8 @@ function mapSubmission(
     paymentLinkSentAt: (data.paymentLinkSentAt ?? null) as Submission["paymentLinkSentAt"],
     paymentReminderSent: Boolean(data.paymentReminderSent ?? false),
     paymentReminderSentAt: (data.paymentReminderSentAt ?? null) as Submission["paymentReminderSentAt"],
+    zoomLinkSent: Boolean(data.zoomLinkSent ?? false),
+    zoomLinkSentAt: (data.zoomLinkSentAt ?? null) as Submission["zoomLinkSentAt"],
     education:
       data.education === "high_school" ||
       data.education === "graduate" ||

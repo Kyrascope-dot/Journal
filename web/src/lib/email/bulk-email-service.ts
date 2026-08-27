@@ -8,6 +8,7 @@ import {
   loadConferencePaymentCommunicationIndex,
   PAYMENT_LINK_TEMPLATE_SEED,
   PAYMENT_REMINDER_TEMPLATE_SEED,
+  ZOOM_LINKS_TEMPLATE_SEED,
   type ConferencePaymentCommunicationIndex,
   isPaymentLinkSentForSubmission,
   isPaymentReminderSentForSubmission,
@@ -172,7 +173,8 @@ async function resolveTemplateSeedKey(
   if (!templateId) return null;
   if (
     templateId === PAYMENT_LINK_TEMPLATE_SEED ||
-    templateId === PAYMENT_REMINDER_TEMPLATE_SEED
+    templateId === PAYMENT_REMINDER_TEMPLATE_SEED ||
+    templateId === ZOOM_LINKS_TEMPLATE_SEED
   ) {
     return templateId;
   }
@@ -197,6 +199,10 @@ async function markConferencePaymentCommunicationSent(
   if (seedKey === PAYMENT_REMINDER_TEMPLATE_SEED) {
     update.paymentReminderSent = true;
     update.paymentReminderSentAt = now;
+  }
+  if (seedKey === ZOOM_LINKS_TEMPLATE_SEED) {
+    update.zoomLinkSent = true;
+    update.zoomLinkSentAt = now;
   }
   if (Object.keys(update).length > 1) {
     await getAdminFirestore().doc(`submissions/${submissionId}`).set(update, { merge: true });
@@ -251,6 +257,7 @@ export function buildPersonalizationContext(sub: SubmissionDoc): Personalization
  * Unknown placeholders resolve to empty strings.
  */
 const VARIABLE_ALIASES: Record<string, string> = {
+  author_name: "authorName",
   Author_Name: "authorName",
   Author_Email: "authorEmail",
   Co_Authors: "coAuthors",
@@ -488,11 +495,32 @@ export async function ensureDefaultTemplates(
 
   const writes: Promise<unknown>[] = [];
   for (const seed of DEFAULT_BULK_TEMPLATES) {
-    if (bySeed.has(seed.seedKey)) continue;
-    if (
+    const isFixedOperationalSeed =
       seed.seedKey === "conference_q3_2026_payment_link" ||
-      seed.seedKey === PAYMENT_REMINDER_TEMPLATE_SEED
-    ) {
+      seed.seedKey === PAYMENT_REMINDER_TEMPLATE_SEED ||
+      seed.seedKey === ZOOM_LINKS_TEMPLATE_SEED;
+
+    if (bySeed.has(seed.seedKey)) {
+      if (isFixedOperationalSeed) {
+        writes.push(
+          col.doc(seed.seedKey).set(
+            {
+              name: seed.name,
+              description: seed.description,
+              subject: seed.subject,
+              bodyHtml: seed.bodyHtml,
+              bodyText: seed.bodyText,
+              variables: seed.variables,
+              updatedAt: FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          )
+        );
+      }
+      continue;
+    }
+
+    if (isFixedOperationalSeed) {
       writes.push(
         col.doc(seed.seedKey).set({
           seedKey: seed.seedKey,
@@ -624,6 +652,7 @@ export async function previewPersonalizedEmails(
 async function writeEmailLog(entry: {
   type: string;
   channel: CommunicationChannel;
+  actionType?: string | null;
   campaignId?: string | null;
   submissionId?: string | null;
   registrationId: string;
@@ -637,6 +666,7 @@ async function writeEmailLog(entry: {
   await getAdminFirestore().collection("email_logs").add({
     type: entry.type,
     channel: entry.channel,
+    actionType: entry.actionType ?? null,
     campaignId: entry.campaignId ?? null,
     submissionId: entry.submissionId ?? null,
     registrationId: entry.registrationId,

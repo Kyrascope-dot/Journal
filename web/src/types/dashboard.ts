@@ -187,6 +187,8 @@ export type Submission = {
   paymentLinkSentAt?: Timestamp | Date | null;
   paymentReminderSent?: boolean;
   paymentReminderSentAt?: Timestamp | Date | null;
+  zoomLinkSent?: boolean;
+  zoomLinkSentAt?: Timestamp | Date | null;
   education?: "high_school" | "graduate" | "post_graduate" | "phd_scholar" | "faculty" | null;
 };
 
