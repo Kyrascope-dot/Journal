@@ -51,7 +51,9 @@ import {
   requestCommunicationHistory,
   requestCommunicationTemplates,
   requestConferencePaymentStatus,
+  requestSendIndividualEmail,
 } from "@/lib/client/admin-communications";
+import { PAYMENT_REMINDER_TEMPLATE_SEED } from "@/lib/conference-payment-communications";
 import type { CommunicationHistoryItem, EmailTemplateRecord } from "@/types/communications";
 import { CommunicationsPanel } from "@/components/dashboard/communications/CommunicationsPanel";
 import { BulkEmailComposer } from "@/components/dashboard/communications/BulkEmailComposer";
@@ -728,6 +730,8 @@ function SubmissionPanel({
   const [paymentReminderSent, setPaymentReminderSent] = useState(
     Boolean(submission.paymentReminderSent)
   );
+  const [paymentReminderSending, setPaymentReminderSending] = useState(false);
+  const [paymentReminderMsg, setPaymentReminderMsg] = useState("");
 
   useEffect(() => {
     setSelectedEditorId(submission.assignedEditorId ?? "");
@@ -740,6 +744,7 @@ function SubmissionPanel({
     setPaymentCompleted(Boolean(submission.paymentCompleted));
     setPaymentLinkSent(Boolean(submission.paymentLinkSent));
     setPaymentReminderSent(Boolean(submission.paymentReminderSent));
+    setPaymentReminderMsg("");
     setStatusMsg("");
     setFailedNotificationId(null);
     setComposerOpen(false);
@@ -921,6 +926,51 @@ function SubmissionPanel({
       );
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleSendPaymentReminder() {
+    if (submission.submissionPurpose !== "conference") return;
+
+    const template =
+      commTemplates.find(
+        (t) =>
+          t.id === PAYMENT_REMINDER_TEMPLATE_SEED ||
+          t.name === "GCR Conference — Payment Reminder"
+      ) ?? null;
+
+    if (!template) {
+      setPaymentReminderMsg(
+        "Payment reminder template not found. Open Communications → Templates and refresh, or ask an admin to seed default templates."
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Send a payment reminder email to ${submission.authorEmail} for ${submission.registrationId}?`
+    );
+    if (!confirmed) return;
+
+    setPaymentReminderSending(true);
+    setPaymentReminderMsg("");
+    try {
+      await requestSendIndividualEmail({
+        submissionId: submission.id,
+        subject: template.subject,
+        bodyHtml: template.bodyHtml,
+        bodyText: template.bodyText,
+        templateId: template.id,
+      });
+      setPaymentReminderSent(true);
+      setPaymentReminderMsg("Payment reminder sent successfully.");
+      await loadCommunicationHistory();
+      await onUpdate();
+    } catch (error) {
+      setPaymentReminderMsg(
+        error instanceof Error ? error.message : "Could not send payment reminder."
+      );
+    } finally {
+      setPaymentReminderSending(false);
     }
   }
 
@@ -1190,6 +1240,34 @@ function SubmissionPanel({
                 </select>
               </div>
             </div>
+            {submission.status === "accepted" && !paymentCompleted ? (
+              <div className="mt-4 border-t border-[var(--journal-border)] pt-4">
+                <p className="text-xs text-[var(--journal-muted)]">
+                  Sends the GCR Conference payment reminder with the extended deadline and secure
+                  payment link to {submission.authorEmail || "the author"}.
+                </p>
+                <button
+                  type="button"
+                  disabled={paymentReminderSending || saving}
+                  onClick={() => void handleSendPaymentReminder()}
+                  className="mt-3 rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
+                >
+                  {paymentReminderSending ? "Sending reminder…" : "Send payment reminder"}
+                </button>
+                {paymentReminderMsg ? (
+                  <p
+                    className={`mt-2 text-xs ${
+                      paymentReminderMsg.includes("successfully")
+                        ? "text-emerald-700"
+                        : "text-red-700"
+                    }`}
+                    role="status"
+                  >
+                    {paymentReminderMsg}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ) : null}
       <button
