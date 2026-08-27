@@ -8,21 +8,21 @@ export function HomeHero() {
   return (
     <>
       <div className="overflow-hidden bg-[var(--journal-strip)] text-white">
-        <Link
-          href="/conferences"
-          className="home-marquee block whitespace-nowrap py-2 text-sm font-medium tracking-wide hover:underline"
+        <div
+          className="home-marquee flex w-max items-center whitespace-nowrap py-2 text-sm font-medium tracking-wide"
+          style={{ animationDuration: "28s" }}
         >
-          Upcoming Conference — Quarter III (July–September) — Explore the GCR Quarterly Conference Series
-        </Link>
-      </div>
-      <div className="overflow-hidden border-b border-white/10 bg-[var(--journal-accent)] text-white">
-        <Link
-          href="/conferences/payment"
-          className="home-marquee block whitespace-nowrap py-2 text-sm font-medium tracking-wide hover:underline"
-          style={{ animationDuration: "18s" }}
-        >
-          {PAYMENT_DEADLINE_EXTENDED_MARQUEE}
-        </Link>
+          <Link href="/conferences" className="shrink-0 px-8 hover:underline">
+            Upcoming Conference — Quarter III (July–September) — Explore the GCR Quarterly
+            Conference Series
+          </Link>
+          <span className="shrink-0 text-white/60" aria-hidden>
+            •
+          </span>
+          <Link href="/conferences/payment" className="shrink-0 px-8 hover:underline">
+            {PAYMENT_DEADLINE_EXTENDED_MARQUEE}
+          </Link>
+        </div>
       </div>
       <div className="border-b border-[var(--journal-border)] bg-gradient-to-b from-[var(--journal-hero-bg)] to-white">
         <div className={`${contentShell} py-12 text-center sm:py-14`}>
