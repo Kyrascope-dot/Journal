@@ -59,6 +59,11 @@ import {
   isBeforePaymentDeadline,
   PAYMENT_DEADLINE_IST_LABEL,
 } from "@/lib/conference-deadline";
+import {
+  canSendConferenceZoomLinks,
+  shouldShowPaymentDeadlinePassed,
+  shouldShowPaymentReminder,
+} from "@/lib/conference-manage-actions";
 import type {
   CommunicationHistoryItem,
   EmailTemplateRecord,
@@ -996,6 +1001,20 @@ function SubmissionPanel({
     actionEmailStatus?.beforePaymentDeadline ?? isBeforePaymentDeadline();
   const showConferenceManageActions =
     submission.submissionPurpose === "conference" && submission.status === "accepted";
+  const eligibleForZoomLinks = canSendConferenceZoomLinks({
+    paymentCompleted,
+    conferenceFeeWaiver,
+  });
+  const showPaymentReminder = shouldShowPaymentReminder({
+    paymentCompleted,
+    conferenceFeeWaiver,
+    beforeDeadline,
+  });
+  const showPaymentDeadlinePassed = shouldShowPaymentDeadlinePassed({
+    paymentCompleted,
+    conferenceFeeWaiver,
+    beforeDeadline,
+  });
 
   async function handleSendReviewerEmail() {
     setEmailMsg("");
@@ -1268,8 +1287,13 @@ function SubmissionPanel({
                 <p className="text-sm font-medium text-[var(--journal-heading)]">
                   Conference email actions
                 </p>
-                {paymentCompleted ? (
+                {eligibleForZoomLinks ? (
                   <div className="mt-3">
+                    {conferenceFeeWaiver === "full" && !paymentCompleted ? (
+                      <p className="text-xs text-[var(--journal-muted)]">
+                        Full fee waiver — Zoom links may be sent without payment on record.
+                      </p>
+                    ) : null}
                     {actionEmailStatus?.zoomLinks.sent || submission.zoomLinkSent ? (
                       <p className="text-xs text-emerald-700">
                         Zoom Links Sent ✓
@@ -1299,7 +1323,7 @@ function SubmissionPanel({
                       </p>
                     ) : null}
                   </div>
-                ) : beforeDeadline ? (
+                ) : showPaymentReminder ? (
                   <div className="mt-3">
                     {actionEmailStatus?.paymentReminder.sent || paymentReminderSent ? (
                       <p className="text-xs text-[var(--journal-muted)]">
@@ -1330,11 +1354,11 @@ function SubmissionPanel({
                       </p>
                     ) : null}
                   </div>
-                ) : (
+                ) : showPaymentDeadlinePassed ? (
                   <p className="mt-3 text-sm font-medium text-amber-800" role="status">
                     Payment Deadline Passed
                   </p>
-                )}
+                ) : null}
               </div>
             ) : null}
           </div>

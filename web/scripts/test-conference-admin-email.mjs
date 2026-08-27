@@ -36,5 +36,22 @@ assert(
   !isBeforePaymentDeadline(new Date("2026-08-30T00:00:00+05:30"))
 );
 
+// Full fee waiver eligibility (mirrors conference-manage-actions.ts)
+function canSendConferenceZoomLinks(paymentCompleted, conferenceFeeWaiver) {
+  return paymentCompleted || conferenceFeeWaiver === "full";
+}
+assert(
+  "full waiver allows zoom without payment",
+  canSendConferenceZoomLinks(false, "full")
+);
+assert(
+  "no waiver requires payment for zoom",
+  !canSendConferenceZoomLinks(false, "none")
+);
+assert(
+  "partial waiver requires payment for zoom",
+  !canSendConferenceZoomLinks(false, "partial")
+);
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

@@ -1,3 +1,7 @@
+/** Marquee copy for homepage payment deadline extension notice. */
+export const PAYMENT_DEADLINE_EXTENDED_MARQUEE =
+  "Conference registration payment deadline extended to 28 August 2026, 11:59 PM IST — Complete your payment";
+
 /** Payment deadline: 28 Aug 2026 11:59:59 PM IST = instant before 29 Aug 2026 00:00:00 IST */
 export const PAYMENT_DEADLINE_IST_LABEL = "28 August 2026, 11:59 PM IST";
 

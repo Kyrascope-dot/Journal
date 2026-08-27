@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { contentShell } from "@/lib/content-layout";
+import { PAYMENT_DEADLINE_EXTENDED_MARQUEE } from "@/lib/conference-deadline";
 import { getIssnLabel } from "@/lib/journal-settings";
 import { siteConfig } from "@/lib/site-config";
 
@@ -12,6 +13,15 @@ export function HomeHero() {
           className="home-marquee block whitespace-nowrap py-2 text-sm font-medium tracking-wide hover:underline"
         >
           Upcoming Conference — Quarter III (July–September) — Explore the GCR Quarterly Conference Series
+        </Link>
+      </div>
+      <div className="overflow-hidden border-b border-white/10 bg-[var(--journal-accent)] text-white">
+        <Link
+          href="/conferences/payment"
+          className="home-marquee block whitespace-nowrap py-2 text-sm font-medium tracking-wide hover:underline"
+          style={{ animationDuration: "18s" }}
+        >
+          {PAYMENT_DEADLINE_EXTENDED_MARQUEE}
         </Link>
       </div>
       <div className="border-b border-[var(--journal-border)] bg-gradient-to-b from-[var(--journal-hero-bg)] to-white">

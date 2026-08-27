@@ -31,6 +31,7 @@ function submissionFromSnap(
   authorEmail: string;
   submissionPurpose: string;
   status: string;
+  conferenceFeeWaiver: string;
   paymentCompleted: boolean;
   paymentReminderSent: boolean;
   paymentReminderSentAt: unknown;
@@ -44,6 +45,7 @@ function submissionFromSnap(
     authorEmail: String(data.authorEmail ?? "").trim(),
     submissionPurpose: String(data.submissionPurpose ?? "journal"),
     status: String(data.status ?? "pending"),
+    conferenceFeeWaiver: String(data.conferenceFeeWaiver ?? "none"),
     paymentCompleted: Boolean(data.paymentCompleted ?? false),
     paymentReminderSent: Boolean(data.paymentReminderSent ?? false),
     paymentReminderSentAt: data.paymentReminderSentAt ?? null,
@@ -99,6 +101,9 @@ export async function sendConferencePaymentReminderEmail(
   if (sub.paymentCompleted) {
     throw new Error("Payment is already completed for this submission.");
   }
+  if (sub.conferenceFeeWaiver === "full") {
+    throw new Error("Payment reminders do not apply to full fee waiver submissions.");
+  }
   if (!isBeforePaymentDeadline()) {
     throw new Error("The payment deadline has passed. Payment reminders can no longer be sent.");
   }
@@ -141,7 +146,10 @@ export async function sendConferenceZoomLinksEmail(
   if (sub.submissionPurpose !== "conference") {
     throw new Error("Zoom links apply to conference submissions only.");
   }
-  if (!sub.paymentCompleted) {
+  if (
+    !sub.paymentCompleted &&
+    sub.conferenceFeeWaiver !== "full"
+  ) {
     throw new Error("Payment must be completed before Zoom links can be sent.");
   }
   if (!sub.authorEmail) {
