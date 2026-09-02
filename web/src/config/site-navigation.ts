@@ -56,6 +56,7 @@ export const mainNavGroups: NavGroup[] = [
         label: "Conference Series, Registration & Submission",
       },
       { href: "/conferences/book-of-abstracts", label: "Book of Abstracts" },
+      { href: "/conferences/award-winners", label: "Award Winners" },
       { href: "/conferences/payment", label: "Conference Payment" },
       { href: "/conferences/faqs", label: "Conference FAQs" },
     ],

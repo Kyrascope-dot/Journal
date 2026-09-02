@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { contentShell } from "@/lib/content-layout";
 import { PAYMENT_DEADLINE_EXTENDED_MARQUEE } from "@/lib/conference-deadline";
+import { Q2_AWARD_RESULTS_MARQUEE } from "@/data/conference-award-winners";
 import { getIssnLabel } from "@/lib/journal-settings";
 import { siteConfig } from "@/lib/site-config";
 
@@ -10,8 +11,14 @@ export function HomeHero() {
       <div className="overflow-hidden bg-[var(--journal-strip)] text-white">
         <div
           className="home-marquee flex w-max items-center whitespace-nowrap py-2 text-sm font-medium tracking-wide"
-          style={{ animationDuration: "28s" }}
+          style={{ animationDuration: "32s" }}
         >
+          <Link href="/conferences/award-winners" className="shrink-0 px-8 hover:underline">
+            {Q2_AWARD_RESULTS_MARQUEE}
+          </Link>
+          <span className="shrink-0 text-white/60" aria-hidden>
+            •
+          </span>
           <Link href="/conferences" className="shrink-0 px-8 hover:underline">
             Upcoming Conference — Quarter III (July–September) — Explore the GCR Quarterly
             Conference Series

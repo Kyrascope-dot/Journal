@@ -1,5 +1,11 @@
 import type { Issue } from "@/types/journal";
 
+export function toDateSafe(
+  value: Issue["publishedAt"]
+): Date | null {
+  return toDate(value);
+}
+
 function toDate(
   value: Issue["publishedAt"]
 ): Date | null {

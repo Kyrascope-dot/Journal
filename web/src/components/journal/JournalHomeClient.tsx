@@ -1,48 +1,20 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { isFirebaseConfigured } from "@/lib/firebase";
-import { fetchCurrentIssue } from "@/lib/firestore-journal";
+import { fetchCurrentIssueServer } from "@/lib/server/journal-data";
 import { demoCurrentIssue } from "@/lib/demo-data";
-import type { IssueWithArticles } from "@/types/journal";
 import { contentProse, contentShell } from "@/lib/content-layout";
 import { formatPublished } from "@/lib/format-dates";
 import { mergeIssueWithLocalPapers } from "@/lib/local-issue-assets";
 import { siteConfig } from "@/lib/site-config";
 import { ArticleList } from "@/components/journal/ArticleList";
 
-export function JournalHomeClient() {
-  const [issue, setIssue] = useState<IssueWithArticles | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!isFirebaseConfigured()) {
-        if (!cancelled) {
-          setIssue(demoCurrentIssue);
-          setLoading(false);
-        }
-        return;
-      }
-      try {
-        const data = await fetchCurrentIssue();
-        if (!cancelled) {
-          setIssue(data ?? demoCurrentIssue);
-        }
-      } catch {
-        if (!cancelled) setIssue(demoCurrentIssue);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const data = mergeIssueWithLocalPapers(issue ?? demoCurrentIssue);
+/**
+ * Server-rendered so the current issue's real title, authors, and article list
+ * are present in the raw HTML response — visible to search engines and AI
+ * crawlers (GPTBot, ChatGPT link previews, etc.) that don't execute JavaScript.
+ */
+export async function JournalHomeClient() {
+  const fetched = await fetchCurrentIssueServer();
+  const data = mergeIssueWithLocalPapers(fetched ?? demoCurrentIssue);
 
   return (
     <div className={`${contentShell} py-10`} id="current-issue">
@@ -50,53 +22,47 @@ export function JournalHomeClient() {
         <p className="text-sm font-medium uppercase tracking-wider text-[var(--journal-muted)]">
           Current Issue
         </p>
-        {loading ? (
-          <div className="mt-3 h-10 max-w-xl animate-pulse rounded bg-zinc-200" />
-        ) : (
-          <>
-            <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[var(--journal-heading)] sm:text-4xl">
-              {data.title}
-            </h1>
-            <p className="mt-2 text-sm text-[var(--journal-muted)]">
-              {siteConfig.shortName} · Volume {data.volume}, Issue {data.issueNumber}
-              {data.publishedAt ? (
-                <> · Published: {formatPublished(data.publishedAt)}</>
-              ) : (
-                <> · Forthcoming {data.year}</>
-              )}
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href={`/issues/${data.slug}`}
-                className="inline-flex items-center rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-95"
-              >
-                View full issue
-              </Link>
-              {data.pdfUrl && (
-                <a
-                  href={data.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded border border-[var(--journal-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--journal-heading)] transition hover:bg-zinc-50"
-                >
-                  <svg className="h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  Download PDF
-                </a>
-              )}
-              <Link
-                href="/issues"
-                className="inline-flex items-center rounded border border-[var(--journal-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--journal-heading)] transition hover:bg-zinc-50"
-              >
-                All issues
-              </Link>
-            </div>
-          </>
-        )}
+        <h2 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[var(--journal-heading)] sm:text-4xl">
+          {data.title}
+        </h2>
+        <p className="mt-2 text-sm text-[var(--journal-muted)]">
+          {siteConfig.shortName} · Volume {data.volume}, Issue {data.issueNumber}
+          {data.publishedAt ? (
+            <> · Published: {formatPublished(data.publishedAt)}</>
+          ) : (
+            <> · Forthcoming {data.year}</>
+          )}
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href={`/issues/${data.slug}`}
+            className="inline-flex items-center rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-95"
+          >
+            View full issue
+          </Link>
+          {data.pdfUrl && (
+            <a
+              href={data.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded border border-[var(--journal-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--journal-heading)] transition hover:bg-zinc-50"
+            >
+              <svg className="h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              Download PDF
+            </a>
+          )}
+          <Link
+            href="/issues"
+            className="inline-flex items-center rounded border border-[var(--journal-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--journal-heading)] transition hover:bg-zinc-50"
+          >
+            All issues
+          </Link>
+        </div>
       </header>
 
-      {!loading && data.articles.length > 0 ? (
+      {data.articles.length > 0 ? (
         <section className="mt-10" aria-labelledby="latest-articles-heading">
           <h2
             id="latest-articles-heading"

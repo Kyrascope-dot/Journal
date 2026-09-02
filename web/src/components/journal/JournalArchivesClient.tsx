@@ -1,9 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { isFirebaseConfigured } from "@/lib/firebase";
-import { fetchAllIssues } from "@/lib/firestore-journal";
+import { fetchAllIssuesServer } from "@/lib/server/journal-data";
 import { demoIssuesList } from "@/lib/demo-data";
 import type { Article, Issue } from "@/types/journal";
 import { formatPublished } from "@/lib/format-dates";
@@ -28,37 +24,16 @@ function enrichIssue(issue: Issue): IssueRow {
     articles: getLocalArticlesForIssueSlug(issue),
   };
 }
-// The client component fetches the list of issues and their metadata, but article-level PDFs are only linked for a few issues (currently just Vol. 1) due to the manual effort required to upload and link each paper. For most issues, only the full issue PDF is available.
+// This is a Server Component: issue metadata is fetched at request time via
+// Firebase Admin so the real list of issues and papers is present in the
+// initial HTML (visible to search engines and AI crawlers that don't run
+// JavaScript). Article-level PDFs are only linked for a few issues
+// (currently just Vol. 1) due to the manual effort required to upload and
+// link each paper. For most issues, only the full issue PDF is available.
 
-export function JournalArchivesClient() {
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!isFirebaseConfigured()) {
-        if (!cancelled) {
-          setIssues(demoIssuesList);
-          setLoading(false);
-        }
-        return;
-      }
-      try {
-        const list = await fetchAllIssues();
-        if (!cancelled) setIssues(list.length ? list : demoIssuesList);
-      } catch {
-        if (!cancelled) setIssues(demoIssuesList);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const list = issues.length > 0 ? issues : demoIssuesList;
+export async function JournalArchivesClient() {
+  const fetched = await fetchAllIssuesServer();
+  const list: Issue[] = fetched.length > 0 ? fetched : demoIssuesList;
   const rows: IssueRow[] = list.map(enrichIssue);
 
   return (
@@ -73,14 +48,7 @@ export function JournalArchivesClient() {
         the full issue PDF or expand an entry to open each paper. The issue marked{" "}
         <em>Current</em> is the most recently released compilation.
       </p>
-      {loading ? (
-        <ul className="mt-8 space-y-3">
-          {[1, 2, 3].map((i) => (
-            <li key={i} className="h-20 animate-pulse rounded-lg bg-zinc-100" />
-          ))}
-        </ul>
-      ) : (
-        <ul className="mt-8 space-y-4">
+      <ul className="mt-8 space-y-4">
           {rows.map((issue) => {
             const label =
               issue.archiveDisplayName ??
@@ -207,8 +175,7 @@ export function JournalArchivesClient() {
               </li>
             );
           })}
-        </ul>
-      )}
+      </ul>
     </div>
   );
 }

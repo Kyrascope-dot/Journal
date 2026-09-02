@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/AppShell";
-import { JournalIssueClient } from "@/components/journal/JournalIssueClient";
-import { demoArchiveIssues } from "@/lib/demo-data";
+import { JournalIssueClient, resolveIssue } from "@/components/journal/JournalIssueClient";
 import { formatPublished } from "@/lib/format-dates";
 import { getIssnLabel } from "@/lib/journal-settings";
 import { siteConfig } from "@/lib/site-config";
 
 type Props = { params: Promise<{ slug: string }> };
 
+/** Revalidate hourly so edits to an issue (e.g. added PDF links) go live without a redeploy. */
+export const revalidate = 3600;
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const issue = demoArchiveIssues.find((item) => item.slug === slug);
+  const issue = await resolveIssue(slug);
   const journalLabel = `${siteConfig.name} (${siteConfig.shortName})`;
   const issueLabel = issue
     ? `Volume ${issue.volume}, Issue ${issue.issueNumber}`
@@ -18,10 +20,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const publicationLabel = issue?.publishedAt
     ? ` Published: ${formatPublished(issue.publishedAt)}.`
     : "";
+  const label = issue?.archiveDisplayName ?? issue?.title;
   const title = issue
-    ? `${issue.title} | ${journalLabel}`
+    ? `${label} | ${journalLabel}`
     : `${issueLabel} | ${journalLabel}`;
-  const description = `${journalLabel}. ${getIssnLabel()}. ${issueLabel}.${publicationLabel} Browse the issue contents and full-issue PDF.`;
+  const articleTitles = issue?.articles.slice(0, 5).map((a) => a.title) ?? [];
+  const description = articleTitles.length
+    ? `${journalLabel}. ${issueLabel}.${publicationLabel} Articles include: ${articleTitles.join("; ")}.`
+    : `${journalLabel}. ${getIssnLabel()}. ${issueLabel}.${publicationLabel} Browse the issue contents and full-issue PDF.`;
 
   return {
     title,
@@ -42,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: `/issues/${slug}`,
       siteName: siteConfig.name,
-      type: "website",
+      type: "article",
     },
     twitter: {
       card: "summary_large_image",

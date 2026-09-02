@@ -1,9 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { cache } from "react";
 import Link from "next/link";
-import { isFirebaseConfigured } from "@/lib/firebase";
-import { fetchIssueBySlug } from "@/lib/firestore-journal";
+import { fetchIssueBySlugServer } from "@/lib/server/journal-data";
 import { demoArchiveIssues } from "@/lib/demo-data";
 import { mergeIssueWithLocalPapers } from "@/lib/local-issue-assets";
 import type { IssueWithArticles } from "@/types/journal";
@@ -15,88 +12,72 @@ import { getIssnLabel } from "@/lib/journal-settings";
 
 type Props = { slug: string };
 
-export function JournalIssueClient({ slug }: Props) {
-  const initialIssue =
-    demoArchiveIssues.find((item) => item.slug === slug) ?? null;
-  const [issue, setIssue] = useState<IssueWithArticles | null>(
-    initialIssue ? mergeIssueWithLocalPapers(initialIssue) : null
-  );
-  const [loading, setLoading] = useState(!initialIssue);
-  const [notFound, setNotFound] = useState(false);
+/**
+ * Resolves an issue (real Firestore data first, demo fallback second) for
+ * both the page body and `generateMetadata`/JSON-LD, so metadata and content
+ * always agree and both are present in the server-rendered HTML. Wrapped in
+ * `cache()` so the page body and `generateMetadata` share one fetch per request.
+ */
+export const resolveIssue = cache(async (slug: string): Promise<IssueWithArticles | null> => {
+  const fetched = await fetchIssueBySlugServer(slug);
+  if (fetched) return mergeIssueWithLocalPapers(fetched);
+  const fallback = demoArchiveIssues.find((i) => i.slug === slug) ?? null;
+  return fallback ? mergeIssueWithLocalPapers(fallback) : null;
+});
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const fallback = demoArchiveIssues.find((i) => i.slug === slug) ?? null;
-      if (!isFirebaseConfigured()) {
-        if (!cancelled) {
-          setIssue(fallback ? mergeIssueWithLocalPapers(fallback) : null);
-          setNotFound(!fallback);
-          setLoading(false);
-        }
-        return;
-      }
-      try {
-        const data = await fetchIssueBySlug(slug);
-        if (!cancelled) {
-          if (data) {
-            setIssue(mergeIssueWithLocalPapers(data));
-            setNotFound(false);
-          } else {
-            setIssue(
-              fallback ? mergeIssueWithLocalPapers(fallback) : null
-            );
-            setNotFound(!fallback);
-          }
-        }
-      } catch {
-        if (!cancelled) {
-          setIssue(
-            fallback ? mergeIssueWithLocalPapers(fallback) : null
-          );
-          setNotFound(!fallback);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [slug]);
+export async function JournalIssueClient({ slug }: Props) {
+  const issue = await resolveIssue(slug);
 
-  if (loading) {
-    return (
-      <div className={`${contentShell} py-16`}>
-        <div className="h-10 max-w-lg animate-pulse rounded bg-zinc-200" />
-        <div className="mt-8 h-32 animate-pulse rounded bg-zinc-100" />
-      </div>
-    );
-  }
-
-  if (notFound || !issue) {
+  if (!issue) {
     return (
       <div className={`${contentShell} py-16 text-center`}>
         <div className={`${contentProse} mx-auto`}>
-        <h1 className="font-serif text-2xl font-semibold text-[var(--journal-heading)]">
-          Issue not found
-        </h1>
-        <p className="mt-2 text-sm text-[var(--journal-muted)]">
-          There is no issue for this URL yet. Check the archives or add data in Firebase.
-        </p>
-        <Link
-          href="/issues"
-          className="mt-6 inline-block text-sm font-medium text-[var(--journal-accent)] hover:underline"
-        >
-          ← All issues
-        </Link>
+          <h1 className="font-serif text-2xl font-semibold text-[var(--journal-heading)]">
+            Issue not found
+          </h1>
+          <p className="mt-2 text-sm text-[var(--journal-muted)]">
+            There is no issue for this URL yet. Check the archives or add data in Firebase.
+          </p>
+          <Link
+            href="/issues"
+            className="mt-6 inline-block text-sm font-medium text-[var(--journal-accent)] hover:underline"
+          >
+            ← All issues
+          </Link>
         </div>
       </div>
     );
   }
 
+  const issueJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "PublicationIssue",
+    issueNumber: issue.issueNumber,
+    isPartOf: {
+      "@type": "Periodical",
+      name: siteConfig.name,
+      issn: siteConfig.issn || undefined,
+    },
+    name: issue.archiveDisplayName ?? issue.title,
+    datePublished: formatIsoDate(issue.publishedAt),
+    url: `${siteConfig.siteUrl}/issues/${issue.slug}`,
+    hasPart: issue.articles.map((article) => ({
+      "@type": "ScholarlyArticle",
+      name: article.title,
+      author: article.authors.map((name) => ({ "@type": "Person", name })),
+      pageStart: article.pageStart,
+      pageEnd: article.pageEnd,
+      isPartOf: `${siteConfig.siteUrl}/issues/${issue.slug}`,
+      ...(article.pdfUrl ? { url: absoluteUrl(article.pdfUrl) } : {}),
+    })),
+  };
+
   return (
     <div className={`${contentShell} py-10`}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(issueJsonLd) }}
+      />
       <nav className="text-sm text-[var(--journal-muted)]">
         <Link href="/" className="hover:underline">
           Home
@@ -200,4 +181,18 @@ export function JournalIssueClient({ slug }: Props) {
       ) : null}
     </div>
   );
+}
+
+function formatIsoDate(value: IssueWithArticles["publishedAt"]): string | undefined {
+  if (!value) return undefined;
+  if (value instanceof Date) return value.toISOString();
+  if (typeof (value as { toDate?: () => Date }).toDate === "function") {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+  return undefined;
+}
+
+function absoluteUrl(url: string): string {
+  if (/^https?:\/\//.test(url)) return url;
+  return `${siteConfig.siteUrl}${url.startsWith("/") ? url : `/${url}`}`;
 }

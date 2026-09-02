@@ -16,7 +16,10 @@ import { JournalHomeClient } from "@/components/journal/JournalHomeClient";
 import { contentShell } from "@/lib/content-layout";
 import { getIssnLabel } from "@/lib/journal-settings";
 
-export default function Home() {
+/** Revalidate hourly so newly published issues appear without a full redeploy. */
+export const revalidate = 3600;
+
+export default async function Home() {
   return (
     <AppShell>
       <ConferencePopup />
