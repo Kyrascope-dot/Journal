@@ -14,8 +14,8 @@ export function isFirebaseAdminConfigured(): boolean {
   if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) return true;
   return Boolean(
     process.env.FIREBASE_ADMIN_PROJECT_ID?.trim() &&
-      process.env.FIREBASE_ADMIN_CLIENT_EMAIL?.trim() &&
-      process.env.FIREBASE_ADMIN_PRIVATE_KEY?.trim()
+    process.env.FIREBASE_ADMIN_CLIENT_EMAIL?.trim() &&
+    process.env.FIREBASE_ADMIN_PRIVATE_KEY?.trim(),
   );
 }
 
@@ -29,14 +29,17 @@ function loadServiceAccount(): ServiceAccountFields {
     return {
       project_id: process.env.FIREBASE_ADMIN_PROJECT_ID!.trim(),
       client_email: process.env.FIREBASE_ADMIN_CLIENT_EMAIL!.trim(),
-      private_key: process.env.FIREBASE_ADMIN_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+      private_key: process.env.FIREBASE_ADMIN_PRIVATE_KEY!.replace(
+        /\\n/g,
+        "\n",
+      ),
     };
   }
 
   let raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
   if (!raw) {
     throw new Error(
-      "Firebase Admin is not configured. Set FIREBASE_SERVICE_ACCOUNT_JSON (single-line JSON) or FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY."
+      "Firebase Admin is not configured. Set FIREBASE_SERVICE_ACCOUNT_JSON (single-line JSON) or FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY.",
     );
   }
 
@@ -60,7 +63,7 @@ function loadServiceAccount(): ServiceAccountFields {
   } catch (error) {
     const detail = error instanceof Error ? error.message : "invalid JSON";
     throw new Error(
-      `FIREBASE_SERVICE_ACCOUNT_JSON is invalid (${detail}). Prefer FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY on Vercel.`
+      `FIREBASE_SERVICE_ACCOUNT_JSON is invalid (${detail}). Prefer FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, and FIREBASE_ADMIN_PRIVATE_KEY on Vercel.`,
     );
   }
 }

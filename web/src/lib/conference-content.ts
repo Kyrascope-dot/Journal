@@ -54,18 +54,32 @@ export const conferenceSchedule = [
 ] as const;
 
 export const conferenceRegistrationFees = [
+  // {
+  //   label: "National Participants",
+  //   amount: "USD 177 total",
+  //   breakdown: [
+  //     "Registration Fee: USD 150",
+  //     "GST (18%): USD 27",
+  //     "Total: USD 177",
+  //   ],
+  // },
+  // {
+  //   label: "International Participants",
+  //   amount: "USD 200",
+  //   breakdown: ["Registration Fee: USD 200"],
+  // },
   {
     label: "National Participants",
-    amount: "USD 177 total",
+    amount: "INR 17048.64 total",
     breakdown: [
-      "Registration Fee: USD 150",
-      "GST (18%): USD 27",
-      "Total: USD 177",
+      "Registration Fee: INR 14448",
+      "GST (18%): INR 2600.64",
+      "Total: INR 17048.64",
     ],
   },
   {
     label: "International Participants",
-    amount: "USD 200",
+    amount: "INR 200",
     breakdown: ["Registration Fee: USD 200"],
   },
 ] as const;

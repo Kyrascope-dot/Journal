@@ -28,7 +28,8 @@ export const GATEWAY_TEST_PAYMENT_PLAN: PaymentPlan = {
   amountMajor: 5,
   amountMinor: 500,
   displayAmount: "USD 5",
-  checkoutHint: "Uses USD checkout. International cards require Razorpay International Payments.",
+  checkoutHint:
+    "Uses USD checkout. International cards require Razorpay International Payments.",
 };
 
 /** Tech Research Hub submission fee (USD). */
@@ -68,7 +69,7 @@ function formatUsdMajor(amount: number): string {
 }
 
 export function getPaymentCheckoutBreakdown(
-  planId: PaymentPlanId | string | null | undefined
+  planId: PaymentPlanId | string | null | undefined,
 ): PaymentCheckoutBreakdown | null {
   const plan = getPaymentPlan(planId);
   if (!plan) return null;
@@ -135,12 +136,15 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
   national_usd: {
     id: "national_usd",
     label: "National Participants",
-    description: "Conference registration fee for national participants (India)",
-    currency: "USD",
+    description:
+      "Conference registration fee for national participants (India)",
+    currency: "INR",
     amountMajor: 150,
     amountMinor: 15000,
-    displayAmount: "USD 150 + 18% GST",
-    checkoutHint: "For participants based in India. Total payable: USD 177 (150 + 18% GST).",
+    displayAmount: "INR 14448 + 18% GST",
+    // checkoutHint: "For participants based in India. Total payable: INR 177 (150 + 18% GST).",
+    checkoutHint:
+      "For participants based in India. Total payable: INR 17048.64 (14448 + 18% GST).",
   },
   international_usd: {
     id: "international_usd",
@@ -172,7 +176,9 @@ export function isGatewayTestPlan(planId: string | null | undefined): boolean {
   return planId === "gateway_test_usd";
 }
 
-export function isInternationalUsdPlan(planId: string | null | undefined): boolean {
+export function isInternationalUsdPlan(
+  planId: string | null | undefined,
+): boolean {
   return planId === "international_usd";
 }
 
@@ -185,14 +191,16 @@ export function isFeeWaiverPlan(planId: string | null | undefined): boolean {
 }
 
 export function resolvePaymentPurpose(
-  planId: PaymentPlanId
+  planId: PaymentPlanId,
 ): "conference_registration" | "tech_research_submission" | "gateway_test" {
   if (isGatewayTestPlan(planId)) return "gateway_test";
   if (isTechResearchPlan(planId)) return "tech_research_submission";
   return "conference_registration";
 }
 
-export function getPaymentPlan(planId: string | null | undefined): PaymentPlan | null {
+export function getPaymentPlan(
+  planId: string | null | undefined,
+): PaymentPlan | null {
   if (!planId) return null;
   const resolved = (LEGACY_PLAN_ALIASES[planId] ?? planId) as PaymentPlanId;
 
