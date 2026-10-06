@@ -138,13 +138,12 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
     label: "National Participants",
     description:
       "Conference registration fee for national participants (India)",
-    currency: "INR",
+    currency: "USD",
     amountMajor: 150,
     amountMinor: 15000,
     displayAmount: "INR 14448 + 18% GST",
-    // checkoutHint: "For participants based in India. Total payable: INR 177 (150 + 18% GST).",
     checkoutHint:
-      "For participants based in India. Total payable: INR 17048.64 (14448 + 18% GST).",
+      "For participants based in India. Total payable: INR 177 (150 + 18% GST).",
   },
   international_usd: {
     id: "international_usd",
