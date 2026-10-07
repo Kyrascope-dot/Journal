@@ -39,7 +39,9 @@ export function ArticleList({ articles, issueSlug }: Props) {
           </div>
           <div className="flex shrink-0 items-center gap-4 sm:flex-col sm:items-end sm:gap-2">
             <span className="text-sm tabular-nums text-[var(--journal-muted)]">
-              {article.pageStart}–{article.pageEnd}
+              {article.pageStart}{" "}
+              {article.pageStart && article.pageEnd ? "-" : ""}{" "}
+              {article.pageEnd}
             </span>
             {article.pdfUrl && article.pdfUrl !== "#" ? (
               <a
