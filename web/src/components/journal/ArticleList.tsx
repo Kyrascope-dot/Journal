@@ -25,12 +25,15 @@ export function ArticleList({ articles, issueSlug }: Props) {
           <div className="min-w-0 flex-1">
             <h3 className="font-serif text-lg font-medium leading-snug text-[var(--journal-heading)]">
               <Link
-                href={`/issues/${issueSlug}#${article.id}`}
+                // href={`/issues/${issueSlug}#${article.id}`}
+                href={article.pdfUrl as string}
+                target="_blank"
                 className="hover:underline"
               >
                 {article.title}
               </Link>
             </h3>
+
             {article.authors.length > 0 ? (
               <p className="mt-1.5 text-sm text-[var(--journal-muted)]">
                 {article.authors.join(", ")}
