@@ -50,9 +50,12 @@ function ConferencePaymentCheckoutSignedIn() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [history, setHistory] = useState<PaymentHistoryItem[]>([]);
-  const [feeWaiverRegistrationIds, setFeeWaiverRegistrationIds] = useState<string[]>([]);
+  const [feeWaiverRegistrationIds, setFeeWaiverRegistrationIds] = useState<
+    string[]
+  >([]);
   const [feeWaiverAccessLoaded, setFeeWaiverAccessLoaded] = useState(false);
-  const [requestedPlanId, setRequestedPlanId] = useState<ConferencePaymentPlanId | null>(null);
+  const [requestedPlanId, setRequestedPlanId] =
+    useState<ConferencePaymentPlanId | null>(null);
 
   const reloadHistory = useCallback(async () => {
     if (!user) {
@@ -88,9 +91,9 @@ function ConferencePaymentCheckoutSignedIn() {
               (submission) =>
                 submission.submissionPurpose === "conference" &&
                 (submission.conferenceFeeWaiver === "partial" ||
-                  submission.conferenceFeeWaiver === "full")
+                  submission.conferenceFeeWaiver === "full"),
             )
-            .map((submission) => submission.registrationId)
+            .map((submission) => submission.registrationId),
         );
       })
       .catch(() => {
@@ -109,7 +112,9 @@ function ConferencePaymentCheckoutSignedIn() {
     const params = new URLSearchParams(window.location.search);
     const linkedRegistrationId = params.get("registrationId");
     if (linkedRegistrationId) {
-      setRegistrationId((current) => current || linkedRegistrationId.slice(0, 64));
+      setRegistrationId(
+        (current) => current || linkedRegistrationId.slice(0, 64),
+      );
     }
     const linkedPlanId = params.get("planId");
     if (
@@ -133,7 +138,7 @@ function ConferencePaymentCheckoutSignedIn() {
       window.history.replaceState(
         null,
         "",
-        `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`
+        `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`,
       );
       return;
     }
@@ -148,7 +153,7 @@ function ConferencePaymentCheckoutSignedIn() {
         setMessage(
           captured.alreadyPaid
             ? `PayPal payment already recorded. Payment ID: ${captured.paypalCaptureId}`
-            : `PayPal payment successful. Payment ID: ${captured.paypalCaptureId}. Keep this reference for your records.`
+            : `PayPal payment successful. Payment ID: ${captured.paypalCaptureId}. Keep this reference for your records.`,
         );
         await reloadHistory();
       })
@@ -156,7 +161,7 @@ function ConferencePaymentCheckoutSignedIn() {
         setError(
           err instanceof Error
             ? formatCheckoutPaymentError(err.message)
-            : "Could not finalize PayPal payment."
+            : "Could not finalize PayPal payment.",
         );
         setMessage("");
       })
@@ -168,7 +173,7 @@ function ConferencePaymentCheckoutSignedIn() {
         window.history.replaceState(
           null,
           "",
-          `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`
+          `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`,
         );
         setBusy(false);
       });
@@ -182,14 +187,21 @@ function ConferencePaymentCheckoutSignedIn() {
         setPlanId("fee_waiver_usd");
       } else {
         setPlanId("national_usd");
-        setError("The USD 100 fee-waiver payment is available only after the Editorial Office assigns a fee waiver to your conference submission.");
+        setError(
+          "The USD 100 fee-waiver payment is available only after the Editorial Office assigns a fee waiver to your conference submission.",
+        );
       }
       return;
     }
     if (planId === "fee_waiver_usd" && !hasFeeWaiverAccess) {
       setPlanId("national_usd");
     }
-  }, [feeWaiverAccessLoaded, feeWaiverRegistrationIds.length, planId, requestedPlanId]);
+  }, [
+    feeWaiverAccessLoaded,
+    feeWaiverRegistrationIds.length,
+    planId,
+    requestedPlanId,
+  ]);
 
   useEffect(() => {
     if (
@@ -212,7 +224,9 @@ function ConferencePaymentCheckoutSignedIn() {
     if (planId === "fee_waiver_usd") {
       const normalizedRegistrationId = registrationId.trim();
       if (!feeWaiverRegistrationIds.includes(normalizedRegistrationId)) {
-        setError("Select or enter the Registration ID that has an approved fee waiver.");
+        setError(
+          "Select or enter the Registration ID that has an approved fee waiver.",
+        );
         return;
       }
     }
@@ -256,7 +270,7 @@ function ConferencePaymentCheckoutSignedIn() {
           setMessage(
             verified.alreadyPaid
               ? `Payment already recorded. Payment ID: ${verified.razorpay_payment_id}`
-              : `Payment successful. Payment ID: ${verified.razorpay_payment_id}. Keep this reference for your records.`
+              : `Payment successful. Payment ID: ${verified.razorpay_payment_id}. Keep this reference for your records.`,
           );
           await reloadHistory();
           setBusy(false);
@@ -274,7 +288,7 @@ function ConferencePaymentCheckoutSignedIn() {
       setError(
         err instanceof Error
           ? formatCheckoutPaymentError(err.message)
-          : "Could not start payment."
+          : "Could not start payment.",
       );
       setBusy(false);
     }
@@ -283,9 +297,9 @@ function ConferencePaymentCheckoutSignedIn() {
   const selectedPlan = CONFERENCE_PAYMENT_PLANS[planId];
   const checkout = getPaymentCheckoutBreakdown(planId)!;
   const hasFeeWaiverAccess = feeWaiverRegistrationIds.length > 0;
-  const visiblePlanIds = (Object.keys(CONFERENCE_PAYMENT_PLANS) as ConferencePaymentPlanId[]).filter(
-    (id) => id !== "fee_waiver_usd" || hasFeeWaiverAccess
-  );
+  const visiblePlanIds = (
+    Object.keys(CONFERENCE_PAYMENT_PLANS) as ConferencePaymentPlanId[]
+  ).filter((id) => id !== "fee_waiver_usd" || hasFeeWaiverAccess);
 
   if (!user) {
     return null;
@@ -298,8 +312,8 @@ function ConferencePaymentCheckoutSignedIn() {
           Secure checkout
         </h2>
         <p className="mt-2 text-sm text-[var(--journal-body)]">
-          Pay domestic registrations through Razorpay or use PayPal for international payments.
-          All conference fees are charged in USD.
+          Pay domestic registrations through Razorpay or use PayPal for
+          international payments. All conference fees are charged in USD.
         </p>
 
         <fieldset className="mt-5 space-y-3">
@@ -347,7 +361,8 @@ function ConferencePaymentCheckoutSignedIn() {
         </fieldset>
         {hasFeeWaiverAccess ? (
           <p className="mt-2 text-xs text-emerald-700">
-            Fee-waiver payment is available for: {feeWaiverRegistrationIds.join(", ")}
+            Fee-waiver payment is available for:{" "}
+            {feeWaiverRegistrationIds.join(", ")}
           </p>
         ) : null}
 
@@ -355,6 +370,7 @@ function ConferencePaymentCheckoutSignedIn() {
           <legend className="text-sm font-semibold text-[var(--journal-heading)]">
             Payment method
           </legend>
+
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label
               className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
@@ -401,9 +417,10 @@ function ConferencePaymentCheckoutSignedIn() {
           </div>
           {paymentMethod === "paypal" ? (
             <p className="mt-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              PayPal charges in <strong>USD</strong>. If you see &quot;This seller doesn&apos;t accept
-              payments in your currency&quot;, use <strong>Razorpay</strong> instead, or ask the
-              editorial office to enable USD receipt on the PayPal Business account.
+              PayPal charges in <strong>USD</strong>. If you see &quot;This
+              seller doesn&apos;t accept payments in your currency&quot;, use{" "}
+              <strong>Razorpay</strong> instead, or ask the editorial office to
+              enable USD receipt on the PayPal Business account.
             </p>
           ) : null}
           <p className="mt-3 rounded border border-[var(--journal-border)] bg-zinc-50 px-3 py-2 text-xs leading-relaxed text-[var(--journal-body)]">
@@ -439,14 +456,16 @@ function ConferencePaymentCheckoutSignedIn() {
               autoComplete="tel"
             />
             <span className="mt-1 block text-xs text-[var(--journal-muted)]">
-              Required for international USD card payments through Razorpay. Use a real number
-              with country code.
+              Required for international USD card payments through Razorpay. Use
+              a real number with country code.
             </span>
           </label>
         ) : null}
 
         <div className="mt-5 rounded border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm">
-          <p className="font-medium text-[var(--journal-heading)]">Payable now</p>
+          <p className="font-medium text-[var(--journal-heading)]">
+            Payable now
+          </p>
           {checkout.gstRate ? (
             <dl className="mt-2 space-y-1 text-[var(--journal-body)]">
               <div className="flex justify-between gap-4">
@@ -458,7 +477,9 @@ function ConferencePaymentCheckoutSignedIn() {
                 <dd className="font-medium">{checkout.displayGstAmount}</dd>
               </div>
               <div className="flex justify-between gap-4 border-t border-[var(--journal-border)] pt-2">
-                <dt className="font-medium text-[var(--journal-heading)]">Total</dt>
+                <dt className="font-medium text-[var(--journal-heading)]">
+                  Total
+                </dt>
                 <dd className="text-lg font-semibold text-[var(--journal-accent)]">
                   {checkout.displayTotalAmount}
                 </dd>
@@ -517,7 +538,9 @@ function ConferencePaymentCheckoutSignedIn() {
                 </p>
                 <p className="text-xs text-[var(--journal-muted)]">
                   {payment.gateway === "paypal" ? "PayPal" : "Razorpay"} order:{" "}
-                  {payment.gateway === "paypal" ? payment.paypalOrderId : payment.razorpayOrderId}
+                  {payment.gateway === "paypal"
+                    ? payment.paypalOrderId
+                    : payment.razorpayOrderId}
                   {payment.gateway === "paypal" && payment.paypalCaptureId
                     ? ` · Payment: ${payment.paypalCaptureId}`
                     : ""}

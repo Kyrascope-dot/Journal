@@ -4,8 +4,8 @@ export type Article = {
   id: string;
   title: string;
   authors: string[];
-  pageStart: number;
-  pageEnd: number;
+  pageStart: number | string;
+  pageEnd: number | string;
   pdfUrl?: string;
   orderIndex: number;
 };

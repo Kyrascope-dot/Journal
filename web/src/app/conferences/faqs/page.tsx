@@ -59,7 +59,8 @@ export default function ConferenceFaqsPage() {
           ],
         },
         {
-          heading: "Is the publication opportunity included in the conference registration?",
+          heading:
+            "Is the publication opportunity included in the conference registration?",
           paragraphs: [
             "Conference registration provides the opportunity to submit a manuscript for publication consideration. Publication itself is not guaranteed and remains subject to the journal's peer-review and editorial processes. Any separate publication fee or APC, if applicable, should be governed by the journal's current Publication Fees & Fee Waivers policy.",
           ],
@@ -97,7 +98,10 @@ export default function ConferenceFaqsPage() {
         },
         {
           heading: "What happens if I choose Best Paper Award?",
-          paragraphs: [...bestPaperAwardPolicyParagraphs, bestPaperAwardPolicyNote],
+          paragraphs: [
+            ...bestPaperAwardPolicyParagraphs,
+            bestPaperAwardPolicyNote,
+          ],
           list: [
             "Submit your paper by email after abstract acceptance.",
             "Send a blinded manuscript and separate title page for unpublished work, or the published PDF if already published.",

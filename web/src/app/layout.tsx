@@ -25,6 +25,9 @@ export const metadata: Metadata = {
     default: `${siteConfig.name} (${siteConfig.shortName}) | International Open-Access Journal for Young Researchers`,
     template: `%s · ${siteConfig.shortName}`,
   },
+  icons: {
+    icon: "/globe-logo.png",
+  },
   description: seoDescription,
   keywords: [...seoKeywords],
   authors: [{ name: siteConfig.name }],
@@ -73,10 +76,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${merriweather.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${merriweather.variable} h-full antialiased`}>
       <body className={`${openSans.className} flex min-h-full flex-col`}>
         <SiteJsonLd />
         <AuthProvider>{children}</AuthProvider>
