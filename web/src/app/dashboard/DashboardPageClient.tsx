@@ -24,7 +24,10 @@ const VIEW_TITLES: Record<DashboardView, string> = {
   admin: "Admin dashboard",
 };
 
-function parseView(raw: string | null, role: UserProfile["role"]): DashboardView {
+function parseView(
+  raw: string | null,
+  role: UserProfile["role"],
+): DashboardView {
   const fallback = defaultDashboardView(role);
   if (!raw) return fallback;
   const view = raw as DashboardView;
@@ -40,8 +43,9 @@ export function DashboardPageClient() {
   const { profile, loading: profileLoading, refetch } = useUserProfile();
 
   const view = useMemo(
-    () => (profile ? parseView(searchParams.get("view"), profile.role) : "author"),
-    [profile, searchParams]
+    () =>
+      profile ? parseView(searchParams.get("view"), profile.role) : "author",
+    [profile, searchParams],
   );
 
   useEffect(() => {
@@ -54,7 +58,10 @@ export function DashboardPageClient() {
   useEffect(() => {
     if (!profile) return;
     const requested = searchParams.get("view");
-    if (requested && !canAccessDashboardView(profile.role, requested as DashboardView)) {
+    if (
+      requested &&
+      !canAccessDashboardView(profile.role, requested as DashboardView)
+    ) {
       router.replace(`/dashboard?view=${defaultDashboardView(profile.role)}`);
     }
   }, [profile, searchParams, router]);
@@ -70,19 +77,24 @@ export function DashboardPageClient() {
             <div className="h-4 w-64 animate-pulse rounded bg-zinc-100" />
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 animate-pulse rounded-lg bg-zinc-100" />
+                <div
+                  key={i}
+                  className="h-24 animate-pulse rounded-lg bg-zinc-100"
+                />
               ))}
             </div>
           </div>
         ) : !user ? (
           <div className="py-16 text-center">
-            <p className="text-[var(--journal-muted)]">Redirecting to sign in…</p>
+            <p className="text-[var(--journal-muted)]">
+              Redirecting to sign in…
+            </p>
           </div>
         ) : !profile ? (
           <div className="py-16 text-center">
             <p className="text-[var(--journal-muted)]">
-              We could not load your profile. Check your connection and refresh, or contact the
-              editorial office if this continues.
+              We could not load your profile. Check your connection and refresh,
+              or contact the editorial office if this continues.
             </p>
             <button
               type="button"
