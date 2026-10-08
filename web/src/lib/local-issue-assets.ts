@@ -235,7 +235,7 @@ const VOL1_PAPERS: LocalPaper[] = [
 const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   {
     order: 1,
-    file: "Aanika_Asnani_FINAL_v5_pdf1.pdf",
+    file: "Aanika_Asnani.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -244,7 +244,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 2,
-    file: "Aaryan_Bakshi_FINAL_v5_pdf2.pdf",
+    file: "Aaryan_Bakshi.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -253,7 +253,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 3,
-    file: "Aditya_Gupta_FINAL_v6_pdf3.pdf",
+    file: "Aditya_Gupta.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -262,7 +262,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 4,
-    file: "Aryavir_Gulati_FINAL_v6_1_pdf4.pdf",
+    file: "Aryavir_Gulati.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -271,16 +271,17 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 5,
-    file: "Hargun_Kaur_FINAL_v5_pdf5.pdf",
+    file: "Hargun_Kaur.pdf",
     pageStart: "",
     pageEnd: "",
+    // title: "ALGORITHMS THAT MANUFACTURE DESIRE: HOW SOCIAL MEDIA CURATION CO-PRODUCES LUXURY TASTE AMONG GENERATION Z",
     title:
-      "ALGORITHMS THAT MANUFACTURE DESIRE: HOW SOCIAL MEDIA CURATION CO-PRODUCES LUXURY TASTE AMONG GENERATION Z",
+      "Algorithms That Manufacture Desire: How Social Media Curation Co-Produces Luxury Taste Among Generation Z",
     authors: ["Hargun Kaur"],
   },
   {
     order: 6,
-    file: "Meher_Singhi_FINAL_v6_1_pdf6.pdf",
+    file: "Meher_Singhi.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -289,7 +290,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 7,
-    file: "Ravi_Shingadia_FINAL_v5_pdf7.pdf",
+    file: "Ravi_Shingadia.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -298,7 +299,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 8,
-    file: "Ridit_Aggarwal_FINAL_v5_pdf8.pdf",
+    file: "Ridit_Aggarwal.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -307,7 +308,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 9,
-    file: "Shambhavi_Mittal_FINAL_v5_pdf9.pdf",
+    file: "Shambhavi_Mittal.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -316,7 +317,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 10,
-    file: "Siddhi_Meena_FINAL_v5_pdf10.pdf",
+    file: "Siddhi_Meena.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -325,7 +326,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 11,
-    file: "Suryavir_Bhandari_FINAL_v5_pdf11.pdf",
+    file: "Suryavir_Bhandari.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -334,7 +335,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 12,
-    file: "Tanzila_Naseem_FINAL_v5_pdf12.pdf",
+    file: "Tanzila_Naseem.pdf",
     pageStart: "",
     pageEnd: "",
     title:
@@ -343,7 +344,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
   },
   {
     order: 13,
-    file: "Vihana_Gaidhani_FINAL_v5_pdf13.pdf",
+    file: "Vihana_Gaidhani.pdf",
     pageStart: "",
     pageEnd: "",
     title:
