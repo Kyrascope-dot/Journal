@@ -75,7 +75,7 @@ export async function createPayPalOrder(input: {
   planId: string;
   label: string;
   description: string;
-  currency: "USD";
+  currency: "USD" | "INR";
   amountMajor: number;
   userId: string;
   userEmail: string;
