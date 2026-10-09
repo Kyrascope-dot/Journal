@@ -134,3 +134,7 @@ export function PublicationFeesContent() {
     </div>
   );
 }
+
+export default function PublicationFeesPage() {
+  return <PublicationFeesContent />;
+}
