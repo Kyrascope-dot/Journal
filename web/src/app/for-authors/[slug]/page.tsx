@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlindedManuscriptNotice } from "@/components/for-authors/BlindedManuscriptNotice";
+import { PublicationFeesContent } from "@/components/for-authors/PublicationFeesContent";
 import { FeeWaiverNotice } from "@/components/fees/FeeWaiverNotice";
 import { StaticContentPage } from "@/components/layout/StaticContentPage";
 import { forAuthorsPages, forAuthorsSlugs } from "@/content/for-authors-pages";
@@ -15,6 +16,8 @@ export default async function ForAuthorsSlugPage({ params }: Props) {
   const { slug } = await params;
   const page = forAuthorsPages[slug];
   if (!page) notFound();
+
+  const isPublicationFeesPage = slug === "publication-fees";
   const showsManuscriptRequirements = [
     "author-guidelines",
     "submission-checklist",
@@ -23,7 +26,12 @@ export default async function ForAuthorsSlugPage({ params }: Props) {
   const showsFeeWaiver = ["publication-fees", "fee-waiver-policy"].includes(slug);
 
   return (
-    <StaticContentPage title={page.title} intro={page.intro} sections={page.sections}>
+    <StaticContentPage
+      title={page.title}
+      intro={isPublicationFeesPage ? "Please find below the applicable Article Processing Charge (APC) / Publication Fee and review timelines." : page.intro}
+      sections={isPublicationFeesPage ? [] : page.sections}
+    >
+      {isPublicationFeesPage ? <PublicationFeesContent /> : null}
       {showsManuscriptRequirements ? <BlindedManuscriptNotice className="mt-10" /> : null}
       {showsFeeWaiver ? <FeeWaiverNotice className="mt-10" /> : null}
       {slug === "submit-manuscript" ? (
