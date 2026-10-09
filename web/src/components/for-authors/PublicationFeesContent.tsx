@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import { ManuscriptPaymentCheckout } from "@/components/payments/ManuscriptPaymentCheckout";
+
 type FeeCardProps = {
   title: string;
   items: string[];
@@ -17,6 +22,8 @@ function FeeCard({ title, items }: FeeCardProps) {
 }
 
 export function PublicationFeesContent() {
+  const [showPayment, setShowPayment] = useState(false);
+
   return (
     <div className="mt-10 space-y-8">
       <section className="rounded-xl border border-[var(--journal-border)] bg-[var(--journal-hero-bg)]/40 p-5 sm:p-6">
@@ -93,8 +100,9 @@ export function PublicationFeesContent() {
           the initial submission or during the peer-review process.
         </p>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          Please note that fast-track processing provides an expedited review timeline. Acceptance and
-          publication remain subject to the journal&apos;s peer-review and editorial decision process.
+          Please note that fast-track processing provides an expedited review timeline. Acceptance
+          and publication remain subject to the journal&apos;s peer-review and editorial decision
+          process.
         </p>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
           Once the manuscript has been fully accepted, the applicable payment details will be shared
@@ -102,6 +110,24 @@ export function PublicationFeesContent() {
           along with your manuscript ID for further processing.
         </p>
       </section>
+
+      <div className="rounded-lg border border-[var(--journal-accent)] bg-sky-50 p-5 sm:p-6">
+        <h3 className="font-serif text-lg font-semibold text-[var(--journal-heading)]">
+          Ready to Pay Your Publication Fee?
+        </h3>
+        <p className="mt-3 text-[15px] text-[var(--journal-body)]">
+          If your manuscript has been fully accepted, you can proceed with payment below. Select your
+          publication fee category and choose your preferred payment method.
+        </p>
+        <button
+          onClick={() => setShowPayment(!showPayment)}
+          className="mt-4 inline-flex rounded border border-[var(--journal-accent)] bg-[var(--journal-accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-95"
+        >
+          {showPayment ? "Hide Payment Form" : "Proceed to Payment"}
+        </button>
+      </div>
+
+      {showPayment && <ManuscriptPaymentCheckout />}
     </div>
   );
 }
