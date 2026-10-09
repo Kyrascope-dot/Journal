@@ -1,1 +1,36 @@
-sitemap
+
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://www.globalconfluencereview.in/</loc>
+  </url>
+  <url>
+    <loc>https://www.globalconfluencereview.in/conferences</loc>
+  </url>
+  <url>
+    <loc>https://www.globalconfluencereview.in/conferences/payment</loc>
+  </url>
+  <url>
+    <loc>https://www.globalconfluencereview.in/conferences/faqs</loc>
+  </url>
+  <url>
+    <loc>https://www.globalconfluencereview.in/conferences/award-winners</loc>
+  </url>
+  <url>
+    <loc>https://www.globalconfluencereview.in/tech-research</loc>
+  </url>
+  <url>
+    <loc>https://www.globalconfluencereview.in/research-competitions</loc>
+  </url>
+  <url>
+    <loc>https://www.globalconfluencereview.in/articles</loc>
+  </url>
+  <url>
+    <loc>https://www.globalconfluencereview.in/for-authors/plagiarism-policy</loc>
+  </url>
+  <url>
+    <loc>https://www.globalconfluencereview.in/for-authors/publication-fees</loc>
+  </url>
+
+</urlset>
