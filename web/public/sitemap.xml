@@ -2,169 +2,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <url>
-    <loc>https://www.globalconfluencereview.in/</loc>
-  </url>
-  <url>
-    <loc>https://www.globalconfluencereview.in/conferences</loc>
-  </url>
-  <url>
-    <loc>https://www.globalconfluencereview.in/conferences/payment</loc>
-  </url>
-  <url>
-    <loc>https://www.globalconfluencereview.in/conferences/faqs</loc>
-  </url>
-  <url>
-    <loc>https://www.globalconfluencereview.in/conferences/award-winners</loc>
-  </url>
-  <url>
-    <loc>https://www.globalconfluencereview.in/tech-research</loc>
-  </url>
-  <url>
-    <loc>https://www.globalconfluencereview.in/research-competitions</loc>
-  </url>
-  <url>
-    <loc>https://www.globalconfluencereview.in/articles</loc>
-  </url>
-  <url>
-    <loc>https://www.globalconfluencereview.in/for-authors/plagiarism-policy</loc>
-  </url>
-  <url>
-    <loc>https://www.globalconfluencereview.in/for-authors/publication-fees</loc>
-  </url>
+  <url><loc>https://www.globalconfluencereview.in/</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/conferences</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/conferences/payment</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/conferences/faqs</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/conferences/award-winners</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/tech-research</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/research-competitions</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/articles</loc></url>
 
-</urlset>
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.globalconfluencereview.in/for-authors/plagiarism-policy</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/for-authors/publication-fees</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/for-authors/submit-manuscript</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/for-authors/submission-checklist</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/for-authors/manuscript-templates</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/for-authors/author-guidelines</loc></url>
 
-  <url>
-    <loc>https://www.globalconfluencereview.in/for-authors/submit-manuscript</loc>
-  </url>
+  <url><loc>https://www.globalconfluencereview.in/about/archiving-and-preservation</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/about/copyright-and-licensing</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/about/peer-review</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/about/ethics</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/about/open-access</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/about/journal</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/about/aims-and-scope</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/editorial</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/contact</loc></url>
 
-  <url>
-    <loc>https://www.globalconfluencereview.in/for-authors/submission-checklist</loc>
-  </url>
+  <url><loc>https://www.globalconfluencereview.in/issues</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/issues/vol-1-issue-2-2026</loc></url>
 
-  <url>
-    <loc>https://www.globalconfluencereview.in/for-authors/manuscript-templates</loc>
-  </url>
+  <url><loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-78-90%20paper%205.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-51-77%20paper%204.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-34-50%20paper%203.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-19-33%20paper%202.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-5-18%20paper%201.pdf</loc></url>
 
-  <url>
-    <loc>https://www.globalconfluencereview.in/for-authors/author-guidelines</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/about/archiving-and-preservation</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/about/copyright-and-licensing</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/about/peer-review</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/about/ethics</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/about/open-access</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/editorial</loc>
-  </url>
-
-</urlset>
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/contact</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/about/journal</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/about/aims-and-scope</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-78-90%20paper%205.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-51-77%20paper%204.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-34-50%20paper%203.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-19-33%20paper%202.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue1-Vol1%5BApr-June2026%5D/GCR%20issue%201%20pdf-5-18%20paper%201.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Vihana_Gaidhani.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Tanzila_Naseem.pdf</loc>
-  </url>
-
-</urlset>
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Suryavir_Bhandari.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Siddhi_Meena.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Shambhavi_Mittal.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Ridit_Aggarwal.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Ravi_Shingadia.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Meher_Singhi.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Hargun_Kaur.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Aryavir_Gulati.pdf</loc>
-  </url>
-  https://www.globalconfluencereview.in/Issue2-Vol1[July-Sep2026]/Aanika_Asnani.pdf	Unknown	9 Oct 2026	9 Oct 2026	1 error	0	0	
-https://www.globalconfluencereview.in/issues	Unknown	9 Oct 2026		Couldn't fetch	0	0	
-https://www.globalconfluencereview.in/issues/vol-1-issue-2-2026
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Aditya_Gupta.pdf</loc>
-  </url>
-
-  <url>
-    <loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Aaryan_Bakshi.pdf</loc>
-  </url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Vihana_Gaidhani.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Tanzila_Naseem.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Suryavir_Bhandari.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Siddhi_Meena.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Shambhavi_Mittal.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Ridit_Aggarwal.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Ravi_Shingadia.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Meher_Singhi.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Hargun_Kaur.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Aryavir_Gulati.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Aanika_Asnani.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Aditya_Gupta.pdf</loc></url>
+  <url><loc>https://www.globalconfluencereview.in/Issue2-Vol1%5BJuly-Sep2026%5D/Aaryan_Bakshi.pdf</loc></url>
 
 </urlset>
