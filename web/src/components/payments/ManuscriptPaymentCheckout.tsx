@@ -9,19 +9,66 @@ import {
   requestCreatePayPalOrder,
   requestMyPayments,
   type PaymentHistoryItem,
+  type CreateOrderResponse,
 } from "@/lib/client/payments";
 import { formatCheckoutPaymentError } from "@/lib/payments/checkout-errors";
-import {
-  MANUSCRIPT_PAYMENT_PLANS,
-  getManuscriptPaymentCheckoutBreakdown,
-  type ManuscriptPaymentPlanId,
-} from "@/lib/payments/manuscript-plans";
+import { getPaymentCheckoutBreakdown, type PaymentPlanId } from "@/lib/payments/plans";
 import {
   openRazorpayCheckout,
   validateInternationalCheckoutContact,
 } from "@/lib/payments/razorpay-checkout-client";
 
+type ManuscriptPaymentPlanId =
+  | "manuscript_national_normal"
+  | "manuscript_national_fasttrack"
+  | "manuscript_international_standard"
+  | "manuscript_international_fasttrack";
+
 type PaymentMethod = "razorpay" | "paypal";
+
+interface ManuscriptPlanConfig {
+  label: string;
+  description: string;
+  baseAmount: number;
+  currency: "INR" | "USD";
+  displayAmount: string;
+  gst: number | null;
+}
+
+const MANUSCRIPT_PLANS: Record<ManuscriptPaymentPlanId, ManuscriptPlanConfig> = {
+  manuscript_national_normal: {
+    label: "Normal Route",
+    description: "Standard review process (Within 2 months)",
+    baseAmount: 9995,
+    currency: "INR",
+    displayAmount: "₹9,995",
+    gst: 1799.1,
+  },
+  manuscript_national_fasttrack: {
+    label: "Fast-Track Route",
+    description: "Expedited review process (Within 1 week)",
+    baseAmount: 12288.14,
+    currency: "INR",
+    displayAmount: "₹12,288.14",
+    gst: 2211.86,
+  },
+  manuscript_international_standard: {
+    label: "Regular Publication",
+    description: "Standard review process (Within 2 months)",
+    baseAmount: 150,
+    currency: "USD",
+    displayAmount: "USD 150",
+    gst: null,
+  },
+  manuscript_international_fasttrack: {
+    label: "Fast-Track Publication",
+    description: "Expedited review process (Within 1 week)",
+    baseAmount: 200,
+    currency: "USD",
+    displayAmount: "USD 200",
+    gst: null,
+  },
+};
 
 export function ManuscriptPaymentCheckout() {
   return (
@@ -36,7 +83,7 @@ export function ManuscriptPaymentCheckout() {
 
 function ManuscriptPaymentCheckoutSignedIn() {
   const { user } = useAuth();
-  const [planId, setPlanId] = useState<ManuscriptPaymentPlanId>("manuscript_national_normal_inr");
+  const [planId, setPlanId] = useState<ManuscriptPaymentPlanId>("manuscript_national_normal");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("razorpay");
   const [manuscriptId, setManuscriptId] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -52,7 +99,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
     }
     try {
       const payments = await requestMyPayments();
-      setHistory(payments.filter((p) => p.planId.startsWith("manuscript")));
+      setHistory(payments);
     } catch {
       // Optional UX.
     }
@@ -61,6 +108,22 @@ function ManuscriptPaymentCheckoutSignedIn() {
   useEffect(() => {
     void reloadHistory();
   }, [reloadHistory]);
+
+  const getPaymentConfig = (): { amount: number; currency: PaymentPlanId; total: number; gst: number | null } | null => {
+    const plan = MANUSCRIPT_PLANS[planId];
+    if (!plan) return null;
+
+    const gst = plan.gst || 0;
+    const total = plan.baseAmount + gst;
+    const amount = Math.round(total * 100); // Convert to minor units (paise/cents)
+
+    return {
+      amount,
+      currency: "international_usd" as PaymentPlanId,
+      total,
+      gst: plan.gst,
+    };
+  };
 
   async function handlePay() {
     setError("");
@@ -76,43 +139,42 @@ function ManuscriptPaymentCheckoutSignedIn() {
       return;
     }
 
-    if (paymentMethod === "razorpay") {
-      const selectedPlan = MANUSCRIPT_PAYMENT_PLANS[planId];
-      if (selectedPlan.currency === "USD") {
-        const contactError = validateInternationalCheckoutContact(contactPhone);
-        if (contactError) {
-          setError(contactError);
-          return;
-        }
+    const plan = MANUSCRIPT_PLANS[planId];
+    if (paymentMethod === "razorpay" && plan.currency === "USD") {
+      const contactError = validateInternationalCheckoutContact(contactPhone);
+      if (contactError) {
+        setError(contactError);
+        return;
       }
     }
 
     setBusy(true);
     try {
+      const orderInput = {
+        planId: "international_usd" as PaymentPlanId,
+        registrationId: normalizedManuscriptId,
+      };
+
       if (paymentMethod === "paypal") {
         const order = await requestCreatePayPalOrder({
-          planId: planId as any,
-          registrationId: normalizedManuscriptId,
+          ...orderInput,
           returnPath: "/for-authors/publication-fees",
         });
         window.location.href = order.approveUrl;
         return;
       }
 
-      const order = await requestCreatePaymentOrder({
-        planId: planId as any,
-        registrationId: normalizedManuscriptId,
-      });
+      const order = await requestCreatePaymentOrder(orderInput);
 
       await openRazorpayCheckout({
-        order,
+        order: order as CreateOrderResponse,
         prefill: {
-          email: order.prefill.email || user.email || "",
+          email: order.prefill?.email || user.email || "",
           name: user.displayName || "",
           contact: contactPhone.trim(),
         },
         notes: {
-          planId: order.planId,
+          planId: planId,
           manuscriptId: normalizedManuscriptId,
           paymentPurpose: "manuscript_publication",
         },
@@ -120,7 +182,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
           setMessage(
             verified.alreadyPaid
               ? `Payment already recorded. Payment ID: ${verified.razorpay_payment_id}`
-              : `Payment successful! Payment ID: ${verified.razorpay_payment_id}. Keep this reference for your records. Please share this payment confirmation with the editorial office along with your Manuscript ID.`,
+              : `Payment successful! Payment ID: ${verified.razorpay_payment_id}. Keep this for your records.`,
           );
           await reloadHistory();
           setBusy(false);
@@ -144,19 +206,17 @@ function ManuscriptPaymentCheckoutSignedIn() {
     }
   }
 
-  const selectedPlan = MANUSCRIPT_PAYMENT_PLANS[planId];
-  const checkout = getManuscriptPaymentCheckoutBreakdown(planId)!;
-  const isInternational = selectedPlan.currency === "USD";
+  const plan = MANUSCRIPT_PLANS[planId];
+  const config = getPaymentConfig();
 
-  const nationalPlans = (Object.entries(MANUSCRIPT_PAYMENT_PLANS) as Array<
-    [ManuscriptPaymentPlanId, (typeof MANUSCRIPT_PAYMENT_PLANS)[ManuscriptPaymentPlanId]]
-  >).filter((entry) => entry[1].category === "For Indian Authors – National Publication");
+  const nationalPlans = (Object.entries(MANUSCRIPT_PLANS) as Array<[ManuscriptPaymentPlanId, ManuscriptPlanConfig]>).filter(
+    (entry) => entry[1].currency === "INR",
+  );
+  const internationalPlans = (Object.entries(MANUSCRIPT_PLANS) as Array<[ManuscriptPaymentPlanId, ManuscriptPlanConfig]>).filter(
+    (entry) => entry[1].currency === "USD",
+  );
 
-  const internationalPlans = (Object.entries(MANUSCRIPT_PAYMENT_PLANS) as Array<
-    [ManuscriptPaymentPlanId, (typeof MANUSCRIPT_PAYMENT_PLANS)[ManuscriptPaymentPlanId]]
-  >).filter((entry) => entry[1].category === "For International Authors");
-
-  if (!user) {
+  if (!user || !plan || !config) {
     return null;
   }
 
@@ -167,8 +227,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
           Manuscript Publication Payment
         </h2>
         <p className="mt-2 text-sm text-[var(--journal-body)]">
-          Select your publication fee category and proceed with payment via Razorpay or PayPal.
-          Payment is required only after your manuscript has received full acceptance.
+          Select your publication fee category and proceed with secure payment via Razorpay or PayPal.
         </p>
 
         <fieldset className="mt-6 space-y-4">
@@ -177,36 +236,34 @@ function ManuscriptPaymentCheckoutSignedIn() {
               For Indian Authors – National Publication
             </legend>
             <div className="mt-3 space-y-2">
-              {nationalPlans.map(([id, plan]) => {
-                const planCheckout = getManuscriptPaymentCheckoutBreakdown(id)!;
-                return (
-                  <label
-                    key={id}
-                    className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
-                      planId === id
-                        ? "border-[var(--journal-accent)] bg-sky-50"
-                        : "border-[var(--journal-border)] bg-white"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="plan"
-                      value={id}
-                      checked={planId === id}
-                      onChange={() => setPlanId(id)}
-                      className="mt-1"
-                    />
-                    <span>
-                      <span className="font-medium text-[var(--journal-heading)]">
-                        {plan.label}: {planCheckout.displaySummary}
-                      </span>
-                      <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
-                        {plan.description}
-                      </span>
+              {nationalPlans.map(([id, cfg]) => (
+                <label
+                  key={id}
+                  className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
+                    planId === id
+                      ? "border-[var(--journal-accent)] bg-sky-50"
+                      : "border-[var(--journal-border)] bg-white"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="plan"
+                    value={id}
+                    checked={planId === id}
+                    onChange={() => setPlanId(id)}
+                    className="mt-1"
+                  />
+                  <span>
+                    <span className="font-medium text-[var(--journal-heading)]">
+                      {cfg.label}: {cfg.displayAmount}
+                      {cfg.gst ? ` + ₹${cfg.gst.toFixed(2)} GST` : ""}
                     </span>
-                  </label>
-                );
-              })}
+                    <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
+                      {cfg.description}
+                    </span>
+                  </span>
+                </label>
+              ))}
             </div>
           </div>
 
@@ -215,45 +272,41 @@ function ManuscriptPaymentCheckoutSignedIn() {
               For International Authors
             </legend>
             <div className="mt-3 space-y-2">
-              {internationalPlans.map(([id, plan]) => {
-                const planCheckout = getManuscriptPaymentCheckoutBreakdown(id)!;
-                return (
-                  <label
-                    key={id}
-                    className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
-                      planId === id
-                        ? "border-[var(--journal-accent)] bg-sky-50"
-                        : "border-[var(--journal-border)] bg-white"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="plan"
-                      value={id}
-                      checked={planId === id}
-                      onChange={() => setPlanId(id)}
-                      className="mt-1"
-                    />
-                    <span>
-                      <span className="font-medium text-[var(--journal-heading)]">
-                        {plan.label}: {planCheckout.displaySummary}
-                      </span>
-                      <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
-                        {plan.description}
-                      </span>
+              {internationalPlans.map(([id, cfg]) => (
+                <label
+                  key={id}
+                  className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
+                    planId === id
+                      ? "border-[var(--journal-accent)] bg-sky-50"
+                      : "border-[var(--journal-border)] bg-white"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="plan"
+                    value={id}
+                    checked={planId === id}
+                    onChange={() => setPlanId(id)}
+                    className="mt-1"
+                  />
+                  <span>
+                    <span className="font-medium text-[var(--journal-heading)]">
+                      {cfg.label}: {cfg.displayAmount}
                     </span>
-                  </label>
-                );
-              })}
+                    <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
+                      {cfg.description}
+                    </span>
+                  </span>
+                </label>
+              ))}
             </div>
           </div>
         </fieldset>
 
         <fieldset className="mt-6">
           <legend className="text-sm font-semibold text-[var(--journal-heading)]">
-            Payment method
+            Payment Method
           </legend>
-
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label
               className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
@@ -270,9 +323,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
                 onChange={() => setPaymentMethod("razorpay")}
                 className="mt-1"
               />
-              <span>
-                <span className="font-medium text-[var(--journal-heading)]">Razorpay</span>
-              </span>
+              <span className="font-medium text-[var(--journal-heading)]">Razorpay</span>
             </label>
             <label
               className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
@@ -289,23 +340,9 @@ function ManuscriptPaymentCheckoutSignedIn() {
                 onChange={() => setPaymentMethod("paypal")}
                 className="mt-1"
               />
-              <span>
-                <span className="font-medium text-[var(--journal-heading)]">PayPal</span>
-              </span>
+              <span className="font-medium text-[var(--journal-heading)]">PayPal</span>
             </label>
           </div>
-          {paymentMethod === "paypal" ? (
-            <p className="mt-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              PayPal charges in <strong>USD</strong>. If you see &quot;This seller doesn&apos;t accept
-              payments in your currency&quot;, use <strong>Razorpay</strong> instead, or contact
-              the editorial office.
-            </p>
-          ) : null}
-          <p className="mt-3 rounded border border-[var(--journal-border)] bg-zinc-50 px-3 py-2 text-xs leading-relaxed text-[var(--journal-body)]">
-            Razorpay may apply an additional payment processing/convenience fee where applicable.
-            Any such charge is separate from the APC. The final amount will be displayed by
-            Razorpay during checkout before payment is completed.
-          </p>
         </fieldset>
 
         <label className="mt-6 block text-sm">
@@ -323,52 +360,46 @@ function ManuscriptPaymentCheckoutSignedIn() {
           </span>
         </label>
 
-        {isInternational && paymentMethod === "razorpay" ? (
+        {plan.currency === "USD" && paymentMethod === "razorpay" ? (
           <label className="mt-6 block text-sm">
             <span className="font-medium text-[var(--journal-heading)]">
-              Mobile number <span className="text-red-500">*</span>
+              Mobile Number <span className="text-red-500">*</span>
             </span>
             <input
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
-              placeholder="e.g. +1 555 123 4567 or +91 98765 43210"
+              placeholder="e.g. +91 98765 43210"
               className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm"
               autoComplete="tel"
             />
             <span className="mt-1 block text-xs text-[var(--journal-muted)]">
-              Required for international USD card payments through Razorpay. Use a real number
-              with country code.
+              Required for international payments. Use country code.
             </span>
           </label>
         ) : null}
 
         <div className="mt-6 rounded border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm">
-          <p className="font-medium text-[var(--journal-heading)]">Payable now</p>
-          {checkout.gstRate ? (
-            <dl className="mt-2 space-y-1 text-[var(--journal-body)]">
-              <div className="flex justify-between gap-4">
-                <dt>Publication Fee</dt>
-                <dd className="font-medium">{checkout.displayBaseAmount}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt>GST (18%)</dt>
-                <dd className="font-medium">{checkout.displayGstAmount}</dd>
-              </div>
-              <div className="flex justify-between gap-4 border-t border-[var(--journal-border)] pt-2">
-                <dt className="font-medium text-[var(--journal-heading)]">Total</dt>
-                <dd className="text-lg font-semibold text-[var(--journal-accent)]">
-                  {checkout.displayTotalAmount}
-                </dd>
-              </div>
-            </dl>
-          ) : (
-            <p className="mt-1 text-lg font-semibold text-[var(--journal-accent)]">
-              {checkout.displayTotalAmount}
-            </p>
-          )}
+          <p className="font-medium text-[var(--journal-heading)]">Total Amount Payable</p>
+          <dl className="mt-3 space-y-1 text-[var(--journal-body)]">
+            <div className="flex justify-between">
+              <dt>Fee</dt>
+              <dd className="font-medium">{plan.displayAmount}</dd>
+            </div>
+            {config.gst ? (
+              <>
+                <div className="flex justify-between">
+                  <dt>GST (18%)</dt>
+                  <dd className="font-medium">₹{config.gst.toFixed(2)}</dd>
+                </div>
+                <div className="flex justify-between border-t border-[var(--journal-border)] pt-2">
+                  <dt className="font-medium text-[var(--journal-heading)]">Total</dt>
+                  <dd className="text-lg font-semibold text-[var(--journal-accent)]">₹{config.total.toFixed(2)}</dd>
+                </div>
+              </>
+            ) : null}
+          </dl>
           <p className="mt-2 text-xs text-[var(--journal-muted)]">
-            Charged in {selectedPlan.currency} via {paymentMethod === "paypal" ? "PayPal" : "Razorpay"}
-            · Signed in as {user.email}
+            Via {paymentMethod === "paypal" ? "PayPal" : "Razorpay"} • Signed in as {user.email}
           </p>
         </div>
 
@@ -376,61 +407,14 @@ function ManuscriptPaymentCheckoutSignedIn() {
           type="button"
           disabled={busy}
           onClick={() => void handlePay()}
-          className="mt-6 rounded bg-[var(--journal-accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
+          className="mt-6 w-full rounded bg-[var(--journal-accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
         >
-          {busy
-            ? "Processing..."
-            : paymentMethod === "paypal"
-              ? `Continue to PayPal for ${checkout.displayTotalAmount}`
-              : `Pay ${checkout.displayTotalAmount} securely`}
+          {busy ? "Processing..." : `Pay Now`}
         </button>
 
-        {message ? (
-          <p className="mt-4 text-sm text-emerald-700" role="status">
-            {message}
-          </p>
-        ) : null}
-        {error ? (
-          <p className="mt-4 text-sm text-red-700" role="alert">
-            {error}
-          </p>
-        ) : null}
+        {message && <p className="mt-4 text-sm text-emerald-700 rounded bg-emerald-50 p-3">{message}</p>}
+        {error && <p className="mt-4 text-sm text-red-700 rounded bg-red-50 p-3">{error}</p>}
       </div>
-
-      {history.length > 0 ? (
-        <div className="rounded-lg border border-[var(--journal-border)] bg-white p-5">
-          <h3 className="text-sm font-semibold text-[var(--journal-heading)]">
-            Your recent manuscript publication payments
-          </h3>
-          <ul className="mt-3 space-y-2 text-sm">
-            {history.map((payment) => (
-              <li
-                key={payment.id}
-                className="rounded border border-[var(--journal-border)] px-3 py-2"
-              >
-                <p className="font-medium text-[var(--journal-heading)]">
-                  {payment.displayAmount} · {payment.status}
-                </p>
-                <p className="text-xs text-[var(--journal-muted)]">
-                  {payment.gateway === "paypal" ? "PayPal" : "Razorpay"} order:{" "}
-                  {payment.gateway === "paypal"
-                    ? payment.paypalOrderId
-                    : payment.razorpayOrderId}
-                  {payment.gateway === "paypal" && payment.paypalCaptureId
-                    ? ` · Payment: ${payment.paypalCaptureId}`
-                    : ""}
-                  {payment.gateway !== "paypal" && payment.razorpayPaymentId
-                    ? ` · Payment: ${payment.razorpayPaymentId}`
-                    : ""}
-                  {payment.paidAt
-                    ? ` · ${new Date(payment.paidAt).toLocaleString("en-GB")}`
-                    : ""}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -117,7 +117,7 @@ export function PublicationFeesContent() {
         </h3>
         <p className="mt-3 text-[15px] text-[var(--journal-body)]">
           If your manuscript has been fully accepted, you can proceed with payment below. Select your
-          publication fee category and choose your preferred payment method.
+          publication fee category and choose your preferred payment method (Razorpay or PayPal).
         </p>
         <button
           onClick={() => setShowPayment(!showPayment)}
