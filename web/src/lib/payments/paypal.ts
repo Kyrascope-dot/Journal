@@ -71,16 +71,23 @@ function formatPayPalAmount(amountMajor: number): string {
   return amountMajor.toFixed(2);
 }
 
+/** Pages that handle the PayPal return (capture) and cancel redirects. */
+export type PayPalReturnPath =
+  | "/conferences/payment"
+  | "/payments/test"
+  | "/tech-research/apply"
+  | "/for-authors/publication-fees";
+
 export async function createPayPalOrder(input: {
   planId: string;
   label: string;
   description: string;
-  currency: "USD" | "INR";
+  currency: "USD";
   amountMajor: number;
   userId: string;
   userEmail: string;
   registrationId: string | null;
-  returnPath?: "/conferences/payment" | "/payments/test" | "/tech-research/apply";
+  returnPath?: PayPalReturnPath;
 }): Promise<{ orderId: string; approveUrl: string; status: string | null }> {
   const token = await getPayPalAccessToken();
   const origin = getSiteOrigin();

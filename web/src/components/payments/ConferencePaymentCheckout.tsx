@@ -16,17 +16,14 @@ import { razorpayPaymentNote } from "@/lib/conference-content";
 import {
   CONFERENCE_PAYMENT_PLANS,
   getPaymentCheckoutBreakdown,
-  type PaymentPlanId,
+  isManuscriptPlan,
+  type ConferencePaymentPlanId,
 } from "@/lib/payments/plans";
 import {
   openRazorpayCheckout,
   validateInternationalCheckoutContact,
 } from "@/lib/payments/razorpay-checkout-client";
 
-type ConferencePaymentPlanId = Exclude<
-  PaymentPlanId,
-  "gateway_test_usd" | "tech_research_usd"
->;
 type PaymentMethod = "razorpay" | "paypal";
 
 export function ConferencePaymentCheckout() {
@@ -64,7 +61,8 @@ function ConferencePaymentCheckoutSignedIn() {
     }
     try {
       const payments = await requestMyPayments();
-      setHistory(payments);
+      // Manuscript APC payments are listed on the publication fees page.
+      setHistory(payments.filter((payment) => !isManuscriptPlan(payment.planId)));
     } catch {
       // Optional UX.
     }

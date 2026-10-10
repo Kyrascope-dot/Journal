@@ -1,18 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RequireSignIn } from "@/components/auth/RequireSignIn";
 import { useAuth } from "@/context/AuthContext";
 import {
+  requestCapturePayPalOrder,
   requestCreatePaymentOrder,
   requestCreatePayPalOrder,
   requestMyPayments,
+  type PaymentHistoryItem,
 } from "@/lib/client/payments";
 import { formatCheckoutPaymentError } from "@/lib/payments/checkout-errors";
 import {
   getPaymentCheckoutBreakdown,
   getPaymentPlan,
-  type PaymentPlanId,
+  isManuscriptPlan,
+  MANUSCRIPT_PLAN_IDS,
+  type ManuscriptPaymentPlanId,
 } from "@/lib/payments/plans";
 import {
   openRazorpayCheckout,
@@ -21,12 +25,12 @@ import {
 
 type PaymentMethod = "razorpay" | "paypal";
 
-const manuscriptPlanOrder: PaymentPlanId[] = [
-  "manuscript_national_normal_inr",
-  "manuscript_national_fasttrack_inr",
-  "manuscript_international_standard_usd",
-  "manuscript_international_fasttrack_usd",
-];
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  paid: "Paid",
+  created: "Not completed",
+  failed: "Failed",
+  refunded: "Refunded",
+};
 
 export function ManuscriptPaymentCheckout() {
   return (
@@ -41,29 +45,101 @@ export function ManuscriptPaymentCheckout() {
 
 function ManuscriptPaymentCheckoutSignedIn() {
   const { user } = useAuth();
-  const [selectedPlanId, setSelectedPlanId] =
-    useState<PaymentPlanId>("manuscript_national_normal_inr");
+  const [selectedPlanId, setSelectedPlanId] = useState<ManuscriptPaymentPlanId>(
+    "manuscript_national_normal_inr",
+  );
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("razorpay");
   const [manuscriptId, setManuscriptId] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [history, setHistory] = useState<Array<{ id: string; displayAmount: string }>>([]);
+  const [history, setHistory] = useState<PaymentHistoryItem[]>([]);
+
+  const reloadHistory = useCallback(async () => {
+    if (!user) {
+      setHistory([]);
+      return;
+    }
+    try {
+      const payments = await requestMyPayments();
+      setHistory(payments.filter((payment) => isManuscriptPlan(payment.planId)));
+    } catch {
+      // Optional UX.
+    }
+  }, [user]);
 
   useEffect(() => {
-    void (async () => {
-      if (!user) return;
-      try {
-        const payments = await requestMyPayments();
-        setHistory(
-          payments.filter((p) => p.planId.startsWith("manuscript_"))
+    void reloadHistory();
+  }, [reloadHistory]);
+
+  // PayPal redirects back to this page with ?paypal_return=1&token=<orderId>
+  // (or ?paypal_cancelled=1). Capture the order so the payment is completed.
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams(window.location.search);
+    const returnedFromPayPal = params.get("paypal_return") === "1";
+    const orderId = params.get("token");
+    const cancelled = params.get("paypal_cancelled") === "1";
+
+    const clearPayPalParams = () => {
+      params.delete("paypal_return");
+      params.delete("paypal_cancelled");
+      params.delete("token");
+      params.delete("PayerID");
+      const nextSearch = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`,
+      );
+    };
+
+    if (cancelled) {
+      setMessage("PayPal payment was cancelled. No charge was completed.");
+      clearPayPalParams();
+      return;
+    }
+
+    if (!returnedFromPayPal || !orderId) return;
+
+    setBusy(true);
+    setError("");
+    setMessage("Finalizing PayPal payment...");
+    void requestCapturePayPalOrder({ orderId })
+      .then(async (captured) => {
+        setMessage(
+          captured.alreadyPaid
+            ? `PayPal payment already recorded. Payment ID: ${captured.paypalCaptureId}`
+            : `PayPal payment successful. Payment ID: ${captured.paypalCaptureId}. Please share this reference with the editorial office together with your Manuscript ID.`,
         );
-      } catch {
-        setHistory([]);
-      }
-    })();
-  }, [user]);
+        await reloadHistory();
+      })
+      .catch((err) => {
+        setError(
+          err instanceof Error
+            ? formatCheckoutPaymentError(err.message)
+            : "Could not finalize PayPal payment.",
+        );
+        setMessage("");
+      })
+      .finally(() => {
+        clearPayPalParams();
+        setBusy(false);
+      });
+  }, [reloadHistory, user]);
+
+  const selectedPlan = getPaymentPlan(selectedPlanId);
+  const checkout = selectedPlan ? getPaymentCheckoutBreakdown(selectedPlanId) : null;
+  // PayPal can only charge USD; INR (Indian) categories are paid via Razorpay.
+  const payPalAvailable = selectedPlan?.currency === "USD";
+
+  function selectPlan(planId: ManuscriptPaymentPlanId) {
+    setSelectedPlanId(planId);
+    if (getPaymentPlan(planId)?.currency !== "USD") {
+      setPaymentMethod("razorpay");
+    }
+  }
 
   async function handlePay() {
     setError("");
@@ -74,14 +150,19 @@ function ManuscriptPaymentCheckoutSignedIn() {
       return;
     }
 
-    if (!manuscriptId.trim()) {
+    const trimmedManuscriptId = manuscriptId.trim();
+    if (!trimmedManuscriptId) {
       setError("Please enter your Manuscript ID.");
       return;
     }
 
-    const selectedPlan = getPaymentPlan(selectedPlanId);
     if (!selectedPlan) {
       setError("Invalid payment option.");
+      return;
+    }
+
+    if (paymentMethod === "paypal" && !payPalAvailable) {
+      setError("PayPal supports USD payments only. Please choose Razorpay for INR fee categories.");
       return;
     }
 
@@ -99,7 +180,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
       if (paymentMethod === "paypal") {
         const order = await requestCreatePayPalOrder({
           planId: selectedPlanId,
-          registrationId: manuscriptId.trim(),
+          registrationId: trimmedManuscriptId,
           returnPath: "/for-authors/publication-fees",
         });
         window.location.href = order.approveUrl;
@@ -108,7 +189,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
 
       const order = await requestCreatePaymentOrder({
         planId: selectedPlanId,
-        registrationId: manuscriptId.trim(),
+        registrationId: trimmedManuscriptId,
       });
 
       await openRazorpayCheckout({
@@ -120,14 +201,17 @@ function ManuscriptPaymentCheckoutSignedIn() {
         },
         notes: {
           planId: selectedPlanId,
-          manuscriptId: manuscriptId.trim(),
+          manuscriptId: trimmedManuscriptId,
           purpose: "manuscript_publication",
         },
-        onSuccess: async () => {
+        onSuccess: async (result) => {
           setMessage(
-            "Payment successful. Please keep this reference and share it with the editorial office together with your Manuscript ID."
+            result.alreadyPaid
+              ? `Payment already recorded. Razorpay payment ID: ${result.razorpay_payment_id}`
+              : `Payment successful. Razorpay payment ID: ${result.razorpay_payment_id}. Please share this reference with the editorial office together with your Manuscript ID.`,
           );
           setBusy(false);
+          await reloadHistory();
         },
         onDismiss: () => {
           setBusy(false);
@@ -142,14 +226,11 @@ function ManuscriptPaymentCheckoutSignedIn() {
       setError(
         err instanceof Error
           ? formatCheckoutPaymentError(err.message)
-          : "Could not start payment."
+          : "Could not start payment.",
       );
       setBusy(false);
     }
   }
-
-  const selectedPlan = getPaymentPlan(selectedPlanId);
-  const checkout = selectedPlan ? getPaymentCheckoutBreakdown(selectedPlanId) : null;
 
   if (!user || !selectedPlan || !checkout) {
     return null;
@@ -168,7 +249,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
           </legend>
 
           <div className="space-y-2">
-            {manuscriptPlanOrder.map((planId) => {
+            {MANUSCRIPT_PLAN_IDS.map((planId) => {
               const plan = getPaymentPlan(planId);
               const breakdown = plan ? getPaymentCheckoutBreakdown(planId) : null;
 
@@ -188,7 +269,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
                     name="plan"
                     value={planId}
                     checked={selectedPlanId === planId}
-                    onChange={() => setSelectedPlanId(planId)}
+                    onChange={() => selectPlan(planId)}
                     className="mt-1"
                   />
                   <span>
@@ -232,7 +313,9 @@ function ManuscriptPaymentCheckoutSignedIn() {
             </label>
 
             <label
-              className={`flex cursor-pointer items-start gap-3 rounded border px-3 py-3 text-sm ${
+              className={`flex items-start gap-3 rounded border px-3 py-3 text-sm ${
+                payPalAvailable ? "cursor-pointer" : "cursor-not-allowed opacity-60"
+              } ${
                 paymentMethod === "paypal"
                   ? "border-[var(--journal-accent)] bg-sky-50"
                   : "border-[var(--journal-border)] bg-white"
@@ -244,9 +327,17 @@ function ManuscriptPaymentCheckoutSignedIn() {
                 value="paypal"
                 checked={paymentMethod === "paypal"}
                 onChange={() => setPaymentMethod("paypal")}
+                disabled={!payPalAvailable}
                 className="mt-1"
               />
-              <span className="font-medium text-[var(--journal-heading)]">PayPal</span>
+              <span>
+                <span className="font-medium text-[var(--journal-heading)]">PayPal</span>
+                {!payPalAvailable ? (
+                  <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
+                    Available for USD (international) categories only.
+                  </span>
+                ) : null}
+              </span>
             </label>
           </div>
         </fieldset>
@@ -349,7 +440,18 @@ function ManuscriptPaymentCheckoutSignedIn() {
                 className="rounded border border-[var(--journal-border)] px-3 py-2"
               >
                 <p className="font-medium text-[var(--journal-heading)]">
-                  {payment.displayAmount} · {payment.status}
+                  {payment.displayAmount} ·{" "}
+                  {PAYMENT_STATUS_LABELS[payment.status] ?? payment.status}
+                </p>
+                <p className="mt-0.5 text-xs text-[var(--journal-muted)]">
+                  {getPaymentPlan(payment.planId)?.label ?? payment.planId}
+                  {payment.registrationId ? ` · Manuscript ID: ${payment.registrationId}` : ""}
+                  {payment.gateway ? ` · ${payment.gateway === "paypal" ? "PayPal" : "Razorpay"}` : ""}
+                  {payment.paidAt
+                    ? ` · Paid ${new Date(payment.paidAt).toLocaleDateString()}`
+                    : payment.createdAt
+                      ? ` · Started ${new Date(payment.createdAt).toLocaleDateString()}`
+                      : ""}
                 </p>
               </li>
             ))}
