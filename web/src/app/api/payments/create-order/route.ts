@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { createPaymentIntent } from "@/lib/payments/payment-store";
 import {
+  describePaymentPlan,
   getPaymentCheckoutBreakdown,
   getPaymentPlan,
   isFeeWaiverPlan,
@@ -138,13 +139,7 @@ export async function POST(request: Request) {
         email: user.email,
       },
       name: siteConfig.name,
-      description: isGatewayTestPlan(plan.id)
-        ? "Payment gateway test — USD 5"
-        : paymentPurpose === "tech_research_submission"
-          ? `${plan.label} — Tech Research submission fee`
-          : checkout.gstRate
-            ? `${plan.label} — ${checkout.displaySummary}`
-            : `${plan.label} — Conference registration`,
+      description: describePaymentPlan(plan, checkout),
     });
   } catch (error) {
     console.error("[payments/create-order]", error);

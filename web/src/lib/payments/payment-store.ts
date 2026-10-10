@@ -1,6 +1,6 @@
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getAdminFirestore } from "@/lib/firebase-admin";
-import type { PaymentPlanId } from "@/lib/payments/plans";
+import type { PaymentPlanId, PaymentPurpose } from "@/lib/payments/plans";
 
 export type PaymentStatus = "created" | "paid" | "failed" | "refunded";
 export type PaymentGateway = "razorpay" | "paypal";
@@ -9,7 +9,7 @@ export type PaymentRecord = {
   id: string;
   userId: string;
   userEmail: string;
-  purpose: "conference_registration" | "tech_research_submission" | "gateway_test";
+  purpose: PaymentPurpose;
   gateway: PaymentGateway;
   planId: PaymentPlanId;
   currency: "USD" | "INR";
@@ -27,6 +27,20 @@ export type PaymentRecord = {
   createdAt: string | null;
   paidAt: string | null;
 };
+
+const PAYMENT_PURPOSES: PaymentPurpose[] = [
+  "conference_registration",
+  "tech_research_submission",
+  "manuscript_publication",
+  "gateway_test",
+];
+
+/** Stored purpose; older records without one were conference registrations. */
+function readPurpose(value: unknown): PaymentPurpose {
+  return PAYMENT_PURPOSES.includes(value as PaymentPurpose)
+    ? (value as PaymentPurpose)
+    : "conference_registration";
+}
 
 function toIso(value: unknown): string | null {
   if (!value) return null;
@@ -97,7 +111,7 @@ export async function getPaymentByRazorpayOrderId(
     id: doc.id,
     userId: String(data.userId ?? ""),
     userEmail: String(data.userEmail ?? ""),
-    purpose: "conference_registration" as const,
+    purpose: readPurpose(data.purpose),
     gateway: (data.gateway ?? "razorpay") as PaymentGateway,
     planId: data.planId as PaymentPlanId,
     currency: data.currency as "USD" | "INR",
@@ -165,7 +179,7 @@ export async function getPaymentByPaypalOrderId(
     id: doc.id,
     userId: String(data.userId ?? ""),
     userEmail: String(data.userEmail ?? ""),
-    purpose: "conference_registration" as const,
+    purpose: readPurpose(data.purpose),
     gateway: (data.gateway ?? "paypal") as PaymentGateway,
     planId: data.planId as PaymentPlanId,
     currency: data.currency as "USD" | "INR",
@@ -229,7 +243,7 @@ export async function listPaymentsForUser(userId: string): Promise<PaymentRecord
         id: doc.id,
         userId: String(data.userId ?? ""),
         userEmail: String(data.userEmail ?? ""),
-        purpose: "conference_registration" as const,
+        purpose: readPurpose(data.purpose),
         gateway: (data.gateway ?? "razorpay") as PaymentGateway,
         planId: data.planId as PaymentPlanId,
         currency: data.currency as "USD" | "INR",

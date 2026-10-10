@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { createPaymentIntent } from "@/lib/payments/payment-store";
-import { createPayPalOrder, isPayPalConfigured } from "@/lib/payments/paypal";
 import {
+  createPayPalOrder,
+  isPayPalConfigured,
+  type PayPalReturnPath,
+} from "@/lib/payments/paypal";
+import {
+  describePaymentPlan,
   getPaymentCheckoutBreakdown,
   getPaymentPlan,
   isFeeWaiverPlan,
-  isGatewayTestPlan,
+  isManuscriptPlan,
   resolvePaymentPurpose,
   type PaymentPlanId,
 } from "@/lib/payments/plans";
@@ -18,7 +23,7 @@ export const runtime = "nodejs";
 type Body = {
   planId?: PaymentPlanId;
   registrationId?: string | null;
-  returnPath?: "/conferences/payment" | "/payments/test" | "/tech-research/apply";
+  returnPath?: PayPalReturnPath;
 };
 
 export async function POST(request: Request) {
@@ -56,14 +61,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid PayPal payment plan." }, { status: 400 });
     }
 
+    // PayPal cannot charge INR for this account; INR plans use Razorpay.
+    if (plan.currency !== "USD") {
+      return NextResponse.json(
+        {
+          error:
+            "PayPal supports USD payments only. Please choose Razorpay for INR (Indian) fee categories.",
+        },
+        { status: 400 }
+      );
+    }
+
     const paymentPurpose = resolvePaymentPurpose(plan.id);
     const checkout = getPaymentCheckoutBreakdown(plan.id);
     if (!checkout) {
       return NextResponse.json({ error: "Invalid PayPal payment plan." }, { status: 400 });
     }
 
-    const returnPath =
-      body.returnPath === "/payments/test"
+    const returnPath: PayPalReturnPath = isManuscriptPlan(plan.id)
+      ? "/for-authors/publication-fees"
+      : body.returnPath === "/payments/test"
         ? "/payments/test"
         : body.returnPath === "/tech-research/apply"
           ? "/tech-research/apply"
@@ -84,14 +101,8 @@ export async function POST(request: Request) {
     const order = await createPayPalOrder({
       planId: plan.id,
       label: plan.label,
-      description: isGatewayTestPlan(plan.id)
-        ? "Payment gateway test - USD 5"
-        : paymentPurpose === "tech_research_submission"
-          ? `${plan.label} - Tech Research submission fee`
-          : checkout.gstRate
-            ? `${plan.label} - ${checkout.displaySummary}`
-            : `${plan.label} - Conference registration`,
-      currency: plan.currency,
+      description: describePaymentPlan(plan, checkout, " - "),
+      currency: "USD",
       amountMajor: checkout.totalAmountMajor,
       userId: user.uid,
       userEmail: user.email,

@@ -18,6 +18,11 @@ export type PaymentPlan = {
   currency: PaymentCurrency;
   amountMajor: number;
   amountMinor: number;
+  /**
+   * GST-inclusive total in minor units, when the published total is fixed
+   * (so rounding never charges a paisa more or less than the fee table).
+   */
+  totalAmountMinor?: number;
   displayAmount: string;
   checkoutHint: string;
 };
@@ -63,6 +68,7 @@ export const MANUSCRIPT_PAYMENT_PLANS: Record<
     currency: "INR",
     amountMajor: 9995,
     amountMinor: 999500,
+    totalAmountMinor: 1179410,
     displayAmount: "₹9,995",
     checkoutHint: "Includes GST @ 18%. Total payable: ₹11,794.10",
   },
@@ -73,6 +79,7 @@ export const MANUSCRIPT_PAYMENT_PLANS: Record<
     currency: "INR",
     amountMajor: 12288.14,
     amountMinor: 1228814,
+    totalAmountMinor: 1450000,
     displayAmount: "₹12,288.14",
     checkoutHint: "Includes GST @ 18%. Total payable: ₹14,500",
   },
@@ -123,9 +130,11 @@ function formatUsdMajor(amount: number): string {
 
 function formatInrMajor(amount: number): string {
   const rounded = Math.round(amount * 100) / 100;
-  return `₹${Number(rounded).toLocaleString("en-IN", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+  // Whole rupees without decimals; otherwise always two (₹1,799.10, not ₹1,799.1).
+  const fractionDigits = Number.isInteger(rounded) ? 0 : 2;
+  return `₹${rounded.toLocaleString("en-IN", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   })}`;
 }
 
@@ -140,14 +149,15 @@ export function getPaymentCheckoutBreakdown(
     plan.id === "manuscript_national_fasttrack_inr";
 
   if (isIndianManuscript) {
-    const baseAmountMajor = plan.amountMajor;
-    const gstAmountMajor =
-      Math.round(baseAmountMajor * NATIONAL_CONFERENCE_GST_RATE * 100) / 100;
-    const totalAmountMajor =
-      Math.round((baseAmountMajor + gstAmountMajor) * 100) / 100;
-    const baseAmountMinor = Math.round(baseAmountMajor * 100);
-    const gstAmountMinor = Math.round(gstAmountMajor * 100);
-    const totalAmountMinor = baseAmountMinor + gstAmountMinor;
+    // Work in paise so the charged total matches the published fee table exactly.
+    const baseAmountMinor = plan.amountMinor;
+    const totalAmountMinor =
+      plan.totalAmountMinor ??
+      baseAmountMinor + Math.round(baseAmountMinor * NATIONAL_CONFERENCE_GST_RATE);
+    const gstAmountMinor = totalAmountMinor - baseAmountMinor;
+    const baseAmountMajor = baseAmountMinor / 100;
+    const gstAmountMajor = gstAmountMinor / 100;
+    const totalAmountMajor = totalAmountMinor / 100;
 
     return {
       planId: plan.id,
@@ -254,6 +264,23 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
   },
 };
 
+export type ManuscriptPaymentPlanId = keyof typeof MANUSCRIPT_PAYMENT_PLANS;
+export type ConferencePaymentPlanId = keyof typeof CONFERENCE_PAYMENT_PLANS;
+
+/** Manuscript APC plans in display order. */
+export const MANUSCRIPT_PLAN_IDS: ManuscriptPaymentPlanId[] = [
+  "manuscript_national_normal_inr",
+  "manuscript_national_fasttrack_inr",
+  "manuscript_international_standard_usd",
+  "manuscript_international_fasttrack_usd",
+];
+
+export type PaymentPurpose =
+  | "conference_registration"
+  | "tech_research_submission"
+  | "manuscript_publication"
+  | "gateway_test";
+
 export const LEGACY_PLAN_ALIASES: Record<string, PaymentPlanId> = {
   indian_inr: "national_usd",
   national_inr: "national_usd",
@@ -282,12 +309,41 @@ export function isFeeWaiverPlan(planId: string | null | undefined): boolean {
   return planId === "fee_waiver_usd";
 }
 
+export function isManuscriptPlan(
+  planId: string | null | undefined,
+): planId is ManuscriptPaymentPlanId {
+  return (
+    typeof planId === "string" &&
+    Object.prototype.hasOwnProperty.call(MANUSCRIPT_PAYMENT_PLANS, planId)
+  );
+}
+
 export function resolvePaymentPurpose(
   planId: PaymentPlanId | string | null | undefined,
-): "conference_registration" | "tech_research_submission" | "gateway_test" {
+): PaymentPurpose {
   if (isGatewayTestPlan(planId)) return "gateway_test";
   if (isTechResearchPlan(planId)) return "tech_research_submission";
+  if (isManuscriptPlan(planId)) return "manuscript_publication";
   return "conference_registration";
+}
+
+/** Order description shown in the Razorpay / PayPal checkout and receipts. */
+export function describePaymentPlan(
+  plan: PaymentPlan,
+  checkout: PaymentCheckoutBreakdown,
+  separator = " — ",
+): string {
+  if (isGatewayTestPlan(plan.id)) return `Payment gateway test${separator}USD 5`;
+  if (isTechResearchPlan(plan.id)) {
+    return `${plan.label}${separator}Tech Research submission fee`;
+  }
+  if (isManuscriptPlan(plan.id)) {
+    return checkout.gstRate
+      ? `${plan.label}${separator}Manuscript publication fee (${checkout.displaySummary})`
+      : `${plan.label}${separator}Manuscript publication fee`;
+  }
+  if (checkout.gstRate) return `${plan.label}${separator}${checkout.displaySummary}`;
+  return `${plan.label}${separator}Conference registration`;
 }
 
 export function getPaymentPlan(
@@ -305,8 +361,8 @@ export function getPaymentPlan(
     return TECH_RESEARCH_PAYMENT_PLAN;
   }
 
-  if (resolved in MANUSCRIPT_PAYMENT_PLANS) {
-    return MANUSCRIPT_PAYMENT_PLANS[resolved as keyof typeof MANUSCRIPT_PAYMENT_PLANS];
+  if (isManuscriptPlan(resolved)) {
+    return MANUSCRIPT_PAYMENT_PLANS[resolved];
   }
 
   if (
