@@ -34,6 +34,91 @@ export default function BookOfAbstractsPage() {
                 {edition.publishedLabel ? (
                   <p className="mt-2 text-[var(--journal-muted)]">{edition.publishedLabel}</p>
                 ) : null}
+                {edition.stats?.length ? (
+                  <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {edition.stats.map((stat) => (
+                      <div
+                        key={stat.label}
+                        className="rounded border border-[var(--journal-border)] bg-zinc-50 px-4 py-3"
+                      >
+                        <dt className="text-sm text-[var(--journal-muted)]">{stat.label}</dt>
+                        <dd className="mt-0.5 font-serif text-lg font-semibold text-[var(--journal-heading)]">
+                          {stat.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
+                {edition.selectionProcess?.length ? (
+                  <section className="mt-6">
+                    <h3 className="font-serif text-base font-semibold text-[var(--journal-heading)]">
+                      Abstract Selection Process
+                    </h3>
+                    {edition.selectionProcess.map((paragraph) => (
+                      <p
+                        key={paragraph}
+                        className="mt-2 leading-relaxed text-[var(--journal-body)]"
+                      >
+                        {paragraph}
+                      </p>
+                    ))}
+                  </section>
+                ) : null}
+                {edition.tracksIntro ? (
+                  <section className="mt-6">
+                    <h3 className="font-serif text-base font-semibold text-[var(--journal-heading)]">
+                      Conference Tracks
+                    </h3>
+                    <p className="mt-2 leading-relaxed text-[var(--journal-body)]">
+                      {edition.tracksIntro}
+                      {edition.tracks?.length ? ":" : "."}
+                    </p>
+                    {edition.tracks?.length ? (
+                      <div className="mt-3 overflow-x-auto rounded border border-[var(--journal-border)]">
+                        <table className="w-full text-left text-sm">
+                          <thead className="bg-zinc-50 text-[var(--journal-heading)]">
+                            <tr>
+                              <th scope="col" className="px-4 py-2.5 font-semibold">
+                                Track
+                              </th>
+                              <th scope="col" className="px-4 py-2.5 text-right font-semibold">
+                                Accepted abstracts
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-[var(--journal-body)]">
+                            {edition.tracks.map((track) => (
+                              <tr
+                                key={track.name}
+                                className="border-t border-[var(--journal-border)]"
+                              >
+                                <td className="px-4 py-2.5">{track.name}</td>
+                                <td className="px-4 py-2.5 text-right tabular-nums">
+                                  {track.accepted}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot className="font-semibold text-[var(--journal-heading)]">
+                            <tr className="border-t border-[var(--journal-border)] bg-zinc-50">
+                              <th scope="row" className="px-4 py-2.5 text-left">
+                                Total
+                              </th>
+                              <td className="px-4 py-2.5 text-right tabular-nums">
+                                {edition.tracks.reduce((sum, track) => sum + track.accepted, 0)}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    ) : null}
+                  </section>
+                ) : null}
+                {edition.note ? (
+                  <p className="mt-4 text-sm leading-relaxed text-[var(--journal-body)]">
+                    {edition.note}
+                  </p>
+                ) : null}
                 {edition.pdfUrl ? (
                   <a
                     href={edition.pdfUrl}

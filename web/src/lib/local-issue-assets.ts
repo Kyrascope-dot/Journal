@@ -351,6 +351,24 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
       "Assessing Public Awareness and Perceived Effectiveness of Sustainability Initiatives in Indian Railways",
     authors: ["Vihana Gaidhani"],
   },
+  {
+    order: 14,
+    file: "Armaan_Sehgal.pdf",
+    pageStart: "",
+    pageEnd: "",
+    title:
+      "Research Note Short Communication RemitDubai – An Easier way for Migrant Laborers in the UAE to Compare Exchange Rates",
+    authors: ["Armaan Sehgal"],
+  },
+  {
+    order: 15,
+    file: "Navya_Kedia.pdf",
+    pageStart: "",
+    pageEnd: "",
+    title:
+      "An analysis of the effectiveness of the Hong Kong Dollar (HKD) peg to the US Dollar (USD) during crisis periods",
+    authors: ["Navya Kedia"],
+  },
 ];
 
 /* ───────────────────── All issues — NEWEST FIRST ───────────────────── */
