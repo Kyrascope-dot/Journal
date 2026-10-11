@@ -185,7 +185,7 @@ export function CountrySelect({
   );
 }
 
-/** National (India) / International — asked first. */
+/** National author (India) / International author — asked first. */
 export function JournalAuthorRegionField({ value, onChange }: FieldProps) {
   return (
     <RadioGroup
@@ -326,21 +326,6 @@ export function JournalDeclarationFields({ value, onChange }: FieldProps) {
         </p>
       </div>
       <div>
-        <label className="flex cursor-pointer items-start gap-2 text-sm text-[var(--journal-body)]">
-          <input
-            type="checkbox"
-            required
-            checked={value.notUnderConsiderationElsewhere}
-            onChange={(e) => onChange({ notUnderConsiderationElsewhere: e.target.checked })}
-            className="mt-0.5 rounded border-[var(--journal-border)] text-[var(--journal-accent)] focus:ring-[var(--journal-accent)]"
-          />
-          <span>
-            I confirm that this manuscript is not under consideration at another journal.{" "}
-            <Required />
-          </span>
-        </label>
-      </div>
-      <div>
         <label className={labelClass}>
           Total word count <Required />
         </label>
@@ -394,7 +379,7 @@ export function JournalDeclarationFields({ value, onChange }: FieldProps) {
       />
       <RadioGroup
         name="journalFeeWaiver"
-        legend="Are you applying for a fee waiver after acceptance of the manuscript?"
+        legend="Will you be considering to apply for a fee waiver in case your manuscript gets accepted?"
         hint="Note: meant for authors with no funding for research / lower income group only."
         options={YES_NO_OPTIONS}
         value={value.feeWaiverRequested}
@@ -417,6 +402,25 @@ export function JournalDeclarationFields({ value, onChange }: FieldProps) {
         />
       </div>
     </>
+  );
+}
+
+/** Final confirmation — shown at the very end of the form, just above the submit button. */
+export function JournalConfirmationField({ value, onChange }: FieldProps) {
+  return (
+    <label className="flex cursor-pointer items-start gap-2 text-sm text-[var(--journal-body)]">
+      <input
+        type="checkbox"
+        required
+        checked={value.notUnderConsiderationElsewhere}
+        onChange={(e) => onChange({ notUnderConsiderationElsewhere: e.target.checked })}
+        className="mt-0.5 rounded border-[var(--journal-border)] text-[var(--journal-accent)] focus:ring-[var(--journal-accent)]"
+      />
+      <span>
+        I confirm that this manuscript is not under consideration at another journal.{" "}
+        <Required />
+      </span>
+    </label>
   );
 }
 

@@ -30,7 +30,7 @@ export const JOURNAL_AUTHOR_REGION_OPTIONS: {
   value: JournalAuthorRegion;
   label: string;
 }[] = [
-  { value: "national", label: "National (India) author" },
+  { value: "national", label: "National author (India)" },
   { value: "international", label: "International author" },
 ];
 
@@ -54,8 +54,8 @@ export const JOURNAL_FUNDING_OPTIONS: {
 ];
 
 export const JOURNAL_AUTHOR_REGION_LABELS: Record<JournalAuthorRegion, string> = {
-  national: "National (India)",
-  international: "International",
+  national: "National author (India)",
+  international: "International author",
 };
 
 export const JOURNAL_REVIEW_ROUTE_LABELS: Record<JournalReviewRoute, string> = {
@@ -129,7 +129,7 @@ export function validateJournalSubmissionDetails(
 
   const authorRegion = raw.authorRegion;
   if (authorRegion !== "national" && authorRegion !== "international") {
-    return fail("Please select whether you are a National (India) or International author.");
+    return fail("Please select whether you are a National author (India) or an International author.");
   }
 
   const authorCountry =
@@ -139,7 +139,7 @@ export function validateJournalSubmissionDetails(
   }
   if (authorRegion === "international" && authorCountry === HOME_COUNTRY) {
     return fail(
-      "International authors must select a country other than India. Choose National (India) if you are based in India.",
+      "International authors must select a country other than India. Choose National author (India) if you are based in India.",
     );
   }
 
@@ -214,7 +214,9 @@ export function validateJournalSubmissionDetails(
   }
 
   if (typeof raw.feeWaiverRequested !== "boolean") {
-    return fail("Please state whether you are applying for a fee waiver.");
+    return fail(
+      "Please state whether you will be considering to apply for a fee waiver if your manuscript gets accepted.",
+    );
   }
 
   const homeAddress = text(raw.homeAddress, 1000);
@@ -322,7 +324,7 @@ export function journalDetailRows(
     { label: "Funding declaration", value: JOURNAL_FUNDING_LABELS[details.fundingStatus] },
     { label: "Supplementary files", value: yesNo(details.supplementaryFiles) },
     {
-      label: "Applying for fee waiver after acceptance",
+      label: "Considering a fee waiver if the manuscript is accepted",
       value: yesNo(details.feeWaiverRequested),
     },
   ];
