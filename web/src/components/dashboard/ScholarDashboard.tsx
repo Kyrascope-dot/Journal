@@ -39,6 +39,7 @@ import {
   EMPTY_JOURNAL_FORM,
   JournalAuthorCountryField,
   JournalAuthorRegionField,
+  JournalConfirmationField,
   JournalDeclarationFields,
   JournalManuscriptFields,
   JournalSubmissionDetailsList,
@@ -837,6 +838,9 @@ export function ScholarDashboard({
                   </p>
                   <ManuscriptEmailInstructions className="mt-2 text-[var(--journal-muted)]" />
                 </div>
+              )}
+              {submissionPurpose === "journal" && (
+                <JournalConfirmationField value={journalForm} onChange={updateJournalForm} />
               )}
               {submitMsg && !submitMsg.includes("received") ? (
                 <p
