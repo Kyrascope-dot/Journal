@@ -21,10 +21,10 @@ export type BookOfAbstractsEdition = {
 export const bookOfAbstractsEditions: BookOfAbstractsEdition[] = [
   {
     id: "gcr-q3-2026",
-    title: "GCR International Multidisciplinary Conference 2026 - Book of Abstracts",
+    title:
+      "GCR International Multidisciplinary Conference 2026 - Book of Abstracts",
     conferenceSlug: "gcr-q3-2026",
-    pdfUrl:
-      "/GCR-International-Multidisciplinary-Conference-2026-Book-of-Abstracts.pdf",
+    pdfUrl: "/GCR_Abstract.pdf",
     publishedLabel:
       "Published after abstract acceptance and conference registration",
     stats: [
@@ -41,7 +41,10 @@ export const bookOfAbstractsEditions: BookOfAbstractsEdition[] = [
       "Each accepted abstract was assigned to one of five thematic tracks",
     tracks: [
       { name: "Track 1: Economics, Finance & Management", accepted: 31 },
-      { name: "Track 2: Public Policy, Governance & Development", accepted: 12 },
+      {
+        name: "Track 2: Public Policy, Governance & Development",
+        accepted: 12,
+      },
       { name: "Track 3: Education, Psychology & Social Sciences", accepted: 7 },
       { name: "Track 4: Humanities, Culture & Communication", accepted: 3 },
       { name: "Track 5: STEM", accepted: 8 },
