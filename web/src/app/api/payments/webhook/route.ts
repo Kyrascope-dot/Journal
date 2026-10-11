@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
+import { notifyApcPaymentCompleted } from "@/lib/payments/apc-payment-notification";
 import { markPaymentPaid } from "@/lib/payments/payment-store";
 import { verifyWebhookSignature } from "@/lib/payments/razorpay";
 
@@ -54,11 +55,12 @@ export async function POST(request: Request) {
       orderId &&
       paymentId
     ) {
-      await markPaymentPaid({
+      const result = await markPaymentPaid({
         razorpayOrderId: orderId,
         razorpayPaymentId: paymentId,
         source: "webhook",
       });
+      if (result) await notifyApcPaymentCompleted(result.paymentId);
     }
 
     return NextResponse.json({ ok: true });

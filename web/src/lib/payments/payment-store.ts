@@ -66,6 +66,8 @@ export async function createPaymentIntent(input: {
   razorpayOrderId?: string;
   paypalOrderId?: string;
   registrationId?: string | null;
+  /** Manuscript APC only: the submitted APC billing form this payment is for. */
+  billingFormId?: string | null;
   notes?: Record<string, string>;
 }): Promise<string> {
   const db = getAdminFirestore();
@@ -87,6 +89,7 @@ export async function createPaymentIntent(input: {
     paypalOrderId: input.paypalOrderId ?? null,
     paypalCaptureId: null,
     registrationId: input.registrationId ?? null,
+    billingFormId: input.billingFormId ?? null,
     notes: input.notes ?? {},
     createdAt: FieldValue.serverTimestamp(),
     paidAt: null,

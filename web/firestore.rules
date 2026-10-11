@@ -237,5 +237,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // APC Payment and Billing Details Forms — Admin SDK only (billing / tax details).
+    match /apcBillingForms/{formId} {
+      allow read, write: if false;
+    }
+
   }
 }

@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { createPaymentIntent } from "@/lib/payments/payment-store";
 import {
+  ApcBillingFormError,
+  linkPaymentToApcBillingForm,
+  requireApcBillingFormForPayment,
+} from "@/lib/payments/apc-billing-store";
+import {
   describePaymentPlan,
   getPaymentCheckoutBreakdown,
   getPaymentPlan,
   isFeeWaiverPlan,
   isGatewayTestPlan,
+  isManuscriptPlan,
   resolvePaymentPurpose,
   type PaymentPlanId,
 } from "@/lib/payments/plans";
@@ -26,6 +32,7 @@ export const runtime = "nodejs";
 type Body = {
   planId?: PaymentPlanId;
   registrationId?: string | null;
+  billingFormId?: string | null;
 };
 
 export async function POST(request: Request) {
@@ -73,8 +80,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payment plan." }, { status: 400 });
     }
 
-    const registrationId =
-      typeof body.registrationId === "string" && body.registrationId.trim()
+    // Manuscript APC payments must be based on a submitted APC billing form.
+    let billingFormId: string | null = null;
+    let manuscriptId: string | null = null;
+    if (isManuscriptPlan(plan.id)) {
+      try {
+        const billingForm = await requireApcBillingFormForPayment({
+          billingFormId: body.billingFormId,
+          userId: user.uid,
+          planId: plan.id,
+        });
+        billingFormId = billingForm.id;
+        manuscriptId = billingForm.details.manuscriptId;
+      } catch (error) {
+        if (error instanceof ApcBillingFormError) {
+          return NextResponse.json({ error: error.message }, { status: 400 });
+        }
+        throw error;
+      }
+    }
+
+    const registrationId = billingFormId
+      ? manuscriptId
+      : typeof body.registrationId === "string" && body.registrationId.trim()
         ? body.registrationId.trim().slice(0, 64)
         : null;
 
@@ -117,6 +145,7 @@ export async function POST(request: Request) {
       displayAmount: checkout.displayTotalAmount,
       razorpayOrderId: order.id,
       registrationId,
+      billingFormId,
       notes: {
         purpose: paymentPurpose,
         planId: plan.id,
@@ -125,6 +154,10 @@ export async function POST(request: Request) {
         gstAmountUsd: checkout.gstAmountMajor ? String(checkout.gstAmountMajor) : "",
       },
     });
+
+    if (billingFormId) {
+      await linkPaymentToApcBillingForm(billingFormId, paymentDocId);
+    }
 
     return NextResponse.json({
       ok: true,

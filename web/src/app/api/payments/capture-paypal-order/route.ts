@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
+import { notifyApcPaymentCompleted } from "@/lib/payments/apc-payment-notification";
 import {
   getPaymentByPaypalOrderId,
   markPaypalPaymentPaid,
@@ -91,6 +92,8 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    await notifyApcPaymentCompleted(result.paymentId);
 
     return NextResponse.json({
       ok: true,
