@@ -38,9 +38,9 @@ export const defaultIndexingRecords: IndexingRecord[] = [
   {
     id: "google-scholar",
     serviceName: "Google Scholar",
-    status: "Under technical preparation",
+    status: "Indexed",
     notes:
-      "Google Scholar discoverability is currently being developed through article-level metadata, publicly accessible full-text content, and search-engine optimisation.",
+      "Global Confluence Review is indexed in Google Scholar. Published articles are discoverable through Google Scholar search.",
   },
   {
     id: "crossref",

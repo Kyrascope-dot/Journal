@@ -8,6 +8,7 @@ import { STATUS_LABELS, SUBMISSION_PURPOSE_LABELS, formatConferenceSubmissionMet
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
+import { JournalSubmissionDetailsList } from "@/components/dashboard/JournalSubmissionFields";
 
 function formatDate(value: Submission["submittedAt"]): string {
   if (!value) return "—";
@@ -344,6 +345,13 @@ export function EditorDashboard({ profile }: { profile: UserProfile }) {
                       <dd>{sub.coAuthors.length ? sub.coAuthors.join(", ") : "None"}</dd>
                     </div>
                   </dl>
+                  {sub.journalDetails ? (
+                    <JournalSubmissionDetailsList
+                      details={sub.journalDetails}
+                      includeAddress={false}
+                      className="mb-5 border-b border-[var(--journal-border)] pb-5"
+                    />
+                  ) : null}
                   <p className="text-sm text-[var(--journal-body)]">
                     <span className="font-medium">Abstract:</span> {sub.abstract}
                   </p>

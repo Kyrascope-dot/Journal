@@ -6,6 +6,10 @@ import type {
   SubmissionPurpose,
   SubmissionStatus,
 } from "@/types/dashboard";
+import {
+  validateJournalSubmissionDetails,
+  type JournalSubmissionDetails,
+} from "@/types/journal-submission";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +25,7 @@ type Body = {
   education?: EducationLevel | null;
   authorName?: string;
   coAuthors?: unknown;
+  journalDetails?: unknown;
 };
 
 function cleanString(value: unknown, maxLength: number): string {
@@ -123,6 +128,15 @@ export async function POST(request: Request) {
       return jsonError("Author name is required.", 400);
     }
 
+    let journalDetails: JournalSubmissionDetails | null = null;
+    if (!isConference) {
+      const validation = validateJournalSubmissionDetails(body.journalDetails, coAuthors);
+      if (!validation.ok) {
+        return jsonError(validation.error, 400);
+      }
+      journalDetails = validation.details;
+    }
+
     const now = Timestamp.now();
     const year = now.toDate().getUTCFullYear();
     const prefix = isConference ? "GCRC" : "GCRJ";
@@ -172,6 +186,7 @@ export async function POST(request: Request) {
         conferenceQuarter: isConference ? body.conferenceQuarter : null,
         conferenceAwardIntent: isConference ? body.conferenceAwardIntent : null,
         education: isConference ? body.education : null,
+        journalDetails,
         authorId: user.uid,
         authorName,
         coAuthors,

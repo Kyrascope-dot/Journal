@@ -74,43 +74,13 @@ export default function BookOfAbstractsPage() {
                       {edition.tracks?.length ? ":" : "."}
                     </p>
                     {edition.tracks?.length ? (
-                      <div className="mt-3 overflow-x-auto rounded border border-[var(--journal-border)]">
-                        <table className="w-full text-left text-sm">
-                          <thead className="bg-zinc-50 text-[var(--journal-heading)]">
-                            <tr>
-                              <th scope="col" className="px-4 py-2.5 font-semibold">
-                                Track
-                              </th>
-                              <th scope="col" className="px-4 py-2.5 text-right font-semibold">
-                                Accepted abstracts
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="text-[var(--journal-body)]">
-                            {edition.tracks.map((track) => (
-                              <tr
-                                key={track.name}
-                                className="border-t border-[var(--journal-border)]"
-                              >
-                                <td className="px-4 py-2.5">{track.name}</td>
-                                <td className="px-4 py-2.5 text-right tabular-nums">
-                                  {track.accepted}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                          <tfoot className="font-semibold text-[var(--journal-heading)]">
-                            <tr className="border-t border-[var(--journal-border)] bg-zinc-50">
-                              <th scope="row" className="px-4 py-2.5 text-left">
-                                Total
-                              </th>
-                              <td className="px-4 py-2.5 text-right tabular-nums">
-                                {edition.tracks.reduce((sum, track) => sum + track.accepted, 0)}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
+                      <ul className="mt-3 divide-y divide-[var(--journal-border)] rounded border border-[var(--journal-border)] text-sm text-[var(--journal-body)]">
+                        {edition.tracks.map((track) => (
+                          <li key={track} className="px-4 py-2.5">
+                            {track}
+                          </li>
+                        ))}
+                      </ul>
                     ) : null}
                   </section>
                 ) : null}

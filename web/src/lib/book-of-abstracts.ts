@@ -14,8 +14,8 @@ export type BookOfAbstractsEdition = {
   selectionProcess?: string[];
   /** Sentence introducing the conference tracks. */
   tracksIntro?: string;
-  /** Tracks with their accepted-abstract counts, shown as a table under the intro. */
-  tracks?: { name: string; accepted: number }[];
+  /** Track names, listed under the intro. */
+  tracks?: string[];
 };
 
 export const bookOfAbstractsEditions: BookOfAbstractsEdition[] = [
@@ -40,14 +40,11 @@ export const bookOfAbstractsEditions: BookOfAbstractsEdition[] = [
     tracksIntro:
       "Each accepted abstract was assigned to one of five thematic tracks",
     tracks: [
-      { name: "Track 1: Economics, Finance & Management", accepted: 31 },
-      {
-        name: "Track 2: Public Policy, Governance & Development",
-        accepted: 12,
-      },
-      { name: "Track 3: Education, Psychology & Social Sciences", accepted: 7 },
-      { name: "Track 4: Humanities, Culture & Communication", accepted: 3 },
-      { name: "Track 5: STEM", accepted: 8 },
+      "Track 1: Economics, Finance & Management",
+      "Track 2: Public Policy, Governance & Development",
+      "Track 3: Education, Psychology & Social Sciences",
+      "Track 4: Humanities, Culture & Communication",
+      "Track 5: STEM",
     ],
     note: "Acceptance of an abstract for presentation does not guarantee publication of a full manuscript in Global Confluence Review. Full papers go through the journal’s separate peer-review process.",
   },
