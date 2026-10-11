@@ -61,9 +61,36 @@ async function authFetch(path: string, init?: RequestInit) {
   });
 }
 
+export type SubmitApcBillingFormResponse = {
+  ok: boolean;
+  billingFormId: string;
+  planId: PaymentPlanId;
+  currency: "USD" | "INR";
+  totalAmountMinor: number;
+  displayTotalAmount: string;
+  error?: string;
+};
+
+/** Saves the APC Payment and Billing Details Form; required before a manuscript payment. */
+export async function requestSubmitApcBillingForm(input: {
+  planId: PaymentPlanId;
+  details: Record<string, unknown>;
+}): Promise<SubmitApcBillingFormResponse> {
+  const response = await authFetch("/api/payments/apc-billing", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  const data = (await response.json()) as SubmitApcBillingFormResponse;
+  if (!response.ok || !data.ok) {
+    throw new Error(data.error ?? "Could not save the APC form.");
+  }
+  return data;
+}
+
 export async function requestCreatePaymentOrder(input: {
   planId: PaymentPlanId;
   registrationId?: string;
+  billingFormId?: string;
 }): Promise<CreateOrderResponse> {
   const response = await authFetch("/api/payments/create-order", {
     method: "POST",
@@ -95,6 +122,7 @@ export async function requestVerifyPayment(input: {
 export async function requestCreatePayPalOrder(input: {
   planId: PaymentPlanId;
   registrationId?: string;
+  billingFormId?: string;
   returnPath?:
     | "/conferences/payment"
     | "/payments/test"

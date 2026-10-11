@@ -139,8 +139,9 @@ export function PublicationFeesContent() {
           Ready to Pay Your Publication Fee?
         </h3>
         <p className="mt-3 text-[15px] text-[var(--journal-body)]">
-          If your manuscript has been fully accepted, select one of the four APC categories below
-          and proceed to secure payment with Razorpay (INR or USD) or PayPal (USD only).
+          If your manuscript has been fully accepted, select your publication route, complete the
+          APC Payment and Billing Details Form, and then pay securely with Razorpay (INR or USD)
+          or PayPal (USD only).
         </p>
 
         <button

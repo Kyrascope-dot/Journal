@@ -275,6 +275,38 @@ export const MANUSCRIPT_PLAN_IDS: ManuscriptPaymentPlanId[] = [
   "manuscript_international_fasttrack_usd",
 ];
 
+/** Author category and route for each manuscript APC plan (shown on the APC form). */
+export const MANUSCRIPT_PLAN_DETAILS: Record<
+  ManuscriptPaymentPlanId,
+  {
+    authorCategory: "National" | "International";
+    route: "Normal" | "Fast-Track";
+    /** Label of the option the author selects before the APC form. */
+    optionLabel: string;
+  }
+> = {
+  manuscript_national_normal_inr: {
+    authorCategory: "National",
+    route: "Normal",
+    optionLabel: "National Author (India) — Normal Route",
+  },
+  manuscript_national_fasttrack_inr: {
+    authorCategory: "National",
+    route: "Fast-Track",
+    optionLabel: "National Author (India) — Fast-Track",
+  },
+  manuscript_international_standard_usd: {
+    authorCategory: "International",
+    route: "Normal",
+    optionLabel: "International Author — Normal Route",
+  },
+  manuscript_international_fasttrack_usd: {
+    authorCategory: "International",
+    route: "Fast-Track",
+    optionLabel: "International Author — Fast-Track",
+  },
+};
+
 export type PaymentPurpose =
   | "conference_registration"
   | "tech_research_submission"
