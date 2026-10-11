@@ -34,6 +34,17 @@ import {
   bestPaperAwardPolicyParagraphs,
 } from "@/lib/conference-content";
 import { siteConfig } from "@/lib/site-config";
+import {
+  CountrySelect,
+  EMPTY_JOURNAL_FORM,
+  JournalAuthorCountryField,
+  JournalAuthorRegionField,
+  JournalDeclarationFields,
+  JournalManuscriptFields,
+  JournalSubmissionDetailsList,
+  journalFormToPayload,
+  type JournalFormState,
+} from "@/components/dashboard/JournalSubmissionFields";
 
 const ABSTRACT_SUCCESS_HEADING = "Abstract received";
 
@@ -84,6 +95,10 @@ function formatDate(value: Submission["submittedAt"]): string {
 
 type Tab = "profile" | "submit" | "submissions";
 
+/** Co-author row; country is asked for journal submissions only. */
+type CoAuthorEntry = { name: string; country: string };
+const EMPTY_CO_AUTHOR: CoAuthorEntry = { name: "", country: "" };
+
 export function ScholarDashboard({
   profile,
   onProfileUpdated,
@@ -104,7 +119,10 @@ export function ScholarDashboard({
 
   // Submission form
   const [authorName, setAuthorName] = useState(profile.displayName || profile.email);
-  const [coAuthors, setCoAuthors] = useState<string[]>([""]);
+  const [coAuthors, setCoAuthors] = useState<CoAuthorEntry[]>([EMPTY_CO_AUTHOR]);
+  const [journalForm, setJournalForm] = useState<JournalFormState>(EMPTY_JOURNAL_FORM);
+  const updateJournalForm = (patch: Partial<JournalFormState>) =>
+    setJournalForm((current) => ({ ...current, ...patch }));
   const [title, setTitle] = useState("");
   const [abstract, setAbstract] = useState("");
   const [category, setCategory] = useState<string>(RESEARCH_CATEGORIES[0]);
@@ -155,11 +173,12 @@ export function ScholarDashboard({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const cleanedAuthorName = authorName.trim();
-    const coAuthorPairs: [string, string][] = coAuthors
-      .map((name) => name.trim())
-      .filter(Boolean)
-      .map((name) => [name.toLowerCase(), name]);
-    const cleanedCoAuthors = Array.from(new Map(coAuthorPairs).values());
+    const coAuthorPairs: [string, CoAuthorEntry][] = coAuthors
+      .map((entry) => ({ name: entry.name.trim(), country: entry.country }))
+      .filter((entry) => entry.name)
+      .map((entry) => [entry.name.toLowerCase(), entry]);
+    const cleanedCoAuthorEntries = Array.from(new Map(coAuthorPairs).values());
+    const cleanedCoAuthors = cleanedCoAuthorEntries.map((entry) => entry.name);
     if (!cleanedAuthorName) {
       setSubmitMsg("Please enter the primary author name before submitting.");
       return;
@@ -169,6 +188,13 @@ export function ScholarDashboard({
     if (!resolvedAffiliation) {
       setSubmitMsg("Please enter your affiliation before submitting.");
       return;
+    }
+    if (submissionPurpose === "journal") {
+      const missingCountry = cleanedCoAuthorEntries.find((entry) => !entry.country);
+      if (missingCountry) {
+        setSubmitMsg(`Please select the country of co-author "${missingCountry.name}".`);
+        return;
+      }
     }
     if (submissionPurpose === "conference") {
       if (!conferenceQuarter || !conferenceAwardIntent || !education) {
@@ -199,6 +225,10 @@ export function ScholarDashboard({
         authorName: cleanedAuthorName,
         coAuthors: cleanedCoAuthors,
         authorEmail: profile.email,
+        journalDetails:
+          submissionPurpose === "journal"
+            ? journalFormToPayload(journalForm, cleanedCoAuthorEntries)
+            : null,
       });
       setLastSubmission({
         id: created.submissionId,
@@ -208,7 +238,8 @@ export function ScholarDashboard({
       setTitle("");
       setAbstract("");
       setAuthorName(profile.displayName || profile.email);
-      setCoAuthors([""]);
+      setCoAuthors([EMPTY_CO_AUTHOR]);
+      setJournalForm(EMPTY_JOURNAL_FORM);
       setCategory(RESEARCH_CATEGORIES[0]);
       setLastSubmittedAwardIntent(
         submissionPurpose === "conference"
@@ -434,6 +465,13 @@ export function ScholarDashboard({
                             </dd>
                           </div>
                         </dl>
+                        {sub.journalDetails ? (
+                          <JournalSubmissionDetailsList
+                            details={sub.journalDetails}
+                            includeAddress
+                            className="mt-5 border-t border-[var(--journal-border)] pt-4"
+                          />
+                        ) : null}
                         <Link
                           href={`/dashboard/acknowledgement/${sub.id}`}
                           className="mt-4 inline-block text-sm font-medium text-[var(--journal-accent)] underline"
@@ -465,8 +503,8 @@ export function ScholarDashboard({
               New Submission
             </h2>
             <p className="mt-2 text-sm text-[var(--journal-muted)]">
-              Choose journal publication or conference, complete the same abstract form, then email
-              the full paper in Word to the editorial address shown below.
+              Choose journal publication or conference, complete the form, then email the full
+              paper in Word to the editorial address shown below.
             </p>
             {submitMsg && (
               <div className={`mt-4 rounded-md border px-4 py-3 text-sm ${
@@ -642,6 +680,9 @@ export function ScholarDashboard({
                   )}
                 </>
               )}
+              {submissionPurpose === "journal" && (
+                <JournalAuthorRegionField value={journalForm} onChange={updateJournalForm} />
+              )}
               <div>
                 <label className="block text-sm font-medium text-[var(--journal-heading)]">
                   Author Name <span className="text-red-500">*</span>
@@ -653,35 +694,54 @@ export function ScholarDashboard({
                   className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
                 />
               </div>
+              {submissionPurpose === "journal" && (
+                <JournalAuthorCountryField value={journalForm} onChange={updateJournalForm} />
+              )}
               <div>
                 <label className="block text-sm font-medium text-[var(--journal-heading)]">
                   Co-Authors (Optional)
                 </label>
                 <p className="mt-1 text-xs text-[var(--journal-muted)]">
-                  Add the names of any co-authors who contributed to this work. Leave blank if
-                  there are no co-authors.
+                  Add the names of any co-authors who contributed to this work
+                  {submissionPurpose === "journal" ? ", with the country of each co-author" : ""}.
+                  Leave blank if there are no co-authors.
                 </p>
                 <div className="mt-2 space-y-2">
-                  {coAuthors.map((name, index) => (
-                    <div key={index} className="flex gap-2">
+                  {coAuthors.map((entry, index) => (
+                    <div key={index} className="flex flex-wrap gap-2 sm:flex-nowrap">
                       <input
-                        value={name}
+                        value={entry.name}
                         onChange={(e) =>
                           setCoAuthors((current) =>
                             current.map((item, itemIndex) =>
-                              itemIndex === index ? e.target.value : item
+                              itemIndex === index ? { ...item, name: e.target.value } : item
                             )
                           )
                         }
                         placeholder="Co-Author Name"
                         className="w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
                       />
+                      {submissionPurpose === "journal" && (
+                        <CountrySelect
+                          value={entry.country}
+                          onChange={(country) =>
+                            setCoAuthors((current) =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, country } : item
+                              )
+                            )
+                          }
+                          required={Boolean(entry.name.trim())}
+                          ariaLabel="Country of co-author"
+                          className="w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)] sm:w-56 sm:shrink-0"
+                        />
+                      )}
                       <button
                         type="button"
                         onClick={() =>
                           setCoAuthors((current) =>
                             current.length === 1
-                              ? [""]
+                              ? [EMPTY_CO_AUTHOR]
                               : current.filter((_, itemIndex) => itemIndex !== index)
                           )
                         }
@@ -694,12 +754,15 @@ export function ScholarDashboard({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setCoAuthors((current) => [...current, ""])}
+                  onClick={() => setCoAuthors((current) => [...current, EMPTY_CO_AUTHOR])}
                   className="mt-2 rounded border border-[var(--journal-accent)] px-3 py-1.5 text-sm font-medium text-[var(--journal-accent)]"
                 >
                   + Add Co-Author
                 </button>
               </div>
+              {submissionPurpose === "journal" && (
+                <JournalManuscriptFields value={journalForm} onChange={updateJournalForm} />
+              )}
               <div>
                 <label className="block text-sm font-medium text-[var(--journal-heading)]">
                   Paper title <span className="text-red-500">*</span>
@@ -752,6 +815,9 @@ export function ScholarDashboard({
                   className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--journal-accent)]"
                 />
               </div>
+              {submissionPurpose === "journal" && (
+                <JournalDeclarationFields value={journalForm} onChange={updateJournalForm} />
+              )}
               {submissionPurpose === "conference" &&
               conferenceAwardIntent === "best_presenter" ? (
                 <div className="rounded-md border border-[var(--journal-border)] bg-zinc-50 px-4 py-3 text-sm text-[var(--journal-body)]">
@@ -772,6 +838,14 @@ export function ScholarDashboard({
                   <ManuscriptEmailInstructions className="mt-2 text-[var(--journal-muted)]" />
                 </div>
               )}
+              {submitMsg && !submitMsg.includes("received") ? (
+                <p
+                  role="alert"
+                  className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                >
+                  {submitMsg}
+                </p>
+              ) : null}
               <button
                 type="submit"
                 disabled={submitting}

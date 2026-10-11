@@ -24,6 +24,7 @@ import type {
   SubmissionStatusEvent,
   UserRole,
 } from "@/types/dashboard";
+import { parseStoredJournalDetails } from "@/types/journal-submission";
 
 function parseConferenceTrack(value: unknown): ConferenceTrack | null {
   if (
@@ -145,6 +146,10 @@ function mapSubmission(
       data.education === "faculty"
         ? (data.education as "high_school" | "graduate" | "post_graduate" | "phd_scholar" | "faculty")
         : null,
+    journalDetails:
+      data.submissionPurpose === "conference" || data.submissionPurpose === "tech_research"
+        ? null
+        : parseStoredJournalDetails(data.journalDetails),
   };
 }
 
@@ -188,6 +193,8 @@ export async function createSubmission(payload: {
   authorName: string;
   coAuthors?: string[];
   authorEmail: string;
+  /** Required when submissionPurpose is "journal"; validated by the server. */
+  journalDetails?: Record<string, unknown> | null;
 }): Promise<{
   submissionId: string;
   registrationId: string;
@@ -215,6 +222,7 @@ export async function createSubmission(payload: {
       education: payload.education ?? null,
       authorName: payload.authorName,
       coAuthors: payload.coAuthors ?? [],
+      journalDetails: payload.journalDetails ?? null,
     }),
   });
   const raw = await response.text();

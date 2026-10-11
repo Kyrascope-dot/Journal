@@ -9,6 +9,9 @@ export const metadata = {
 
 export default function AbstractingAndIndexingPage() {
   const services = getIndexingServicesForPublic();
+  const indexedIn = services
+    .filter((service) => service.status === "Indexed")
+    .map((service) => service.name);
 
   return (
     <AppShell>
@@ -23,6 +26,11 @@ export default function AbstractingAndIndexingPage() {
             scholarly discoverability of the research it publishes through quality metadata,
             technical infrastructure, and publication standards.
           </p>
+          {indexedIn.length > 0 ? (
+            <p className="mt-6 rounded-lg border border-[var(--journal-border)] bg-[var(--journal-hero-bg)]/50 px-5 py-4 text-[15px] font-medium text-[var(--journal-heading)]">
+              Indexed in: {indexedIn.join(", ")}
+            </p>
+          ) : null}
           <div className="mt-10 overflow-x-auto">
             <table className="w-full min-w-[640px] border-collapse text-sm">
               <thead>

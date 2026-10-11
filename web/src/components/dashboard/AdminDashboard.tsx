@@ -38,6 +38,7 @@ import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { ConferenceAbstractAcceptedSection } from "@/components/dashboard/ConferenceAbstractAcceptedSection";
 import { CommentThread } from "@/components/dashboard/CommentThread";
 import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
+import { JournalSubmissionDetailsList } from "@/components/dashboard/JournalSubmissionFields";
 import { requestSendReviewerInvitation } from "@/lib/client/send-reviewer-invitation";
 import {
   requestAdminConferenceUpdate,
@@ -1089,6 +1090,13 @@ function SubmissionPanel({
           </dd>
         </div>
       </dl>
+      {submission.journalDetails ? (
+        <JournalSubmissionDetailsList
+          details={submission.journalDetails}
+          includeAddress
+          className="mb-5 border-b border-[var(--journal-border)] pb-5"
+        />
+      ) : null}
       <p className="text-sm text-[var(--journal-body)]">
         <span className="font-medium">Abstract:</span> {submission.abstract}
       </p>

@@ -1,4 +1,5 @@
 import type { Timestamp } from "firebase/firestore";
+import type { JournalSubmissionDetails } from "@/types/journal-submission";
 
 export type UserRole = "scholar" | "editor" | "reviewer" | "admin";
 
@@ -190,6 +191,8 @@ export type Submission = {
   zoomLinkSent?: boolean;
   zoomLinkSentAt?: Timestamp | Date | null;
   education?: "high_school" | "graduate" | "post_graduate" | "phd_scholar" | "faculty" | null;
+  /** Journal only: answers to the journal submission questions (null on older records). */
+  journalDetails?: JournalSubmissionDetails | null;
 };
 
 export type SubmissionStatusEvent = {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ManuscriptPaymentCheckout } from "@/components/payments/ManuscriptPaymentCheckout";
 
@@ -44,6 +45,17 @@ export function PublicationFeesContent() {
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
           Please find below the applicable Article Processing Charge (APC) / Publication Fee and
           review timelines.
+        </p>
+        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-[15px] leading-relaxed text-amber-950">
+          <span className="font-semibold">Please note:</span> The fees on this page are for the
+          publication of any type of research work in the journal (for example: article, policy
+          paper, research note, book, etc.). They are{" "}
+          <span className="font-semibold">not the same as the GCR conference fee</span>. For
+          conference registration fees, see{" "}
+          <Link href="/conferences/payment" className="font-medium underline">
+            Conference payment
+          </Link>
+          .
         </p>
       </section>
 
