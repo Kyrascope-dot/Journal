@@ -39,6 +39,7 @@ import { ConferenceAbstractAcceptedSection } from "@/components/dashboard/Confer
 import { CommentThread } from "@/components/dashboard/CommentThread";
 import { SubmissionTimeline } from "@/components/dashboard/SubmissionTimeline";
 import { JournalSubmissionDetailsList } from "@/components/dashboard/JournalSubmissionFields";
+import { ApcPaymentsPanel } from "@/components/dashboard/ApcPaymentsPanel";
 import { requestSendReviewerInvitation } from "@/lib/client/send-reviewer-invitation";
 import {
   requestAdminConferenceUpdate,
@@ -113,6 +114,7 @@ type AdminTab =
   | "submissions"
   | "users"
   | "editors"
+  | "apc_payments"
   | "communications"
   | "email_logs";
 
@@ -331,6 +333,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     { key: "submissions", label: `Submissions (${submissions.length})` },
     { key: "users", label: `Users (${users.length})` },
     { key: "editors", label: `Editors (${editors.length})` },
+    { key: "apc_payments", label: "APC Payments" },
     { key: "communications", label: "Communications" },
     { key: "email_logs", label: "Email Logs" },
   ];
@@ -681,6 +684,8 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
         {!loading && tab === "communications" && (
           <CommunicationsPanel editors={editors} reviewers={reviewers} />
         )}
+
+        {!loading && tab === "apc_payments" && <ApcPaymentsPanel />}
 
         {!loading && tab === "email_logs" && <EmailLogsPanel />}
       </div>
