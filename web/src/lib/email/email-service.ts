@@ -11,6 +11,10 @@ export type EmailMessage = {
   subject: string;
   html: string;
   text: string;
+  /** Optional sender override (`Name <email@domain>`); defaults to EMAIL_FROM. */
+  from?: string;
+  /** Optional reply-to override; defaults to the editorial address. */
+  replyTo?: string;
 };
 
 export type EmailSendResult = {
@@ -29,7 +33,7 @@ export class EmailService {
 
     let from: string;
     try {
-      from = formatResendFromAddress(process.env.EMAIL_FROM);
+      from = message.from?.trim() || formatResendFromAddress(process.env.EMAIL_FROM);
     } catch (error) {
       throw new Error(
         error instanceof Error
@@ -41,7 +45,7 @@ export class EmailService {
     let replyTo: string;
     try {
       replyTo = assertValidRecipientEmail(
-        process.env.EDITORIAL_EMAIL ?? siteConfig.email,
+        message.replyTo?.trim() || (process.env.EDITORIAL_EMAIL ?? siteConfig.email),
         "Reply-to"
       );
     } catch (error) {

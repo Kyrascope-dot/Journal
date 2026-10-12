@@ -18,28 +18,62 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
+const EMAIL_ADDRESS = /[^\s@<>]+@([^\s@<>]+\.[^\s@<>]+)/;
+
+/** The editorial inbox that receives APC billing details. */
+export function getApcOfficeRecipient(): string {
+  return (process.env.EDITORIAL_EMAIL ?? siteConfig.email).trim();
+}
+
+/**
+ * Sender for office notifications. The default sender (EMAIL_FROM) is usually
+ * the editorial address itself, and a message "from" an inbox to the same
+ * inbox is often filtered out of it. Use a different mailbox name on the same
+ * (already verified) sending domain instead.
+ */
+function officeNotificationSender(): string | undefined {
+  const domain = EMAIL_ADDRESS.exec(process.env.EMAIL_FROM ?? "")?.[1];
+  return domain ? `GCR Payments <notifications@${domain}>` : undefined;
+}
+
+export type ApcOfficeEmailResult = { sent: boolean; error?: string };
+
 /**
  * Emails the Editorial Office the billing details of a paid manuscript APC so
  * the invoice can be issued. Safe to call from checkout verification and the
- * webhook: it sends once per payment and never throws.
+ * webhook: it sends once per payment and never throws. Pass `force` to send
+ * it again (admin "resend").
  */
-export async function notifyApcPaymentCompleted(paymentDocId: string): Promise<void> {
+export async function notifyApcPaymentCompleted(
+  paymentDocId: string,
+  options: { force?: boolean } = {},
+): Promise<ApcOfficeEmailResult> {
   try {
     const db = getAdminFirestore();
     const paymentRef = db.collection("payments").doc(paymentDocId);
 
     // Claim the notification so concurrent callers (checkout + webhook) send it once.
-    const payment = await db.runTransaction(async (transaction) => {
+    const claim = await db.runTransaction(async (transaction) => {
       const snap = await transaction.get(paymentRef);
       const data = snap.data();
-      if (!data || data.status !== "paid" || !isManuscriptPlan(data.planId)) return null;
-      if (data.apcOfficeEmailStatus === "sending" || data.apcOfficeEmailStatus === "sent") {
-        return null;
+      if (!data || !isManuscriptPlan(data.planId)) {
+        return { skip: "This is not a manuscript APC payment." } as const;
+      }
+      if (data.status !== "paid") {
+        return { skip: "This payment has not been completed." } as const;
+      }
+      const status = data.apcOfficeEmailStatus;
+      if (!options.force && (status === "sending" || status === "sent")) {
+        return { skip: "" } as const;
       }
       transaction.update(paymentRef, { apcOfficeEmailStatus: "sending" });
-      return data;
+      return { data } as const;
     });
-    if (!payment || !isManuscriptPlan(payment.planId)) return;
+    if ("skip" in claim) {
+      return claim.skip ? { sent: false, error: claim.skip } : { sent: true };
+    }
+    const payment = claim.data;
+    if (!isManuscriptPlan(payment.planId)) return { sent: false };
 
     try {
       if (!emailService.isConfigured()) throw new Error("RESEND_API_KEY is not configured.");
@@ -89,7 +123,7 @@ export async function notifyApcPaymentCompleted(paymentDocId: string): Promise<v
 
       const sections = Array.from(new Set(rows.map((row) => row.section)));
       const html = [
-        `<p>A manuscript APC payment has been received. The billing details below are for issuing the invoice.</p>`,
+        `<p>A manuscript APC payment has been received. The details the author entered in the APC Payment and Billing Details Form are below, for issuing the invoice.</p>`,
         ...sections.map(
           (section) =>
             `<h3 style="margin:20px 0 6px;font-size:15px">${escapeHtml(section)}</h3>` +
@@ -104,6 +138,7 @@ export async function notifyApcPaymentCompleted(paymentDocId: string): Promise<v
               .join("") +
             `</table>`,
         ),
+        `<p style="margin-top:20px;font-size:13px;color:#555">You can also see every APC form in the Admin dashboard under “APC Payments”.</p>`,
       ].join("");
       const text = sections
         .map(
@@ -117,27 +152,44 @@ export async function notifyApcPaymentCompleted(paymentDocId: string): Promise<v
         .join("\n\n");
 
       const authorName = form?.details.correspondingAuthorName ?? String(payment.userEmail ?? "");
-      await emailService.send({
-        to: process.env.EDITORIAL_EMAIL ?? siteConfig.email,
+      const message = {
+        to: getApcOfficeRecipient(),
         subject: `APC payment received — ${authorName} (${plan.authorCategory}, ${plan.route})`,
         html,
         text: `A manuscript APC payment has been received.\n\n${text}`,
-      });
+        // Replying goes to the person the invoice is for.
+        replyTo: form?.details.billingEmail,
+      };
+
+      const sender = officeNotificationSender();
+      try {
+        await emailService.send({ ...message, from: sender });
+      } catch (senderError) {
+        if (!sender) throw senderError;
+        // The dedicated sender was rejected; fall back to the default sender.
+        console.error("[payments/apc-notification] sender fallback:", senderError);
+        await emailService.send(message);
+      }
 
       await paymentRef.update({
         apcOfficeEmailStatus: "sent",
         apcOfficeEmailSentAt: FieldValue.serverTimestamp(),
+        apcOfficeEmailError: FieldValue.delete(),
       });
+      return { sent: true };
     } catch (emailError) {
       console.error("[payments/apc-notification] email failed:", emailError);
+      const error =
+        emailError instanceof Error ? emailError.message.slice(0, 500) : "Unknown error";
       // "failed" (unlike "sending"/"sent") lets a later webhook retry.
-      await paymentRef.update({
-        apcOfficeEmailStatus: "failed",
-        apcOfficeEmailError:
-          emailError instanceof Error ? emailError.message.slice(0, 500) : "Unknown error",
-      });
+      await paymentRef.update({ apcOfficeEmailStatus: "failed", apcOfficeEmailError: error });
+      return { sent: false, error };
     }
   } catch (error) {
     console.error("[payments/apc-notification]", error);
+    return {
+      sent: false,
+      error: error instanceof Error ? error.message : "Could not send the email.",
+    };
   }
 }
