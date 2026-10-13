@@ -76,7 +76,8 @@ export type JournalSubmissionDetails = {
   /** One entry per co-author (empty when there are no co-authors). */
   coAuthorCountries: CoAuthorCountry[];
   reviewRoute: JournalReviewRoute;
-  mentorName: string;
+  /** No longer asked; kept so submissions made while it was on the form still show it. */
+  mentorName: string | null;
   researchWorkType: ResearchWorkType;
   orcid: string | null;
   aiUsageUnder20Percent: boolean;
@@ -163,11 +164,6 @@ export function validateJournalSubmissionDetails(
     return fail("Please select the Normal route or the Fast-track / expedited route.");
   }
 
-  const mentorName = text(raw.mentorName, 300);
-  if (!mentorName) {
-    return fail('Please enter the name of your mentor (enter "None" if not applicable).');
-  }
-
   const researchWorkType = text(raw.researchWorkType, 100);
   if (!(RESEARCH_WORK_TYPES as readonly string[]).includes(researchWorkType)) {
     return fail("Please select the type of research work.");
@@ -231,7 +227,7 @@ export function validateJournalSubmissionDetails(
       authorCountry,
       coAuthorCountries,
       reviewRoute,
-      mentorName,
+      mentorName: null,
       researchWorkType: researchWorkType as ResearchWorkType,
       orcid,
       aiUsageUnder20Percent: raw.aiUsageUnder20Percent,
@@ -266,7 +262,7 @@ export function parseStoredJournalDetails(raw: unknown): JournalSubmissionDetail
         }))
       : [],
     reviewRoute: raw.reviewRoute === "fast_track" ? "fast_track" : "normal",
-    mentorName: text(raw.mentorName, 300),
+    mentorName: text(raw.mentorName, 300) || null,
     researchWorkType: text(raw.researchWorkType, 100) as ResearchWorkType,
     orcid: text(raw.orcid, 100) || null,
     aiUsageUnder20Percent: raw.aiUsageUnder20Percent === true,
@@ -303,7 +299,7 @@ export function journalDetailRows(
         : "No co-authors",
     },
     { label: "Publication route", value: JOURNAL_REVIEW_ROUTE_LABELS[details.reviewRoute] },
-    { label: "Name of mentor", value: details.mentorName || "—" },
+    ...(details.mentorName ? [{ label: "Name of mentor", value: details.mentorName }] : []),
     { label: "Type of research work", value: details.researchWorkType || "—" },
     { label: "ORCID", value: details.orcid ?? "Not provided" },
     { label: "AI usage less than 20%", value: yesNo(details.aiUsageUnder20Percent) },
