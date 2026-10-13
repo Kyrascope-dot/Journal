@@ -22,7 +22,6 @@ export type JournalFormState = {
   authorRegion: JournalAuthorRegion | "";
   authorCountry: string;
   reviewRoute: JournalReviewRoute | "";
-  mentorName: string;
   researchWorkType: string;
   orcid: string;
   aiUsageUnder20Percent: YesNo;
@@ -40,7 +39,6 @@ export const EMPTY_JOURNAL_FORM: JournalFormState = {
   authorRegion: "",
   authorCountry: "",
   reviewRoute: "",
-  mentorName: "",
   researchWorkType: "",
   orcid: "",
   aiUsageUnder20Percent: "",
@@ -67,7 +65,6 @@ export function journalFormToPayload(
     authorCountry: form.authorRegion === "national" ? HOME_COUNTRY : form.authorCountry,
     coAuthorCountries: coAuthors,
     reviewRoute: form.reviewRoute || null,
-    mentorName: form.mentorName,
     researchWorkType: form.researchWorkType,
     orcid: form.orcid,
     aiUsageUnder20Percent: yesNoToBoolean(form.aiUsageUnder20Percent),
@@ -232,7 +229,7 @@ export function JournalAuthorCountryField({ value, onChange }: FieldProps) {
   );
 }
 
-/** Route, mentor, type of research work, ORCID. */
+/** Route, type of research work, ORCID. */
 export function JournalManuscriptFields({ value, onChange }: FieldProps) {
   return (
     <>
@@ -255,18 +252,6 @@ export function JournalManuscriptFields({ value, onChange }: FieldProps) {
           </Link>{" "}
           for the Normal and Fast-track charges.
         </p>
-      </div>
-      <div>
-        <label className={labelClass}>
-          Name of mentor <Required />
-        </label>
-        <input
-          required
-          value={value.mentorName}
-          onChange={(e) => onChange({ mentorName: e.target.value })}
-          placeholder='Enter "None" if not applicable'
-          className={inputClass}
-        />
       </div>
       <div>
         <label className={labelClass}>
