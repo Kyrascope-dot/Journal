@@ -116,7 +116,7 @@ export const editorialTeam: EditorialMember[] = [
     qualification:
       "Ph.D. in Communication Engineering, Delhi Technological University",
     designation:
-      "Assistant Professor\nGuest Faculty, Indraprastha University\nDelhi, India",
+      "Assistant Professor, Indraprastha University, Main campus, Sector 16 C, Dwarka, New Delhi, Delhi, 110078.",
     scholarUrl:
       "https://scholar.google.com/citations?user=eNlmb8kAAAAJ&hl=en",
     imageSrc: "/editorial/ishaansharma.jpeg",

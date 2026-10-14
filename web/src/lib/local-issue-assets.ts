@@ -216,7 +216,7 @@ const VOL1_PAPERS: LocalPaper[] = [
     pageStart: 51,
     pageEnd: 77,
     title: "Women in STEM Workforce: Review from Southeast Asian Economies",
-    authors: ["Sonam Dobriyal"],
+    authors: ["Sonam Dobriyal", "Neha Dawar"],
   },
   {
     order: 5,
