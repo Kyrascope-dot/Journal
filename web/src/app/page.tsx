@@ -10,7 +10,7 @@ import { HomeEditorialPreview } from "@/components/home/HomeEditorialPreview";
 import { HomeIndexingPreview } from "@/components/home/HomeIndexingPreview";
 import { HomeCompetitionPreview } from "@/components/home/HomeCompetitionPreview";
 import { HomeConferencePreview } from "@/components/home/HomeConferencePreview";
-import { ConferencePopup } from "@/components/home/ConferencePopup";
+// import { ConferencePopup } from "@/components/home/ConferencePopup";
 import { HomeFinancialAssistance } from "@/components/fees/FeeWaiverNotice";
 import { JournalHomeClient } from "@/components/journal/JournalHomeClient";
 import { contentShell } from "@/lib/content-layout";
@@ -22,7 +22,7 @@ export const revalidate = 3600;
 export default async function Home() {
   return (
     <AppShell>
-      <ConferencePopup />
+      {/* <ConferencePopup /> */}
       <HomeHero />
       <HomeTrustStrip issnLabel={getIssnLabel()} />
       <div className={contentShell}>

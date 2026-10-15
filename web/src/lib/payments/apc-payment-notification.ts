@@ -20,6 +20,25 @@ function escapeHtml(value: string): string {
 
 const EMAIL_ADDRESS = /[^\s@<>]+@([^\s@<>]+\.[^\s@<>]+)/;
 
+/** Payment date and time in India Standard Time, e.g. "12 Oct 2026, 8:53 am IST". */
+function formatPaymentDate(value: unknown): string {
+  const date =
+    value instanceof Date
+      ? value
+      : value && typeof (value as { toDate?: unknown }).toDate === "function"
+        ? (value as { toDate(): Date }).toDate()
+        : null;
+  if (!date || Number.isNaN(date.getTime())) return "—";
+  return `${date.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })} IST`;
+}
+
 /** The editorial inbox that receives APC billing details. */
 export function getApcOfficeRecipient(): string {
   return (process.env.EDITORIAL_EMAIL ?? siteConfig.email).trim();
@@ -107,6 +126,7 @@ export async function notifyApcPaymentCompleted(
           label: "Amount paid",
           value: `${String(payment.displayAmount ?? "")} (${String(payment.currency ?? "")})`,
         },
+        { section: "APC payment", label: "Payment date", value: formatPaymentDate(payment.paidAt) },
         { section: "APC payment", label: "Paid via", value: gateway },
         { section: "APC payment", label: "Payment reference", value: reference || "—" },
         { section: "APC payment", label: "Account email", value: String(payment.userEmail ?? "") },

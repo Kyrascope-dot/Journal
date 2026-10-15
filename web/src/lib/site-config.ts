@@ -19,7 +19,8 @@ export const siteConfig = {
   publicationFormat: "Online (open access)",
   /** Use E.164 for `tel:` (digits after +). */
   publisherMobileTel: "+917678560820",
-  publisherMobileDisplay: "+91 76785 60820",
+  // publisherMobileDisplay: "+91 76785 60820",
+  publisherMobileDisplay: "",
   email: "editor@globalconfluencereview.in",
   /** Canonical public site URL (also overridable via SITE_URL). */
   siteUrl: "https://www.globalconfluencereview.in",

@@ -239,7 +239,7 @@ const VOL1_ISSUE2_PAPERS: LocalPaper[] = [
     pageStart: "",
     pageEnd: "",
     title:
-      "Strengthening Tribal Consultation in the New Markets Tax Credit Program: APolicy Brief",
+      "Strengthening Tribal Consultation in the New Markets Tax Credit Program: A Policy Brief",
     authors: ["Aanika Asnani"],
   },
   {

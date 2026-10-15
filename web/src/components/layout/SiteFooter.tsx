@@ -23,14 +23,16 @@ export function SiteFooter() {
             <p className="mt-2 break-words text-sm leading-relaxed text-[var(--journal-muted)]">
               {siteConfig.publisherAddress}
             </p>
-            <p className="mt-2 text-sm">
-              <a
-                className="text-[var(--journal-accent)] hover:underline"
-                href={`tel:${siteConfig.publisherMobileTel}`}
-              >
-                {siteConfig.publisherMobileDisplay}
-              </a>
-            </p>
+            {siteConfig.publisherMobileDisplay ? (
+              <p className="mt-2 text-sm">
+                <a
+                  className="text-[var(--journal-accent)] hover:underline"
+                  href={`tel:${siteConfig.publisherMobileTel}`}
+                >
+                  {siteConfig.publisherMobileDisplay}
+                </a>
+              </p>
+            ) : null}
             <p className="mt-2 text-sm">
               <a
                 className="block max-w-full break-all leading-snug text-[var(--journal-accent)] hover:underline [overflow-wrap:anywhere]"

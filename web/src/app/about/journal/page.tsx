@@ -27,17 +27,22 @@ const generalRows: { label: string; value: ReactNode }[] = [
       </a>
     ),
   },
-  {
-    label: "Mobile No.",
-    value: (
-      <a
-        className="text-[var(--journal-accent)] hover:underline"
-        href={`tel:${siteConfig.publisherMobileTel}`}
-      >
-        {siteConfig.publisherMobileDisplay}
-      </a>
-    ),
-  },
+  // Shown only when a phone number is published in siteConfig.
+  ...(siteConfig.publisherMobileDisplay
+    ? [
+        {
+          label: "Mobile No.",
+          value: (
+            <a
+              className="text-[var(--journal-accent)] hover:underline"
+              href={`tel:${siteConfig.publisherMobileTel}`}
+            >
+              {siteConfig.publisherMobileDisplay}
+            </a>
+          ),
+        },
+      ]
+    : []),
 ];
 
 export default function AboutJournalPage() {
