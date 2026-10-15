@@ -14,11 +14,11 @@ export function SiteHeaderBrand() {
   return (
     <Link href="/" className="flex shrink-0 items-center" aria-label={siteConfig.name}>
       <Image
-        src="/GCR_logo.jpg"
+        src="/gcr-logo-navbar.png"
         alt={siteConfig.name}
-        width={220}
-        height={77}
-        className="h-14 w-auto object-contain sm:h-16"
+        width={299}
+        height={102}
+        className="h-12 w-auto sm:h-14"
         priority
       />
     </Link>

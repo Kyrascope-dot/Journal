@@ -25,7 +25,10 @@ export function SiteJsonLd() {
         legalName: siteConfig.publisherOrganisation,
         url: origin,
         email: siteConfig.email,
-        telephone: siteConfig.publisherMobileTel,
+        // Only publish the phone number when it is shown on the site.
+        telephone: siteConfig.publisherMobileDisplay
+          ? siteConfig.publisherMobileTel
+          : undefined,
         address: {
           "@type": "PostalAddress",
           streetAddress: siteConfig.publisherAddress,

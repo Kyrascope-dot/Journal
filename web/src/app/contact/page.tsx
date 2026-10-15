@@ -20,7 +20,9 @@ function ContactCard({
             key={r.label}
             className="grid grid-cols-1 gap-1 sm:grid-cols-[120px_1fr] sm:gap-2"
           >
-            <dt className="font-medium text-[var(--journal-heading)]">{r.label}</dt>
+            <dt className="font-medium text-[var(--journal-heading)]">
+              {r.label}
+            </dt>
             <dd className="text-[var(--journal-body)]">{r.value}</dd>
           </div>
         ))}
@@ -50,11 +52,11 @@ export default function ContactPage() {
             Contact
           </h1>
           <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-            The editorial board of <strong>{siteConfig.name}</strong>{" "}
-            ({siteConfig.shortName}) handles manuscript inquiries, submissions, and
-            general questions about the journal. We aim to respond to routine messages
-            within <strong>5 business days</strong>, though complex issues may take
-            longer.
+            The editorial board of <strong>{siteConfig.name}</strong> (
+            {siteConfig.shortName}) handles manuscript inquiries, submissions,
+            and general questions about the journal. We aim to respond to
+            routine messages within <strong>5 business days</strong>, though
+            complex issues may take longer.
           </p>
 
           <div className="mt-10 space-y-6">
@@ -87,11 +89,14 @@ export default function ContactPage() {
                     label: "Email",
                     value: (
                       <span>
-                        <MailLink email={siteConfig.email} label="Editorial Office" />
+                        <MailLink
+                          email={siteConfig.email}
+                          label="Editorial Office"
+                        />
                         <span className="mt-2 block text-xs leading-relaxed text-[var(--journal-muted)]">
-                          Preferred for submissions, status updates, and ethics reports,
-                          payments, and general queries related to research submissions,
-                          conferences, and competitions.
+                          Preferred for submissions, status updates, and ethics
+                          reports, payments, and general queries related to
+                          research submissions, conferences, and competitions.
                         </span>
                       </span>
                     ),
@@ -128,19 +133,24 @@ export default function ContactPage() {
                 },
                 {
                   label: "Email",
-                  value: <MailLink email="blissglobal2@gmail.com" label="Publisher" />,
-                },
-                {
-                  label: "Mobile",
                   value: (
-                    <a
-                      className="text-[var(--journal-accent)] hover:underline"
-                      href="tel:+919711350603"
-                    >
-                      +91 97113 50603
-                    </a>
+                    <MailLink
+                      email="blissglobal2@gmail.com"
+                      label="Publisher"
+                    />
                   ),
                 },
+                // {
+                //   label: "Mobile",
+                //   value: (
+                //     <a
+                //       className="text-[var(--journal-accent)] hover:underline"
+                //       href="tel:+919711350603"
+                //     >
+                //       +91 97113 50603
+                //     </a>
+                //   ),
+                // },
               ]}
             />
           </div>
@@ -150,8 +160,8 @@ export default function ContactPage() {
           </h2>
           <ul className="mt-4 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-[var(--journal-body)]">
             <li>
-              <strong>Submissions:</strong> use a clear subject line and attach your
-              manuscript as instructed on the{" "}
+              <strong>Submissions:</strong> use a clear subject line and attach
+              your manuscript as instructed on the{" "}
               <a
                 className="text-[var(--journal-accent)] hover:underline"
                 href="/submissions"
@@ -161,12 +171,12 @@ export default function ContactPage() {
               page.
             </li>
             <li>
-              <strong>Peer review:</strong> include manuscript ID or title if you are an
-              author or reviewer.
+              <strong>Peer review:</strong> include manuscript ID or title if
+              you are an author or reviewer.
             </li>
             <li>
-              <strong>Media or partnerships:</strong> briefly describe your organisation
-              and purpose.
+              <strong>Media or partnerships:</strong> briefly describe your
+              organisation and purpose.
             </li>
           </ul>
         </div>
