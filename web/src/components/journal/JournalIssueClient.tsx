@@ -133,12 +133,16 @@ export async function JournalIssueClient({ slug }: Props) {
         <h2 className="font-serif text-xl font-semibold text-[var(--journal-heading)]">
           Full issue
         </h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
+          The journal follows a quarterly publication schedule, with four issues
+          each year. Accepted papers are published on a rolling basis as and when
+          they complete the peer-review, editorial evaluation, and production
+          processes within the respective quarter. This approach enables the
+          timely publication of accepted research while maintaining the
+          journal&apos;s quarterly publication cycle.
+        </p>
         {issue.pdfUrl ? (
           <div className="mt-4">
-            <p className="text-[15px] leading-relaxed text-[var(--journal-body)]">
-              The complete issue, including all articles, front and back cover
-              pages, is available as a single PDF download below.
-            </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <a
                 href={issue.pdfUrl}
@@ -182,15 +186,7 @@ export async function JournalIssueClient({ slug }: Props) {
               </a>
             </div>
           </div>
-        ) : (
-          <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-            The complete issue, including front and back cover pages and the
-            full-text PDF, will be accessible following final publication. As
-            this is the inaugural issue (Volume 1, Issue 1) and is currently
-            forthcoming, all associated files will be made available upon
-            completion of the publication process.
-          </p>
-        )}
+        ) : null}
       </section>
 
       {issue.articles.length > 0 ? (
