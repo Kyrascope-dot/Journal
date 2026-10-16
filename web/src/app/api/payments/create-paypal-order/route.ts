@@ -20,7 +20,11 @@ import {
   resolvePaymentPurpose,
   type PaymentPlanId,
 } from "@/lib/payments/plans";
-import { verifyFeeWaiverPaymentAccess } from "@/lib/payments/fee-waiver-access";
+import {
+  ConferencePaymentAccessError,
+  verifyConferencePaymentAccess,
+  verifyFeeWaiverPaymentAccess,
+} from "@/lib/payments/fee-waiver-access";
 import { verifyUserIdToken } from "@/lib/server/verify-user";
 
 export const runtime = "nodejs";
@@ -123,6 +127,16 @@ export async function POST(request: Request) {
         userId: user.uid,
         registrationId,
       });
+    } else if (plan.id === "national_usd" || plan.id === "international_usd") {
+      // Conference fees only for the payer's own conference submission.
+      try {
+        await verifyConferencePaymentAccess({ userId: user.uid, registrationId });
+      } catch (error) {
+        if (error instanceof ConferencePaymentAccessError) {
+          return NextResponse.json({ error: error.message }, { status: 400 });
+        }
+        throw error;
+      }
     }
 
     const order = await createPayPalOrder({
