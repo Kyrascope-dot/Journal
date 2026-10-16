@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { RequireSignIn } from "@/components/auth/RequireSignIn";
 import { useAuth } from "@/context/AuthContext";
@@ -52,8 +51,6 @@ function ConferencePaymentCheckoutSignedIn() {
     string[]
   >([]);
   const [feeWaiverAccessLoaded, setFeeWaiverAccessLoaded] = useState(false);
-  /** Registration IDs of the signed-in author's own conference submissions. */
-  const [conferenceRegistrationIds, setConferenceRegistrationIds] = useState<string[]>([]);
   const [requestedPlanId, setRequestedPlanId] =
     useState<ConferencePaymentPlanId | null>(null);
 
@@ -78,7 +75,6 @@ function ConferencePaymentCheckoutSignedIn() {
   useEffect(() => {
     if (!user) {
       setFeeWaiverRegistrationIds([]);
-      setConferenceRegistrationIds([]);
       setFeeWaiverAccessLoaded(false);
       return;
     }
@@ -87,11 +83,6 @@ function ConferencePaymentCheckoutSignedIn() {
     getSubmissionsByAuthor(user.uid)
       .then((submissions) => {
         if (cancelled) return;
-        setConferenceRegistrationIds(
-          submissions
-            .filter((submission) => submission.submissionPurpose === "conference")
-            .map((submission) => submission.registrationId),
-        );
         setFeeWaiverRegistrationIds(
           submissions
             .filter(
@@ -104,10 +95,7 @@ function ConferencePaymentCheckoutSignedIn() {
         );
       })
       .catch(() => {
-        if (!cancelled) {
-          setFeeWaiverRegistrationIds([]);
-          setConferenceRegistrationIds([]);
-        }
+        if (!cancelled) setFeeWaiverRegistrationIds([]);
       })
       .finally(() => {
         if (!cancelled) setFeeWaiverAccessLoaded(true);
@@ -214,15 +202,14 @@ function ConferencePaymentCheckoutSignedIn() {
   ]);
 
   useEffect(() => {
-    if (registrationId.trim()) return;
-    if (planId === "fee_waiver_usd") {
-      if (feeWaiverRegistrationIds.length === 1) {
-        setRegistrationId(feeWaiverRegistrationIds[0]!);
-      }
-    } else if (conferenceRegistrationIds.length === 1) {
-      setRegistrationId(conferenceRegistrationIds[0]!);
+    if (
+      planId === "fee_waiver_usd" &&
+      !registrationId.trim() &&
+      feeWaiverRegistrationIds.length === 1
+    ) {
+      setRegistrationId(feeWaiverRegistrationIds[0]!);
     }
-  }, [conferenceRegistrationIds, feeWaiverRegistrationIds, planId, registrationId]);
+  }, [feeWaiverRegistrationIds, planId, registrationId]);
 
   async function handlePay() {
     setError("");
@@ -240,18 +227,6 @@ function ConferencePaymentCheckoutSignedIn() {
         );
         return;
       }
-    }
-
-    if (
-      planId !== "fee_waiver_usd" &&
-      !conferenceRegistrationIds.includes(registrationId.trim())
-    ) {
-      setError(
-        conferenceRegistrationIds.length > 0
-          ? "Please select the Registration ID of your conference submission (it starts with GCRC-)."
-          : "Conference payment is only for authors who have submitted a conference abstract. If you are paying the publication fee (APC) for an accepted journal manuscript, please use the Publication fees page.",
-      );
-      return;
     }
 
     if (paymentMethod === "razorpay") {
@@ -453,41 +428,18 @@ function ConferencePaymentCheckoutSignedIn() {
 
         <label className="mt-5 block text-sm">
           <span className="font-medium text-[var(--journal-heading)]">
-            Conference Registration ID <span className="text-red-500">*</span>
+            Registration ID (optional)
           </span>
           <input
             value={registrationId}
             onChange={(e) => setRegistrationId(e.target.value)}
             placeholder="e.g. GCRC-2026-000123"
-            list="conference-registration-ids"
             className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm"
           />
-          <datalist id="conference-registration-ids">
-            {conferenceRegistrationIds.map((id) => (
-              <option key={id} value={id} />
-            ))}
-          </datalist>
           <span className="mt-1 block text-xs text-[var(--journal-muted)]">
-            The Registration ID of your conference abstract submission (starts with GCRC-).
-            You can find it under My Submissions in your author dashboard.
+            Add your conference Registration ID if you already have one.
           </span>
         </label>
-
-        {feeWaiverAccessLoaded && conferenceRegistrationIds.length === 0 ? (
-          <div className="mt-4 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-950">
-            <p>
-              Your account has no conference submission. Conference payment is only for authors
-              who have submitted a conference abstract.
-            </p>
-            <p className="mt-2">
-              Paying the publication fee (APC) for an accepted journal manuscript? Please use the{" "}
-              <Link href="/for-authors/publication-fees" className="font-medium underline">
-                Publication fees
-              </Link>{" "}
-              page, where you complete the APC Payment and Billing Details Form before paying.
-            </p>
-          </div>
-        ) : null}
 
         {paymentMethod === "razorpay" ? (
           <label className="mt-5 block text-sm">
