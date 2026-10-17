@@ -1,3 +1,8 @@
+import { siteConfig } from "@/lib/site-config";
+
+/** The journal's public record in the ISSN Portal (also shows the ROAD listing). */
+export const ISSN_RECORD_URL = `https://portal.issn.org/resource/ISSN/${siteConfig.issn}`;
+
 /** Placeholder indexation records — replace with admin CMS / Firestore. */
 export type IndexingStatus =
   | "Indexed"
@@ -41,6 +46,22 @@ export const defaultIndexingRecords: IndexingRecord[] = [
     status: "Indexed",
     notes:
       "Global Confluence Review is indexed in Google Scholar. Published articles are discoverable through Google Scholar search.",
+  },
+  {
+    id: "issn-portal",
+    serviceName: "ISSN Portal",
+    status: "Listed",
+    verificationUrl: ISSN_RECORD_URL,
+    notes:
+      "Global Confluence Review is listed in the ISSN Portal. ISSN: 3139-6690. Publisher: New Delhi; Bliss Global.",
+  },
+  {
+    id: "road",
+    serviceName: "ROAD (Directory of Open Access Scholarly Resources)",
+    status: "Listed",
+    verificationUrl: ISSN_RECORD_URL,
+    notes:
+      "Global Confluence Review appears in ROAD, the Directory of Open Access Scholarly Resources. The ROAD logo appears under “Resource information” in the journal’s ISSN Portal record.",
   },
   {
     id: "crossref",

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
 import { contentProse, contentShell } from "@/lib/content-layout";
-import { getIndexingServicesForPublic } from "@/lib/indexing-services";
+import { getIndexingServicesForPublic, ISSN_RECORD_URL } from "@/lib/indexing-services";
+import { siteConfig } from "@/lib/site-config";
 
 export const metadata = {
   title: "Abstracting and indexing",
@@ -11,6 +12,9 @@ export default function AbstractingAndIndexingPage() {
   const services = getIndexingServicesForPublic();
   const indexedIn = services
     .filter((service) => service.status === "Indexed")
+    .map((service) => service.name);
+  const listedIn = services
+    .filter((service) => service.status === "Listed")
     .map((service) => service.name);
 
   return (
@@ -26,11 +30,30 @@ export default function AbstractingAndIndexingPage() {
             scholarly discoverability of the research it publishes through quality metadata,
             technical infrastructure, and publication standards.
           </p>
-          {indexedIn.length > 0 ? (
-            <p className="mt-6 rounded-lg border border-[var(--journal-border)] bg-[var(--journal-hero-bg)]/50 px-5 py-4 text-[15px] font-medium text-[var(--journal-heading)]">
-              Indexed in: {indexedIn.join(", ")}
-            </p>
+          {indexedIn.length > 0 || listedIn.length > 0 ? (
+            <div className="mt-6 space-y-1 rounded-lg border border-[var(--journal-border)] bg-[var(--journal-hero-bg)]/50 px-5 py-4 text-[15px] font-medium text-[var(--journal-heading)]">
+              {indexedIn.length > 0 ? <p>Indexed in: {indexedIn.join(", ")}</p> : null}
+              {listedIn.length > 0 ? <p>Listed in: {listedIn.join("; ")}</p> : null}
+            </div>
           ) : null}
+          <div className="mt-4 rounded-lg border border-[var(--journal-border)] bg-white px-5 py-4 text-[15px] text-[var(--journal-body)]">
+            <p className="font-medium text-[var(--journal-heading)]">ISSN record</p>
+            <p className="mt-1">
+              ISSN {siteConfig.issn}:{" "}
+              <a
+                href={ISSN_RECORD_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="break-all text-[var(--journal-accent)] underline"
+              >
+                {ISSN_RECORD_URL}
+              </a>
+            </p>
+            <p className="mt-1 text-sm text-[var(--journal-muted)]">
+              Official record in the ISSN Portal, including the journal&apos;s ROAD (Directory of
+              Open Access Scholarly Resources) listing.
+            </p>
+          </div>
           <div className="mt-10 overflow-x-auto">
             <table className="w-full min-w-[640px] border-collapse text-sm">
               <thead>
