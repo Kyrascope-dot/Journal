@@ -75,7 +75,7 @@ export const MANUSCRIPT_PAYMENT_PLANS: Record<
   manuscript_national_fasttrack_inr: {
     id: "manuscript_national_fasttrack_inr",
     label: "Fast-Track Route",
-    description: "National publication – review within 1 week",
+    description: "National publication – fast-track route",
     currency: "INR",
     amountMajor: 12288.14,
     amountMinor: 1228814,
@@ -96,12 +96,12 @@ export const MANUSCRIPT_PAYMENT_PLANS: Record<
   manuscript_international_fasttrack_usd: {
     id: "manuscript_international_fasttrack_usd",
     label: "Fast-Track Publication",
-    description: "International publication – review within 1 week",
+    description: "International publication – fast-track route",
     currency: "USD",
     amountMajor: 200,
     amountMinor: 20000,
     displayAmount: "USD 200",
-    checkoutHint: "Review timeline: within 1 week",
+    checkoutHint: "Fast-track publication route",
   },
 };
 
@@ -267,20 +267,13 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
 export type ManuscriptPaymentPlanId = keyof typeof MANUSCRIPT_PAYMENT_PLANS;
 export type ConferencePaymentPlanId = keyof typeof CONFERENCE_PAYMENT_PLANS;
 
-/** Manuscript APC plans offered to authors, in display order. */
+/** Manuscript APC plans in display order. */
 export const MANUSCRIPT_PLAN_IDS: ManuscriptPaymentPlanId[] = [
   "manuscript_national_normal_inr",
+  "manuscript_national_fasttrack_inr",
   "manuscript_international_standard_usd",
+  "manuscript_international_fasttrack_usd",
 ];
-
-/**
- * True for APC plans authors can still choose and pay. The paid fast-track
- * plans were withdrawn; they stay defined only so existing payments and APC
- * forms that used them still display correctly.
- */
-export function isOfferedManuscriptPlan(planId: string | null | undefined): boolean {
-  return (MANUSCRIPT_PLAN_IDS as string[]).includes(planId ?? "");
-}
 
 /** Author category and route for each manuscript APC plan (shown on the APC form). */
 export const MANUSCRIPT_PLAN_DETAILS: Record<
@@ -295,22 +288,22 @@ export const MANUSCRIPT_PLAN_DETAILS: Record<
   manuscript_national_normal_inr: {
     authorCategory: "National",
     route: "Normal",
-    optionLabel: "National Author (India)",
+    optionLabel: "National Author (India) — Normal Route",
   },
   manuscript_national_fasttrack_inr: {
     authorCategory: "National",
     route: "Fast-Track",
-    optionLabel: "National Author (India) — Fast-Track (withdrawn)",
+    optionLabel: "National Author (India) — Fast-Track",
   },
   manuscript_international_standard_usd: {
     authorCategory: "International",
     route: "Normal",
-    optionLabel: "International Author",
+    optionLabel: "International Author — Normal Route",
   },
   manuscript_international_fasttrack_usd: {
     authorCategory: "International",
     route: "Fast-Track",
-    optionLabel: "International Author — Fast-Track (withdrawn)",
+    optionLabel: "International Author — Fast-Track",
   },
 };
 

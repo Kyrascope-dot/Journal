@@ -255,7 +255,7 @@ export function ApcPaymentSummary({
   const plan = MANUSCRIPT_PLAN_DETAILS[planId];
   const rows: { label: string; value: string; strong?: boolean }[] = [
     { label: "Author Category", value: plan.authorCategory },
-    ...(plan.route === "Fast-Track" ? [{ label: "Publication Route", value: plan.route }] : []),
+    { label: "Publication Route", value: plan.route },
     { label: "APC Before Tax", value: checkout.displayBaseAmount },
     {
       label: "Applicable GST / Tax",
@@ -563,7 +563,7 @@ export function ApcBillingForm({
 
       <Section number={4} title="APC Payment Details">
         <p className="text-sm leading-relaxed text-[var(--journal-body)]">
-          These details are set by the author category you selected and cannot be edited.
+          These details are set by the publication route you selected and cannot be edited.
         </p>
         <ApcPaymentSummary planId={planId} checkout={checkout} />
         <p className={hintClass}>
