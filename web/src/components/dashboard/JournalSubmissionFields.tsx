@@ -6,12 +6,10 @@ import { siteConfig } from "@/lib/site-config";
 import {
   JOURNAL_AUTHOR_REGION_OPTIONS,
   JOURNAL_FUNDING_OPTIONS,
-  JOURNAL_REVIEW_ROUTE_OPTIONS,
   RESEARCH_WORK_TYPES,
   journalDetailRows,
   type JournalAuthorRegion,
   type JournalFundingStatus,
-  type JournalReviewRoute,
   type JournalSubmissionDetails,
 } from "@/types/journal-submission";
 
@@ -21,7 +19,6 @@ type YesNo = "" | "yes" | "no";
 export type JournalFormState = {
   authorRegion: JournalAuthorRegion | "";
   authorCountry: string;
-  reviewRoute: JournalReviewRoute | "";
   researchWorkType: string;
   orcid: string;
   aiUsageUnder20Percent: YesNo;
@@ -38,7 +35,6 @@ export type JournalFormState = {
 export const EMPTY_JOURNAL_FORM: JournalFormState = {
   authorRegion: "",
   authorCountry: "",
-  reviewRoute: "",
   researchWorkType: "",
   orcid: "",
   aiUsageUnder20Percent: "",
@@ -64,7 +60,8 @@ export function journalFormToPayload(
     authorRegion: form.authorRegion || null,
     authorCountry: form.authorRegion === "national" ? HOME_COUNTRY : form.authorCountry,
     coAuthorCountries: coAuthors,
-    reviewRoute: form.reviewRoute || null,
+    // Fast-track was withdrawn; every submission follows the standard route.
+    reviewRoute: "normal",
     researchWorkType: form.researchWorkType,
     orcid: form.orcid,
     aiUsageUnder20Percent: yesNoToBoolean(form.aiUsageUnder20Percent),
@@ -234,13 +231,6 @@ export function JournalManuscriptFields({ value, onChange }: FieldProps) {
   return (
     <>
       <div>
-        <RadioGroup
-          name="journalReviewRoute"
-          legend="Submit for publication via"
-          options={JOURNAL_REVIEW_ROUTE_OPTIONS}
-          value={value.reviewRoute}
-          onChange={(reviewRoute) => onChange({ reviewRoute })}
-        />
         <p className={noteClass}>
           APC charges are applicable only after full acceptance of the paper. See{" "}
           <Link
@@ -250,7 +240,7 @@ export function JournalManuscriptFields({ value, onChange }: FieldProps) {
           >
             Publication fees
           </Link>{" "}
-          for the Normal and Fast-track charges.
+          for the charges.
         </p>
       </div>
       <div>

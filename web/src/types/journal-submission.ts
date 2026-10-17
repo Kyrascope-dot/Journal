@@ -159,10 +159,8 @@ export function validateJournalSubmissionDetails(
     coAuthorCountries.push({ name, country });
   }
 
-  const reviewRoute = raw.reviewRoute;
-  if (reviewRoute !== "normal" && reviewRoute !== "fast_track") {
-    return fail("Please select the Normal route or the Fast-track / expedited route.");
-  }
+  // Fast-track was withdrawn: new submissions always follow the standard route.
+  const reviewRoute: JournalReviewRoute = "normal";
 
   const researchWorkType = text(raw.researchWorkType, 100);
   if (!(RESEARCH_WORK_TYPES as readonly string[]).includes(researchWorkType)) {
@@ -298,7 +296,10 @@ export function journalDetailRows(
             .join(", ")
         : "No co-authors",
     },
-    { label: "Publication route", value: JOURNAL_REVIEW_ROUTE_LABELS[details.reviewRoute] },
+    // Only older submissions made while fast-track was offered show their route.
+    ...(details.reviewRoute === "fast_track"
+      ? [{ label: "Publication route", value: JOURNAL_REVIEW_ROUTE_LABELS[details.reviewRoute] }]
+      : []),
     ...(details.mentorName ? [{ label: "Name of mentor", value: details.mentorName }] : []),
     { label: "Type of research work", value: details.researchWorkType || "—" },
     { label: "ORCID", value: details.orcid ?? "Not provided" },

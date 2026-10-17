@@ -38,7 +38,7 @@ type PaymentMethod = "razorpay" | "paypal";
 type Step = "route" | "form" | "payment";
 
 const STEPS: { key: Step; label: string }[] = [
-  { key: "route", label: "Publication route" },
+  { key: "route", label: "Author category" },
   { key: "form", label: "APC form" },
   { key: "payment", label: "Payment" },
 ];
@@ -171,12 +171,12 @@ function ManuscriptPaymentCheckoutSignedIn() {
     setError("");
     setMessage("");
     if (!selectedPlanId) {
-      setError("Please select your publication route to continue.");
+      setError("Please select your author category to continue.");
       return;
     }
     if (!hasApprovedPrice) {
       setError(
-        `No approved APC is configured for the selected publication route, so payment cannot proceed. Please contact the Editorial Office at ${siteConfig.email}.`,
+        `No approved APC is configured for the selected author category, so payment cannot proceed. Please contact the Editorial Office at ${siteConfig.email}.`,
       );
       return;
     }
@@ -197,7 +197,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
       return;
     }
     if (!selectedPlanId || !selectedPlan || !hasApprovedPrice) {
-      setError("Please select your publication route.");
+      setError("Please select your author category.");
       setStep("route");
       return;
     }
@@ -318,13 +318,13 @@ function ManuscriptPaymentCheckoutSignedIn() {
               Manuscript Publication Payment
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-[var(--journal-body)]">
-              Select your publication route. You will then complete the {APC_FORM_TITLE} before
+              Select your author category. You will then complete the {APC_FORM_TITLE} before
               paying by Razorpay or PayPal.
             </p>
 
             <fieldset className="mt-5 space-y-2">
               <legend className="text-sm font-semibold text-[var(--journal-heading)]">
-                Select your publication route <span className="text-red-500">*</span>
+                Select your author category <span className="text-red-500">*</span>
               </legend>
               {MANUSCRIPT_PLAN_IDS.map((planId) => {
                 const plan = getPaymentPlan(planId);
@@ -355,7 +355,7 @@ function ManuscriptPaymentCheckoutSignedIn() {
                       <span className="mt-0.5 block text-xs text-[var(--journal-muted)]">
                         {priced && breakdown
                           ? breakdown.displaySummary
-                          : "No approved APC is configured for this route. Please contact the Editorial Office."}
+                          : "No approved APC is configured for this category. Please contact the Editorial Office."}
                       </span>
                     </span>
                   </label>

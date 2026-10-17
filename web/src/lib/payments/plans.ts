@@ -267,13 +267,20 @@ export const CONFERENCE_PAYMENT_PLANS: Record<
 export type ManuscriptPaymentPlanId = keyof typeof MANUSCRIPT_PAYMENT_PLANS;
 export type ConferencePaymentPlanId = keyof typeof CONFERENCE_PAYMENT_PLANS;
 
-/** Manuscript APC plans in display order. */
+/** Manuscript APC plans offered to authors, in display order. */
 export const MANUSCRIPT_PLAN_IDS: ManuscriptPaymentPlanId[] = [
   "manuscript_national_normal_inr",
-  "manuscript_national_fasttrack_inr",
   "manuscript_international_standard_usd",
-  "manuscript_international_fasttrack_usd",
 ];
+
+/**
+ * True for APC plans authors can still choose and pay. The paid fast-track
+ * plans were withdrawn; they stay defined only so existing payments and APC
+ * forms that used them still display correctly.
+ */
+export function isOfferedManuscriptPlan(planId: string | null | undefined): boolean {
+  return (MANUSCRIPT_PLAN_IDS as string[]).includes(planId ?? "");
+}
 
 /** Author category and route for each manuscript APC plan (shown on the APC form). */
 export const MANUSCRIPT_PLAN_DETAILS: Record<
@@ -288,22 +295,22 @@ export const MANUSCRIPT_PLAN_DETAILS: Record<
   manuscript_national_normal_inr: {
     authorCategory: "National",
     route: "Normal",
-    optionLabel: "National Author (India) — Normal Route",
+    optionLabel: "National Author (India)",
   },
   manuscript_national_fasttrack_inr: {
     authorCategory: "National",
     route: "Fast-Track",
-    optionLabel: "National Author (India) — Fast-Track",
+    optionLabel: "National Author (India) — Fast-Track (withdrawn)",
   },
   manuscript_international_standard_usd: {
     authorCategory: "International",
     route: "Normal",
-    optionLabel: "International Author — Normal Route",
+    optionLabel: "International Author",
   },
   manuscript_international_fasttrack_usd: {
     authorCategory: "International",
     route: "Fast-Track",
-    optionLabel: "International Author — Fast-Track",
+    optionLabel: "International Author — Fast-Track (withdrawn)",
   },
 };
 

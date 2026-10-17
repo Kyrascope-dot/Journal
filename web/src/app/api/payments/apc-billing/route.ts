@@ -6,6 +6,7 @@ import {
   getPaymentCheckoutBreakdown,
   getPaymentPlan,
   isManuscriptPlan,
+  isOfferedManuscriptPlan,
 } from "@/lib/payments/plans";
 import { verifyUserIdToken } from "@/lib/server/verify-user";
 
@@ -43,9 +44,12 @@ export async function POST(request: Request) {
 
     if (!isManuscriptPlan(body.planId)) {
       return NextResponse.json(
-        { error: "Please select a publication route before completing the APC form." },
+        { error: "Please select your author category before completing the APC form." },
         { status: 400 }
       );
+    }
+    if (!isOfferedManuscriptPlan(body.planId)) {
+      return NextResponse.json({ error: "The fast-track publication route has been withdrawn. Please choose the standard APC for your author category." }, { status: 400 });
     }
 
     // Pricing always comes from the server-side plan configuration.

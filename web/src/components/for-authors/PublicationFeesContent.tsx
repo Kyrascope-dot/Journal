@@ -68,21 +68,12 @@ export function PublicationFeesContent() {
         </h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <FeeCard
-            title="1. Normal Route"
+            title="Article Processing Charge"
             items={[
               "Publication Fee: ₹9,995",
               "GST @ 18%: ₹1,799.10",
               "Total Payable: ₹11,794.10",
               "Review timeline: Within 2 months",
-            ]}
-          />
-          <FeeCard
-            title="2. Fast-Track Route"
-            items={[
-              "Publication Fee: ₹12,288.14",
-              "GST @ 18%: ₹2,211.86",
-              "Total Payable: ₹14,500",
-              "Review timeline: Within 1 week",
             ]}
           />
         </div>
@@ -97,17 +88,10 @@ export function PublicationFeesContent() {
         </h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <FeeCard
-            title="1. Regular Publication"
+            title="Article Processing Charge"
             items={[
               "Publication Fee: USD 150",
               "Review timeline: Within 2 months",
-            ]}
-          />
-          <FeeCard
-            title="2. Fast-Track Publication"
-            items={[
-              "Publication Fee: USD 200",
-              "Review timeline: Within 1 week",
             ]}
           />
         </div>
@@ -123,8 +107,8 @@ export function PublicationFeesContent() {
           the initial submission or during the peer-review process.
         </p>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          Please note that fast-track processing provides an expedited review timeline. Acceptance
-          and publication remain subject to the journal&apos;s peer-review and editorial decision
+          Payment of the APC does not influence peer review or editorial decisions. Acceptance and
+          publication remain subject to the journal&apos;s peer-review and editorial decision
           process.
         </p>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
@@ -139,7 +123,7 @@ export function PublicationFeesContent() {
           Ready to Pay Your Publication Fee?
         </h3>
         <p className="mt-3 text-[15px] text-[var(--journal-body)]">
-          If your manuscript has been fully accepted, select your publication route, complete the
+          If your manuscript has been fully accepted, select your author category, complete the
           APC Payment and Billing Details Form, and then pay securely with Razorpay (INR or USD)
           or PayPal (USD only).
         </p>

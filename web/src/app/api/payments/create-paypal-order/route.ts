@@ -17,6 +17,7 @@ import {
   getPaymentPlan,
   isFeeWaiverPlan,
   isManuscriptPlan,
+  isOfferedManuscriptPlan,
   resolvePaymentPurpose,
   type PaymentPlanId,
 } from "@/lib/payments/plans";
@@ -99,6 +100,9 @@ export async function POST(request: Request) {
     // Manuscript APC payments must be based on a submitted APC billing form.
     let billingFormId: string | null = null;
     let manuscriptId: string | null = null;
+    if (isManuscriptPlan(plan.id) && !isOfferedManuscriptPlan(plan.id)) {
+      return NextResponse.json({ error: "The fast-track publication route has been withdrawn. Please choose the standard APC for your author category." }, { status: 400 });
+    }
     if (isManuscriptPlan(plan.id)) {
       try {
         const billingForm = await requireApcBillingFormForPayment({
