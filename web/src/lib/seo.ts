@@ -55,6 +55,7 @@ export function getPublicSitemapEntries(): SitemapEntry[] {
     { path: "/about/ethics", changeFrequency: "monthly", priority: 0.7 },
     { path: "/about/abstracting-and-indexing", changeFrequency: "monthly", priority: 0.8 },
     { path: "/about/copyright-and-licensing", changeFrequency: "yearly", priority: 0.6 },
+    { path: "/about/repository-policy", changeFrequency: "yearly", priority: 0.6 },
     { path: "/about/archiving-and-preservation", changeFrequency: "yearly", priority: 0.6 },
     { path: "/editorial", changeFrequency: "monthly", priority: 0.85 },
     { path: "/articles", changeFrequency: "weekly", priority: 0.9 },

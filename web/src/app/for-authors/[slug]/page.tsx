@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlindedManuscriptNotice } from "@/components/for-authors/BlindedManuscriptNotice";
@@ -10,6 +11,17 @@ type Props = { params: Promise<{ slug: string }> };
 
 export function generateStaticParams() {
   return forAuthorsSlugs.map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const page = forAuthorsPages[slug];
+  if (!page) return {};
+  return {
+    title: page.title,
+    description: page.intro,
+    alternates: { canonical: `/for-authors/${slug}` },
+  };
 }
 
 export default async function ForAuthorsSlugPage({ params }: Props) {

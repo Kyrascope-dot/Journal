@@ -20,6 +20,7 @@ export const mainNavGroups: NavGroup[] = [
       { href: "/about/ethics", label: "Publication Ethics" },
       { href: "/about/abstracting-and-indexing", label: "Abstracting & Indexing" },
       { href: "/about/copyright-and-licensing", label: "Copyright & Licensing" },
+      { href: "/about/repository-policy", label: "Repository Policy" },
       { href: "/about/archiving-and-preservation", label: "Archiving & Preservation" },
     ],
   },
@@ -33,6 +34,7 @@ export const mainNavGroups: NavGroup[] = [
       { href: "/for-authors/submit-manuscript", label: "Submit Manuscript" },
       { href: "/for-authors/publication-fees", label: "Publication Fees & Fee Waivers" },
       { href: "/for-authors/plagiarism-policy", label: "Author Policies" },
+      { href: "/for-authors/plagiarism-similarity-and-ai-policy", label: "Plagiarism & AI Policy" },
     ],
   },
   {
