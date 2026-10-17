@@ -82,7 +82,6 @@ export function PublicationFeesContent() {
               "Publication Fee: ₹12,288.14",
               "GST @ 18%: ₹2,211.86",
               "Total Payable: ₹14,500",
-              "Review timeline: Within 1 week",
             ]}
           />
         </div>
@@ -107,7 +106,6 @@ export function PublicationFeesContent() {
             title="2. Fast-Track Publication"
             items={[
               "Publication Fee: USD 200",
-              "Review timeline: Within 1 week",
             ]}
           />
         </div>

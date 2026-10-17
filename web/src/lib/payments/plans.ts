@@ -75,7 +75,7 @@ export const MANUSCRIPT_PAYMENT_PLANS: Record<
   manuscript_national_fasttrack_inr: {
     id: "manuscript_national_fasttrack_inr",
     label: "Fast-Track Route",
-    description: "National publication – review within 1 week",
+    description: "National publication – fast-track route",
     currency: "INR",
     amountMajor: 12288.14,
     amountMinor: 1228814,
@@ -96,12 +96,12 @@ export const MANUSCRIPT_PAYMENT_PLANS: Record<
   manuscript_international_fasttrack_usd: {
     id: "manuscript_international_fasttrack_usd",
     label: "Fast-Track Publication",
-    description: "International publication – review within 1 week",
+    description: "International publication – fast-track route",
     currency: "USD",
     amountMajor: 200,
     amountMinor: 20000,
     displayAmount: "USD 200",
-    checkoutHint: "Review timeline: within 1 week",
+    checkoutHint: "Fast-track publication route",
   },
 };
 

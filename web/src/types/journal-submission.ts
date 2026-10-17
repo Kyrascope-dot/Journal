@@ -41,7 +41,7 @@ export const JOURNAL_REVIEW_ROUTE_OPTIONS: {
   { value: "normal", label: "Normal route (review within 2 months)" },
   {
     value: "fast_track",
-    label: "Fast-track / expedited route (review within a week)",
+    label: "Fast-track / expedited route",
   },
 ];
 
@@ -60,7 +60,7 @@ export const JOURNAL_AUTHOR_REGION_LABELS: Record<JournalAuthorRegion, string> =
 
 export const JOURNAL_REVIEW_ROUTE_LABELS: Record<JournalReviewRoute, string> = {
   normal: "Normal route (review within 2 months)",
-  fast_track: "Fast-track / expedited route (review within a week)",
+  fast_track: "Fast-track / expedited route",
 };
 
 export const JOURNAL_FUNDING_LABELS: Record<JournalFundingStatus, string> = {
