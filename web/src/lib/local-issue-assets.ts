@@ -225,7 +225,7 @@ const VOL1_PAPERS: LocalPaper[] = [
     pageEnd: 90,
     title:
       "University Social Responsibility of Higher Educational Institutions in the Global South: A Case of Indian Academia",
-    authors: ["Jasleen Kaur"],
+    authors: ["Jasleen Kaur", "Neha Dawar"],
   },
 ];
 
