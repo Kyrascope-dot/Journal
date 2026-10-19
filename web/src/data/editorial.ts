@@ -53,8 +53,7 @@ export const editorialTeam: EditorialMember[] = [
     designation:
       "Guest Faculty (Economics), Delhi Technological University\nShahbad Daulatpur, Main Bawana Road, Rohini, New Delhi – 110042, India\n\nFormer Guest Faculty (Management), BML Munjal University.",
     emails: ["japjikaur_2k20phdhueco01@dtu.ac.in"],
-    scholarUrl:
-      "https://scholar.google.com/citations?user=r7M3fQgAAAAJ&hl=en",
+    scholarUrl: "https://scholar.google.com/citations?user=r7M3fQgAAAAJ&hl=en",
     linkedinUrl: "https://in.linkedin.com/in/dr-japji-kaur-4b4aa2128",
     rocketReachUrl: "https://rocketreach.co/japji-kaur-email_860322276",
     phdAwardedUrl: DTU_HUMANITIES_PHD_AWARDED_URL,
@@ -82,13 +81,13 @@ export const editorialTeam: EditorialMember[] = [
     id: "nand-kumar",
     name: "Prof. Nand Kumar",
     headline: "Editorial Board",
-    qualification:
-      "M.A. (JNU), Ph.D. (DTU). Specialization: Economics.",
+    qualification: "M.A. (JNU), Ph.D. (DTU). Specialization: Economics.",
     designation:
       "Professor and Head, Department of Humanities, Delhi Technological University\nDelhi, India",
     emails: ["nandkumar@dce.ac.in"],
     facultyUrl: "https://dtu.ac.in/Web/Departments/Humanities/about/",
-    facultyUrlLabel: "Department of Humanities | Delhi Technological University",
+    facultyUrlLabel:
+      "Department of Humanities | Delhi Technological University",
     imageSrc: "/editorial/nand-kumar.jpeg",
     bioParagraphs: [
       "Prof. Nand Kumar is a Professor of Economics in the Department of Humanities at Delhi Technological University, Delhi, and is presently heading the department. He earned his M.A. in Economics from Jawaharlal Nehru University (JNU), Delhi, and his Ph.D. from Delhi Technological University (DTU), Delhi.",
@@ -117,11 +116,27 @@ export const editorialTeam: EditorialMember[] = [
       "Ph.D. in Communication Engineering, Delhi Technological University",
     designation:
       "Assistant Professor, Indraprastha University, Main campus, Sector 16 C, Dwarka, New Delhi, Delhi, 110078.",
-    scholarUrl:
-      "https://scholar.google.com/citations?user=eNlmb8kAAAAJ&hl=en",
+    scholarUrl: "https://scholar.google.com/citations?user=eNlmb8kAAAAJ&hl=en",
     imageSrc: "/editorial/ishaansharma.jpeg",
     bioParagraphs: [
       "Dr. Sharma received his Ph.D. in Communication Engineering from Delhi Technological University (DTU). His research focuses on wireless communications, reconfigurable intelligent surfaces (RIS), multi-armed bandit algorithms, and hardware acceleration for intelligent communication systems. His work aims to develop efficient, adaptive, and energy-aware solutions for next-generation wireless networks.",
+    ],
+  },
+  {
+    id: "priyambada-gupta",
+    name: "Ms. Priyambada Gupta",
+    headline: "Editorial Board",
+    qualification:
+      "Ph.D., Delhi Technological University; Master's in Economics (Gold Medal), South Asian University",
+    designation:
+      "Assistant Professor, Department of Economics, Shyam Lal College, University of Delhi\nDelhi, India",
+    emails: ["priyambada.gupta@shyamlal.du.ac.in"],
+    facultyUrl:
+      "https://www.slc.du.ac.in/academics/departments/Economics/faculty-detiles/61",
+    facultyUrlLabel: "Shyam Lal College faculty page",
+    imageSrc: "/editorial/priyambada-gupta.jpeg",
+    bioParagraphs: [
+      "Ms. Priyambada Gupta is an Assistant Professor in the Department of Economics at Shyam Lal College, University of Delhi. She holds a Master’s degree in Economics from South Asian University, where she was awarded the Gold Medal, and a PhD from Delhi Technological University. Her research interests lie in higher education, the economics of education, and gender dimensions of education. She brings academic expertise in these areas to her role as a member of the Editorial Board of Global Confluence Review.",
     ],
   },
   {
@@ -133,8 +148,7 @@ export const editorialTeam: EditorialMember[] = [
       "Guest Faculty, Shri Vishwakarma Skill University\nHaryana, India\n\nGuest Faculty, National Institute of Technology (NIT) Kurukshetra\nKurukshetra, Haryana, India",
     emails: ["facultyofash4@svsu.ac.in"],
     linkedinUrl: "https://www.linkedin.com/in/parveen-kumar-bhatt-a2432690",
-    scopusUrl:
-      "https://www.scopus.com/authid/detail.uri?authorId=58825793300",
+    scopusUrl: "https://www.scopus.com/authid/detail.uri?authorId=58825793300",
     orcidUrl: "https://orcid.org/0000-0003-2333-9376",
     imageSrc: "/editorial/DrPraveen.jpeg",
     bioParagraphs: [
@@ -153,8 +167,7 @@ export const editorialTeam: EditorialMember[] = [
     emails: ["Mariem.aloulou@aue.ae"],
     facultyUrl: "https://aue.ae/dr-mariem-aloulou/",
     facultyUrlLabel: "Institutional profile",
-    scopusUrl:
-      "https://www.scopus.com/authid/detail.uri?authorId=57734007200",
+    scopusUrl: "https://www.scopus.com/authid/detail.uri?authorId=57734007200",
     imageSrc: "/editorial/mariam-aloulou.png",
     bioParagraphs: [
       "Dr. Mariam Aloulou is an Assistant Professor in the College of Business Administration at the American University in the Emirates (AUE).",
@@ -172,8 +185,7 @@ export const editorialTeam: EditorialMember[] = [
     emails: ["vishal.d@greatlakes.edu.in"],
     facultyUrl: "https://www.greatlakes.edu.in/gurgaon/faculty/vishal-dagar",
     facultyUrlLabel: "Great Lakes faculty page",
-    scholarUrl:
-      "https://scholar.google.com/citations?user=oSyUY9txtr0C&hl=en",
+    scholarUrl: "https://scholar.google.com/citations?user=oSyUY9txtr0C&hl=en",
     imageSrc: "/editorial/vishal-dagar.jpg",
     bioParagraphs: [
       "Dr. Vishal Dagar is an economist and researcher with more than five years of teaching and research experience across academia, policy, and industry. He is listed among the top 2% of scientists globally (Elsevier–Stanford composite score, 2023, 2024, and 2025).",
