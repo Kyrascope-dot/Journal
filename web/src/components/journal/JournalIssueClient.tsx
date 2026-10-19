@@ -3,6 +3,7 @@ import Link from "next/link";
 import { fetchIssueBySlugServer } from "@/lib/server/journal-data";
 import { demoArchiveIssues } from "@/lib/demo-data";
 import { mergeIssueWithLocalPapers } from "@/lib/local-issue-assets";
+import { findPublishedArticle } from "@/lib/article-metadata";
 import type { IssueWithArticles } from "@/types/journal";
 import { siteConfig } from "@/lib/site-config";
 import { ArticleList } from "@/components/journal/ArticleList";
@@ -64,15 +65,22 @@ export async function JournalIssueClient({ slug }: Props) {
     name: issue.archiveDisplayName ?? issue.title,
     datePublished: formatIsoDate(issue.publishedAt),
     url: `${siteConfig.siteUrl}/issues/${issue.slug}`,
-    hasPart: issue.articles.map((article) => ({
+    hasPart: issue.articles.map((article) => {
+      const landing = findPublishedArticle(article.id)?.landingPath;
+      return {
       "@type": "ScholarlyArticle",
       name: article.title,
       author: article.authors.map((name) => ({ "@type": "Person", name })),
       pageStart: article.pageStart,
       pageEnd: article.pageEnd,
       isPartOf: `${siteConfig.siteUrl}/issues/${issue.slug}`,
-      ...(article.pdfUrl ? { url: absoluteUrl(article.pdfUrl) } : {}),
-    })),
+      ...(landing
+        ? { url: absoluteUrl(landing) }
+        : article.pdfUrl
+          ? { url: absoluteUrl(article.pdfUrl) }
+          : {}),
+      };
+    }),
   };
 
   return (

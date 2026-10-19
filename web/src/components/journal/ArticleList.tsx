@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Article } from "@/types/journal";
+import { findPublishedArticle } from "@/lib/article-metadata";
 
 type Props = {
   articles: Article[];
@@ -17,21 +18,30 @@ export function ArticleList({ articles, issueSlug }: Props) {
 
   return (
     <ul className="mt-5 divide-y divide-[var(--journal-border)] border-y border-[var(--journal-border)]">
-      {articles.map((article) => (
+      {articles.map((article) => {
+        // Titles open the article page (citation details for Google Scholar); PDF stays on the button.
+        const landing = findPublishedArticle(article.id)?.landingPath;
+        return (
         <li
           key={article.id}
           className="flex flex-col gap-2 py-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6"
         >
           <div className="min-w-0 flex-1">
             <h3 className="font-serif text-lg font-medium leading-snug text-[var(--journal-heading)]">
-              <Link
-                // href={`/issues/${issueSlug}#${article.id}`}
-                href={article.pdfUrl as string}
-                target="_blank"
-                className="hover:underline"
-              >
-                {article.title}
-              </Link>
+              {landing ? (
+                <Link href={landing} className="hover:underline">
+                  {article.title}
+                </Link>
+              ) : (
+                <Link
+                  // href={`/issues/${issueSlug}#${article.id}`}
+                  href={article.pdfUrl as string}
+                  target="_blank"
+                  className="hover:underline"
+                >
+                  {article.title}
+                </Link>
+              )}
             </h3>
 
             {article.authors.length > 0 ? (
@@ -62,7 +72,8 @@ export function ArticleList({ articles, issueSlug }: Props) {
             )}
           </div>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }

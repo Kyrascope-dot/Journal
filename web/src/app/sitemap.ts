@@ -34,6 +34,7 @@ import { getPublicSitemapEntries, getSiteOrigin } from "@/lib/seo";
 import { fetchAllIssuesServer } from "@/lib/server/journal-data";
 import { mergeIssueLists } from "@/lib/local-issue-assets";
 import { toDateSafe } from "@/lib/format-dates";
+import { getPublishedArticles } from "@/lib/article-metadata";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = getSiteOrigin();
@@ -57,5 +58,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: issue.isCurrent ? 0.9 : 0.75,
   }));
 
-  return [...staticEntries, ...issueEntries];
+  const articleEntries: MetadataRoute.Sitemap = getPublishedArticles().map((article) => ({
+    url: `${origin}${article.landingPath}`,
+    lastModified: article.publishedAt ?? lastModified,
+    changeFrequency: "yearly",
+    priority: 0.7,
+  }));
+
+  return [...staticEntries, ...issueEntries, ...articleEntries];
 }
