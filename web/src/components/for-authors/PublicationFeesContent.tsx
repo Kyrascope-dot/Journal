@@ -121,9 +121,11 @@ export function PublicationFeesContent() {
           the initial submission or during the peer-review process.
         </p>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
-          Please note that fast-track processing provides an expedited review timeline. Acceptance
-          and publication remain subject to the journal&apos;s peer-review and editorial decision
-          process.
+          Please note that the fast-track route offers an expedited review timeline only. Choosing
+          fast-track does not mean or guarantee acceptance and does not affect editorial decisions.
+          Every manuscript, on either route, goes through the same double-blind peer review and
+          editorial evaluation, and acceptance depends only on the reviewers&apos; assessments and the
+          editors&apos; decision.
         </p>
         <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
           Once the manuscript has been fully accepted, the applicable payment details will be shared

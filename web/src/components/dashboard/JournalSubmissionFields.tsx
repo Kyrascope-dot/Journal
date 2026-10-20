@@ -250,7 +250,8 @@ export function JournalManuscriptFields({ value, onChange }: FieldProps) {
           >
             Publication fees
           </Link>{" "}
-          for the Normal and Fast-track charges.
+          for the Normal and Fast-track charges. Fast-track does not mean or guarantee acceptance
+          and does not affect editorial decisions; all manuscripts receive the same peer review.
         </p>
       </div>
       <div>
