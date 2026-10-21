@@ -88,12 +88,12 @@ export const TECH_RESEARCH_INTEGRITY_NOTE =
   "Submission to the GCR Tech Research Hub does not guarantee acceptance, presentation, or publication. All work is subject to editorial screening and academic assessment.";
 
 export const TECH_RESEARCH_DATAWAVES_COLLABORATION = {
-  partnerName: "DataWaves",
-  logoSrc: "/partners/datawaves-logo-black.png",
-  logoAlt: "DataWaves logo",
-  websiteUrl: "https://datawaves.in/",
-  websiteLabel: "datawaves.in",
-  headline: "GCR Tech Competition in collaboration with DataWaves",
+  partnerName: "IOTA Water",
+  logoSrc: "/partners/iota-water-logo.png",
+  logoAlt: "IOTA Water logo",
+  websiteUrl: "https://www.iotawater.com/",
+  websiteLabel: "iotawater.com",
+  headline: "GCR Tech Competition in collaboration with IOTA Water",
   description:
-    "Global Confluence Review is hosting a student technology research competition in collaboration with DataWaves. Submit your original projects through the Tech Research Hub to participate in editorial review and showcase your work.",
+    "Global Confluence Review is hosting a student technology research competition in collaboration with IOTA Water. Submit your original projects through the Tech Research Hub to participate in editorial review and showcase your work.",
 } as const;
