@@ -6,7 +6,7 @@ import {
 } from "@/lib/email/submission-notifications";
 import { getAdminFirestore, isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { verifyAdminIdToken } from "@/lib/server/verify-admin";
-import type { SubmissionStatus } from "@/types/dashboard";
+import type { CaseStatus, SubmissionStatus } from "@/types/dashboard";
 
 export const runtime = "nodejs";
 
@@ -20,9 +20,12 @@ const ALLOWED_STATUSES: SubmissionStatus[] = [
   "rejected",
 ];
 
+const ALLOWED_CASE_STATUSES: CaseStatus[] = ["open", "close"];
+
 type Body = {
   submissionId?: string;
   status?: SubmissionStatus;
+  caseStatus?: CaseStatus;
   statusNote?: string;
 };
 
@@ -45,12 +48,21 @@ export async function POST(request: Request) {
 
   const submissionId = body.submissionId?.trim();
   const status = body.status;
+  const caseStatus = body.caseStatus;
+  const hasStatusNote = Object.prototype.hasOwnProperty.call(body, "statusNote");
   const statusNote = body.statusNote?.trim().slice(0, 2_000) || null;
-  if (!submissionId || !status || !ALLOWED_STATUSES.includes(status)) {
+  if (
+    !submissionId ||
+    (!status && !caseStatus) ||
+    (status !== undefined && !ALLOWED_STATUSES.includes(status))
+  ) {
     return NextResponse.json(
       { error: "A valid submissionId and status are required." },
       { status: 400 }
     );
+  }
+  if (caseStatus !== undefined && !ALLOWED_CASE_STATUSES.includes(caseStatus)) {
+    return NextResponse.json({ error: "A valid case status is required." }, { status: 400 });
   }
 
   const db = getAdminFirestore();
@@ -67,31 +79,48 @@ export async function POST(request: Request) {
       if (!submissionSnap.exists) throw new Error("Submission not found.");
       const submission = submissionSnap.data()!;
       registrationId = String(submission.registrationId ?? submissionId);
-      if (submission.status === status && (submission.statusNote ?? null) === statusNote) {
+      const nextStatus = status ?? (submission.status as SubmissionStatus);
+      const nextCaseStatus = caseStatus ?? submission.caseStatus ?? "open";
+      const nextStatusNote = hasStatusNote
+        ? statusNote
+        : (submission.statusNote ?? null);
+      const statusChanged = submission.status !== nextStatus;
+      const statusNoteChanged = (submission.statusNote ?? null) !== nextStatusNote;
+      const caseStatusChanged = (submission.caseStatus ?? "open") !== nextCaseStatus;
+      const statusUpdateChanged = statusChanged || statusNoteChanged;
+      if (!statusUpdateChanged && !caseStatusChanged) {
         throw new Error("The submission already has this status and note.");
       }
 
-      const notification = triggerService.prepare(submissionId, submission, status);
-      transaction.update(submissionRef, {
-        status,
-        statusNote,
+      const notification = statusUpdateChanged
+        ? triggerService.prepare(submissionId, submission, nextStatus)
+        : null;
+      const update: Record<string, unknown> = {
+        caseStatus: nextCaseStatus,
         lastUpdatedAt: now,
-        lastEmailTemplate: notification?.templateKey ?? null,
-        emailStatus: notification ? "pending" : "not_required",
-        emailTimestamp: notification ? now : null,
-        deliveryStatus: notification ? "queued" : "not_applicable",
-      });
-      transaction.create(historyRef, {
-        registrationId,
-        status,
-        note: statusNote,
-        createdAt: now,
-        changedById: admin.uid,
-        changedByName: admin.email,
-        changedByRole: "admin",
-        emailTemplate: notification?.templateKey ?? null,
-        emailStatus: notification ? "pending" : "not_required",
-      });
+      };
+      if (statusUpdateChanged) {
+        Object.assign(update, {
+          status: nextStatus,
+          statusNote: nextStatusNote,
+          lastEmailTemplate: notification?.templateKey ?? null,
+          emailStatus: notification ? "pending" : "not_required",
+          emailTimestamp: notification ? now : null,
+          deliveryStatus: notification ? "queued" : "not_applicable",
+        });
+        transaction.create(historyRef, {
+          registrationId,
+          status: nextStatus,
+          note: nextStatusNote,
+          createdAt: now,
+          changedById: admin.uid,
+          changedByName: admin.email,
+          changedByRole: "admin",
+          emailTemplate: notification?.templateKey ?? null,
+          emailStatus: notification ? "pending" : "not_required",
+        });
+      }
+      transaction.update(submissionRef, update);
       if (notification) {
         notificationCreated = true;
         transaction.create(queueRef, {

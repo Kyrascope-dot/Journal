@@ -2,6 +2,7 @@
 
 import { getFirebaseAuth } from "@/lib/firebase";
 import type {
+  CaseStatus,
   ConferenceFeeWaiver,
   ConferenceTrack,
   SubmissionStatus,
@@ -24,6 +25,7 @@ async function adminRequest(path: string, init?: RequestInit) {
 export async function requestAdminStatusUpdate(payload: {
   submissionId: string;
   status: SubmissionStatus;
+  caseStatus?: CaseStatus;
   statusNote?: string;
 }): Promise<{
   statusUpdated: true;
