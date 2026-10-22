@@ -22,6 +22,7 @@ export const mainNavGroups: NavGroup[] = [
       { href: "/about/copyright-and-licensing", label: "Copyright & Licensing" },
       { href: "/about/repository-policy", label: "Repository Policy" },
       { href: "/about/archiving-and-preservation", label: "Archiving & Preservation" },
+      { href: "/about/faq", label: "FAQs" },
     ],
   },
   {
