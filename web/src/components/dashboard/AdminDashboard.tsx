@@ -123,6 +123,44 @@ type AdminTab =
 
 type YesNoFilter = "all" | "yes" | "no";
 type RegistrationIdPrefix = "all" | "GCRC" | "GCRJ" | "GCRT";
+type SubmissionDateFilter =
+  | "all"
+  | "this_month"
+  | "previous_month"
+  | "last_2_months"
+  | "last_6_months";
+
+const SUBMISSION_DATE_FILTERS: { value: SubmissionDateFilter; label: string }[] = [
+  { value: "all", label: "All time" },
+  { value: "this_month", label: "This month" },
+  { value: "previous_month", label: "Previous month" },
+  { value: "last_2_months", label: "Last 2 months" },
+  { value: "last_6_months", label: "Last 6 months" },
+];
+
+function matchesSubmissionDateFilter(
+  value: Submission["submittedAt"],
+  filter: SubmissionDateFilter,
+  now = new Date()
+): boolean {
+  if (filter === "all") return true;
+  if (!value) return false;
+
+  const submittedAt = value instanceof Date ? value : value.toDate();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  if (filter === "this_month") {
+    return submittedAt >= currentMonthStart && submittedAt <= now;
+  }
+  if (filter === "previous_month") {
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return submittedAt >= previousMonthStart && submittedAt < currentMonthStart;
+  }
+
+  const monthCount = filter === "last_2_months" ? 2 : 6;
+  const start = new Date(now.getFullYear(), now.getMonth() - monthCount + 1, 1);
+  return submittedAt >= start && submittedAt <= now;
+}
 
 function effectivePaymentLinkSent(
   sub: Submission,
@@ -177,6 +215,8 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
   const [filterCaseStatus, setFilterCaseStatus] = useState<CaseStatus | "all">("all");
   const [filterRegistrationPrefix, setFilterRegistrationPrefix] =
     useState<RegistrationIdPrefix>("all");
+  const [filterSubmittedDate, setFilterSubmittedDate] =
+    useState<SubmissionDateFilter>("all");
   const [paymentLinkPendingIds, setPaymentLinkPendingIds] = useState<Set<string>>(new Set());
   const [paymentLinkSentIds, setPaymentLinkSentIds] = useState<Set<string>>(new Set());
   const [paymentReminderPendingIds, setPaymentReminderPendingIds] = useState<Set<string>>(
@@ -252,6 +292,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
 
   const filteredSubs = submissions
     .filter((s) => {
+      if (!matchesSubmissionDateFilter(s.submittedAt, filterSubmittedDate)) return false;
       if (
         filterRegistrationPrefix !== "all" &&
         !s.registrationId.startsWith(`${filterRegistrationPrefix}-`)
@@ -427,6 +468,28 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
             <h2 className="font-serif text-xl font-semibold text-[var(--journal-heading)]">
               All Submissions
             </h2>
+            <div className="mt-4">
+              <p className="text-xs font-medium text-[var(--journal-muted)]">
+                Submission date
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Filter by submission date">
+                {SUBMISSION_DATE_FILTERS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={filterSubmittedDate === option.value}
+                    onClick={() => setFilterSubmittedDate(option.value)}
+                    className={`rounded border px-3 py-1.5 text-sm transition ${
+                      filterSubmittedDate === option.value
+                        ? "border-[var(--journal-accent)] bg-[var(--journal-accent)] font-medium text-white"
+                        : "border-[var(--journal-border)] bg-white text-[var(--journal-body)] hover:border-[var(--journal-accent)]"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="mt-4 flex flex-wrap gap-4">
               <div className="min-w-64 flex-1">
                 <label className="block text-xs font-medium text-[var(--journal-muted)]">
