@@ -122,6 +122,7 @@ type AdminTab =
   | "email_logs";
 
 type YesNoFilter = "all" | "yes" | "no";
+type RegistrationIdPrefix = "all" | "GCRC" | "GCRJ" | "GCRT";
 
 function effectivePaymentLinkSent(
   sub: Submission,
@@ -174,6 +175,8 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
   const [filterPaymentLinkSent, setFilterPaymentLinkSent] = useState<YesNoFilter>("all");
   const [filterPaymentReminderSent, setFilterPaymentReminderSent] = useState<YesNoFilter>("all");
   const [filterCaseStatus, setFilterCaseStatus] = useState<CaseStatus | "all">("all");
+  const [filterRegistrationPrefix, setFilterRegistrationPrefix] =
+    useState<RegistrationIdPrefix>("all");
   const [paymentLinkPendingIds, setPaymentLinkPendingIds] = useState<Set<string>>(new Set());
   const [paymentLinkSentIds, setPaymentLinkSentIds] = useState<Set<string>>(new Set());
   const [paymentReminderPendingIds, setPaymentReminderPendingIds] = useState<Set<string>>(
@@ -249,6 +252,12 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
 
   const filteredSubs = submissions
     .filter((s) => {
+      if (
+        filterRegistrationPrefix !== "all" &&
+        !s.registrationId.startsWith(`${filterRegistrationPrefix}-`)
+      ) {
+        return false;
+      }
       if (filterCategory !== "all" && s.category !== filterCategory) return false;
       if (filterStatus !== "all" && s.status !== filterStatus) return false;
       if (filterCaseStatus !== "all" && s.caseStatus !== filterCaseStatus) return false;
@@ -430,6 +439,23 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                   placeholder="Registration ID, title, author, or email"
                   className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
                 />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Registration ID prefix
+                </label>
+                <select
+                  value={filterRegistrationPrefix}
+                  onChange={(e) =>
+                    setFilterRegistrationPrefix(e.target.value as RegistrationIdPrefix)
+                  }
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="all">All prefixes</option>
+                  <option value="GCRC">GCRC (Conference)</option>
+                  <option value="GCRJ">GCRJ (Journal)</option>
+                  <option value="GCRT">GCRT (Tech Research)</option>
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-[var(--journal-muted)]">
