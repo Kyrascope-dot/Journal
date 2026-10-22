@@ -128,6 +128,9 @@ type SubmissionDateFilter =
   | "this_month"
   | "previous_month"
   | "last_2_months"
+  | "last_3_months"
+  | "last_4_months"
+  | "last_5_months"
   | "last_6_months";
 
 const SUBMISSION_DATE_FILTERS: { value: SubmissionDateFilter; label: string }[] = [
@@ -135,8 +138,22 @@ const SUBMISSION_DATE_FILTERS: { value: SubmissionDateFilter; label: string }[] 
   { value: "this_month", label: "This month" },
   { value: "previous_month", label: "Previous month" },
   { value: "last_2_months", label: "Last 2 months" },
+  { value: "last_3_months", label: "Last 3 months" },
+  { value: "last_4_months", label: "Last 4 months" },
+  { value: "last_5_months", label: "Last 5 months" },
   { value: "last_6_months", label: "Last 6 months" },
 ];
+
+const SUBMISSION_MONTH_COUNTS: Record<
+  Exclude<SubmissionDateFilter, "all" | "this_month" | "previous_month" >,
+  number
+> = {
+  last_2_months: 2,
+  last_3_months: 3,
+  last_4_months: 4,
+  last_5_months: 5,
+  last_6_months: 6,
+};
 
 function matchesSubmissionDateFilter(
   value: Submission["submittedAt"],
@@ -157,7 +174,7 @@ function matchesSubmissionDateFilter(
     return submittedAt >= previousMonthStart && submittedAt < currentMonthStart;
   }
 
-  const monthCount = filter === "last_2_months" ? 2 : 6;
+  const monthCount = SUBMISSION_MONTH_COUNTS[filter];
   const start = new Date(now.getFullYear(), now.getMonth() - monthCount + 1, 1);
   return submittedAt >= start && submittedAt <= now;
 }
