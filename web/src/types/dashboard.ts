@@ -14,6 +14,18 @@ export type UserProfile = {
   createdAt: Timestamp | Date | null;
 };
 
+export type CaseStatus = "open" | "close";
+
+export const CASE_STATUS_OPTIONS: { value: CaseStatus; label: string }[] = [
+  { value: "open", label: "Open" },
+  { value: "close", label: "Close" },
+];
+
+export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
+  open: "Open",
+  close: "Close",
+};
+
 export type SubmissionStatus =
   | "pending"
   | "editorial_screening"
@@ -169,6 +181,7 @@ export type Submission = {
   affiliation: string;
   category: string;
   status: SubmissionStatus;
+  caseStatus: CaseStatus;
   submittedAt: Timestamp | Date | null;
   lastUpdatedAt: Timestamp | Date | null;
   reviewDeadline: Timestamp | Date | null;

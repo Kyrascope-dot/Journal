@@ -14,6 +14,7 @@ import {
   findUserByEmail,
 } from "@/lib/firestore-users";
 import type {
+  CaseStatus,
   ConferenceAwardIntent,
   ConferenceFeeWaiver,
   ConferenceTrack,
@@ -23,6 +24,8 @@ import type {
   UserProfile,
 } from "@/types/dashboard";
 import {
+  CASE_STATUS_LABELS,
+  CASE_STATUS_OPTIONS,
   CONFERENCE_AWARD_OPTIONS,
   CONFERENCE_FEE_WAIVER_LABELS,
   CONFERENCE_FEE_WAIVER_OPTIONS,
@@ -170,6 +173,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
   const [filterPaymentCompleted, setFilterPaymentCompleted] = useState<YesNoFilter>("all");
   const [filterPaymentLinkSent, setFilterPaymentLinkSent] = useState<YesNoFilter>("all");
   const [filterPaymentReminderSent, setFilterPaymentReminderSent] = useState<YesNoFilter>("all");
+  const [filterCaseStatus, setFilterCaseStatus] = useState<CaseStatus | "all">("all");
   const [paymentLinkPendingIds, setPaymentLinkPendingIds] = useState<Set<string>>(new Set());
   const [paymentLinkSentIds, setPaymentLinkSentIds] = useState<Set<string>>(new Set());
   const [paymentReminderPendingIds, setPaymentReminderPendingIds] = useState<Set<string>>(
@@ -247,6 +251,7 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
     .filter((s) => {
       if (filterCategory !== "all" && s.category !== filterCategory) return false;
       if (filterStatus !== "all" && s.status !== filterStatus) return false;
+      if (filterCaseStatus !== "all" && s.caseStatus !== filterCaseStatus) return false;
       if (filterPurpose !== "all" && s.submissionPurpose !== filterPurpose) return false;
       if (filterConferenceTrack !== "all") {
         if (s.submissionPurpose !== "conference") return false;
@@ -583,6 +588,25 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
               </div>
               <div>
                 <label className="block text-xs font-medium text-[var(--journal-muted)]">
+                  Case status
+                </label>
+                <select
+                  value={filterCaseStatus}
+                  onChange={(e) =>
+                    setFilterCaseStatus(e.target.value as CaseStatus | "all")
+                  }
+                  className="mt-1 rounded border border-[var(--journal-border)] px-3 py-1.5 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+                >
+                  <option value="all">All</option>
+                  {CASE_STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--journal-muted)]">
                   Sort by
                 </label>
                 <select
@@ -638,6 +662,15 @@ export function AdminDashboard({ profile }: { profile: UserProfile }) {
                         status={sub.status}
                         purpose={sub.submissionPurpose}
                       />
+                      <span
+                        className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+                          sub.caseStatus === "close"
+                            ? "border-red-200 bg-red-50 text-red-700"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        }`}
+                      >
+                        {CASE_STATUS_LABELS[sub.caseStatus ?? "open"]}
+                      </span>
                       <button
                         type="button"
                         onClick={() =>
@@ -718,6 +751,7 @@ function SubmissionPanel({
     submission.assignedReviewerId ?? ""
   );
   const [status, setStatus] = useState<SubmissionStatus>(submission.status);
+  const [caseStatus, setCaseStatus] = useState<CaseStatus>(submission.caseStatus ?? "open");
   const [statusNote, setStatusNote] = useState(submission.statusNote ?? "");
   const [reviewDeadline, setReviewDeadline] = useState(
     formatDateInput(submission.reviewDeadline)
@@ -762,6 +796,7 @@ function SubmissionPanel({
     setSelectedEditorId(submission.assignedEditorId ?? "");
     setSelectedReviewerId(submission.assignedReviewerId ?? "");
     setStatus(submission.status);
+    setCaseStatus(submission.caseStatus ?? "open");
     setStatusNote(submission.statusNote ?? "");
     setReviewDeadline(formatDateInput(submission.reviewDeadline));
     setConferenceTrack(submission.conferenceTrack ?? "");
@@ -782,6 +817,7 @@ function SubmissionPanel({
     submission.assignedEditorId,
     submission.assignedReviewerId,
     submission.status,
+    submission.caseStatus,
     submission.statusNote,
     submission.reviewDeadline,
     submission.conferenceTrack,
@@ -879,12 +915,14 @@ function SubmissionPanel({
       }
       if (
         status !== submission.status ||
+        caseStatus !== (submission.caseStatus ?? "") ||
         statusNote !== (submission.statusNote ?? "")
       ) {
         const result = await requestAdminStatusUpdate({
           submissionId: submission.id,
           status,
-          statusNote: statusNote || undefined,
+          caseStatus,
+          statusNote,
         });
         if (!result.emailRequired) {
           setStatusMsg("✓ Status Updated Successfully · No email required for this status");
@@ -1194,6 +1232,22 @@ function SubmissionPanel({
             ))}
           </select>
         </div>
+        <div>
+          <label className="block text-xs font-medium text-[var(--journal-muted)]">
+            Case status
+          </label>
+          <select
+            value={caseStatus}
+            onChange={(e) => setCaseStatus(e.target.value as CaseStatus)}
+            className="mt-1 w-full rounded border border-[var(--journal-border)] px-3 py-2 text-sm focus:border-[var(--journal-accent)] focus:outline-none"
+          >
+            {CASE_STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
       <div className="mt-3">
         <label className="block text-xs font-medium text-[var(--journal-muted)]">
@@ -1406,7 +1460,6 @@ function SubmissionPanel({
           ) : null}
         </div>
       ) : null}
-
       {submission.submissionPurpose === "conference" ? (
         <ConferenceAbstractAcceptedSection submission={submission} />
       ) : null}

@@ -92,6 +92,7 @@ function mapSubmission(
         ? parseConferenceFeeWaiver(data.conferenceFeeWaiver) ?? "none"
         : null,
     status: (data.status as SubmissionStatus) ?? "pending",
+    caseStatus: parseCaseStatus(data.caseStatus) ?? "open",
     submittedAt: data.submittedAt as Submission["submittedAt"],
     lastUpdatedAt: data.lastUpdatedAt as Submission["lastUpdatedAt"],
     reviewDeadline: (data.reviewDeadline ?? null) as Submission["reviewDeadline"],
@@ -491,4 +492,10 @@ export async function getComments(submissionId: string): Promise<Comment[]> {
     };
     return toMs(a.createdAt) - toMs(b.createdAt);
   });
+}
+
+/** Parse case status from Firestore data. */
+function parseCaseStatus(value: unknown): "open" | "close" | null {
+  if (value === "open" || value === "close") return value;
+  return null;
 }
