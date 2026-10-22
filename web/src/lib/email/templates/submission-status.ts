@@ -141,7 +141,7 @@ function conferenceAcceptedContent(
     sections.splice(1, 0, {
       heading: "Best Paper Award",
       paragraphs: [
-        `For scholars who have opted for the Best Paper Award, please submit your title page and blinded manuscript to the Editorial Office at ${siteConfig.email} for further consideration.`,
+        `For scholars who have opted for the Best Paper Award, please email your blinded manuscript, separate title page and Turnitin or other plagiarism / AI report to the Editorial Office at ${siteConfig.email} for further consideration. Please write your Registration ID (${context.registrationId}) in the email subject.`,
       ],
     });
   }
@@ -204,6 +204,7 @@ const TEMPLATE_CONTENT: Record<
       "Current Status: Editorial Screening",
     ],
     nextSteps: [
+      `Email your blinded manuscript (Word), separate title page (Word) and Turnitin or other plagiarism / AI report to ${siteConfig.email}, with your Registration ID (${context.registrationId}) in the email subject.`,
       "Track the submission in your Author Dashboard.",
       "Keep your Registration ID for all future correspondence.",
     ],

@@ -57,18 +57,36 @@ const BEST_PRESENTER_NOTE =
 const BEST_PRESENTER_SUBMISSION_NOTE =
   "Under the Best Presenter category, you do not need to submit a full paper to GCR. You only need to present your research paper through a PowerPoint (PPT) presentation at the conference.";
 
-function ManuscriptEmailInstructions({ className = "" }: { className?: string }) {
+function ManuscriptEmailInstructions({
+  className = "",
+  registrationId,
+}: {
+  className?: string;
+  /** When known, shown in the subject instruction and pre-filled in the email link. */
+  registrationId?: string;
+}) {
+  const mailto = registrationId
+    ? `mailto:${siteConfig.email}?subject=${encodeURIComponent(registrationId)}`
+    : `mailto:${siteConfig.email}`;
   return (
     <div className={`leading-relaxed ${className}`}>
-      <p>Authors must submit a blinded manuscript and a separate title page in Word format.</p>
+      <p>
+        Authors must email the following to the editorial office: (1) the blinded manuscript
+        (Word), (2) a separate title page (Word), and (3) the Turnitin or other plagiarism / AI
+        report.
+      </p>
       <p className="mt-2">
         Email:{" "}
         <a
-          href={`mailto:${siteConfig.email}`}
+          href={mailto}
           className="font-medium text-[var(--journal-accent)] underline decoration-[var(--journal-accent)]/40 underline-offset-2 hover:decoration-[var(--journal-accent)]"
         >
           {siteConfig.email}
         </a>
+      </p>
+      <p className="mt-2 font-medium">
+        Please write your Registration ID
+        {registrationId ? <> ({registrationId})</> : null} in the email subject.
       </p>
       <p className="mt-2">
         The blinded manuscript must not contain author names, affiliations, acknowledgements or
@@ -328,7 +346,10 @@ export function ScholarDashboard({
                 {BEST_PRESENTER_SUBMISSION_NOTE}
               </p>
             ) : (
-              <ManuscriptEmailInstructions className="mt-2 text-emerald-950" />
+              <ManuscriptEmailInstructions
+                className="mt-2 text-emerald-950"
+                registrationId={lastSubmission?.registrationId}
+              />
             )}
             <p className="mt-2 text-emerald-800">
               You can track your abstract under My Submissions.
@@ -834,7 +855,8 @@ export function ScholarDashboard({
                   </p>
                   <p className="mt-1">
                     Step 1: Submit your abstract using the button below. Step 2: Email the blinded
-                    manuscript and separate title page to the editorial team.
+                    manuscript, separate title page and Turnitin / AI report to the editorial
+                    team, with your Registration ID in the email subject.
                   </p>
                   <ManuscriptEmailInstructions className="mt-2 text-[var(--journal-muted)]" />
                 </div>
