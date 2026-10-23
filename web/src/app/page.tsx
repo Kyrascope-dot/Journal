@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/AppShell";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeTrustStrip } from "@/components/home/HomeSections";
@@ -15,6 +16,10 @@ import { HomeFinancialAssistance } from "@/components/fees/FeeWaiverNotice";
 import { JournalHomeClient } from "@/components/journal/JournalHomeClient";
 import { contentShell } from "@/lib/content-layout";
 import { getIssnLabel } from "@/lib/journal-settings";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 /** Revalidate hourly so newly published issues appear without a full redeploy. */
 export const revalidate = 3600;

@@ -18,6 +18,7 @@ export function BlindedManuscriptNotice({ className = "" }: { className?: string
       <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px] text-[var(--journal-body)]">
         <li>A blinded manuscript</li>
         <li>A separate title page</li>
+        <li>A Turnitin or other plagiarism / AI report</li>
       </ul>
       <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
         Email:{" "}
@@ -27,6 +28,9 @@ export function BlindedManuscriptNotice({ className = "" }: { className?: string
         >
           {siteConfig.email}
         </a>
+      </p>
+      <p className="mt-2 text-[15px] font-medium leading-relaxed text-[var(--journal-heading)]">
+        Please write your Registration ID in the email subject.
       </p>
       <p className="mt-4 text-[15px] leading-relaxed text-[var(--journal-body)]">
         The blinded manuscript must not contain author names, affiliations, acknowledgements or

@@ -46,8 +46,10 @@ Do not claim indexing status that is not listed on the Abstracting & Indexing pa
 
 - [Home](${origin}/): Journal overview and current announcements
 - [About the Journal](${origin}/about/journal): Mission, scope, and publication model
+- [FAQs](${origin}/about/faq): Short answers on who can publish, peer review, open access, fees, indexing and submission
 - [Aims & Scope](${origin}/about/aims-and-scope): Disciplinary coverage
 - [Young Researchers’ Hub](${origin}/research/young-researchers-hub): High-school and student research pathway
+- [Tech Research Hub](${origin}/tech-research): Student technology research pathway and GCR × IOTA Water competition
 - [GCR Research Competitions](${origin}/research-competitions): Global Young Researchers Competition 2026
 - [Editorial Board](${origin}/editorial): Editors and board members
 - [Peer Review Process](${origin}/about/peer-review): Review policy
@@ -55,10 +57,10 @@ Do not claim indexing status that is not listed on the Abstracting & Indexing pa
 - [Author Guidelines](${origin}/for-authors/author-guidelines): Manuscript preparation
 - [Submit Manuscript](${origin}/for-authors/submit-manuscript): How to submit
 - [Archives / Issues](${origin}/issues): Published volumes
-- [Articles](${origin}/articles): Article listing
+- [Articles](${origin}/articles): Article listing; every published article also has its own page at ${origin}/articles/<article-id> with title, authors, volume, issue, pages, year, licence and PDF
+- [Publication Fees](${origin}/for-authors/publication-fees): APC payable only after acceptance; need-based waivers
 - [Conferences](${origin}/conferences): GCR Conference + Colloquia/Workshop series
 - [Conference Registration](${origin}/conferences/register): Registration deadline and process
-- [Conference Payment](${origin}/conferences/payment): Registration fees
 - [Contact](${origin}/contact): Editorial office contact
 - [Sitemap](${origin}/sitemap.xml): Machine-readable site map
 - [Robots](${origin}/robots.txt): Crawler policy
